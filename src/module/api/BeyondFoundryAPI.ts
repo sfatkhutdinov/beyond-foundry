@@ -1,6 +1,22 @@
 /**
- * D&D Beyond API Integration
- * Handles communication with D&D Beyond services
+ * Beyond Foundry - D&D Beyond Importer for FoundryVTT
+ * 
+ * COPILOT CONTEXT:
+ * - We have ddb-proxy running at http://localhost:3100
+ * - Use existing proxy endpoints, don't create new proxy
+ * - Reference ddb-importer for parsing patterns
+ * - Follow FoundryVTT D&D 5e system data structure
+ * 
+ * CURRENT TASK: Implement character import using ddb-proxy
+ * 
+ * PROXY ENDPOINTS:
+ * - GET  /ping - Health check
+ * - POST /proxy/auth - Authenticate with cobaltToken
+ * - POST /proxy/api/character/get - Get character data
+ * - POST /proxy/api/character/list - List characters
+ * 
+ * @see beyond-foundry.instructions.md for full details
+ * @see proxy-testing.instructions.md for testing examples
  */
 
 import { DDBCharacter, ImportResult, ImportOptions } from '../../types/index.js';
