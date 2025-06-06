@@ -1,0 +1,354 @@
+<div class="beyond-foundry-character-import-dialog">
+  <div class="import-header">
+    <h2>Import D&D Beyond Characters</h2>
+    <p>Select characters from your D&D Beyond account to import into FoundryVTT.</p>
+  </div>
+
+  {{#unless isAuthenticated}}
+    <div class="auth-required">
+      <div class="warning-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Authentication required to access your D&D Beyond characters.</span>
+      </div>
+      <button type="button" class="authenticate primary">
+        <i class="fas fa-sign-in-alt"></i> Authenticate with D&D Beyond
+      </button>
+    </div>
+  {{else}}
+    <div class="character-controls">
+      <div class="control-group">
+        <button type="button" class="load-characters">
+          <i class="fas fa-download"></i> Load Characters
+        </button>
+        <button type="button" class="refresh-characters" {{#if loading}}disabled{{/if}}>
+          <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+      </div>
+      
+      {{#if hasCharacters}}
+        <div class="selection-controls">
+          <button type="button" class="select-all">Select All</button>
+          <button type="button" class="select-none">Select None</button>
+          <span class="selection-count">{{selectedCount}} selected</span>
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="character-list-container">
+      {{#if loading}}
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>Loading characters from D&D Beyond...</span>
+        </div>
+      {{else if hasCharacters}}
+        <div class="character-list">
+          {{#each characters}}
+            <div class="character-item {{#if selected}}selected{{/if}}">
+              <div class="character-checkbox-container">
+                <input 
+                  type="checkbox" 
+                  class="character-checkbox" 
+                  data-character-id="{{id}}"
+                  {{#if selected}}checked{{/if}}
+                />
+              </div>
+              
+              <div class="character-avatar">
+                {{#if avatarUrl}}
+                  <img src="{{avatarUrl}}" alt="{{name}}" />
+                {{else}}
+                  <i class="fas fa-user"></i>
+                {{/if}}
+              </div>
+              
+              <div class="character-info">
+                <h4 class="character-name">{{name}}</h4>
+                <div class="character-details">
+                  {{#if race}}
+                    <span class="character-race">{{race.fullName}}</span>
+                  {{/if}}
+                  
+                  {{#if classes}}
+                    <span class="character-classes">
+                      {{#each classes}}
+                        {{definition.name}} {{level}}{{#unless @last}}, {{/unless}}
+                      {{/each}}
+                    </span>
+                  {{/if}}
+                </div>
+                
+                {{#if campaign}}
+                  <div class="character-campaign">
+                    <i class="fas fa-flag"></i> {{campaign.name}}
+                  </div>
+                {{/if}}
+              </div>
+              
+              <div class="character-level">
+                <span class="level-badge">Level {{totalLevel}}</span>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <div class="empty-state">
+          <i class="fas fa-user-slash"></i>
+          <p>No characters found. Click "Load Characters" to fetch from D&D Beyond.</p>
+        </div>
+      {{/if}}
+    </div>
+
+    {{#if hasCharacters}}
+      <div class="import-actions">
+        <button type="button" class="import-characters primary" disabled>
+          <i class="fas fa-download"></i> Import Selected Characters
+        </button>
+        <button type="button" class="cancel secondary" onclick="this.closest('.app').querySelector('.close').click()">
+          Cancel
+        </button>
+      </div>
+    {{/if}}
+  {{/unless}}
+</div>
+
+<style>
+.beyond-foundry-character-import-dialog {
+  padding: 1rem;
+  min-height: 400px;
+}
+
+.import-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.import-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-dark-primary);
+}
+
+.auth-required {
+  text-align: center;
+  padding: 2rem;
+}
+
+.warning-box {
+  background: var(--color-bg-warning);
+  color: var(--color-text-warning);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.character-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.control-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.selection-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selection-count {
+  color: var(--color-text-light-6);
+  font-size: 0.9rem;
+}
+
+.character-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.loading-state, .empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-light-6);
+}
+
+.loading-state i {
+  margin-right: 0.5rem;
+}
+
+.character-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.character-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.character-item:hover {
+  background: var(--color-bg-alt);
+}
+
+.character-item.selected {
+  background: var(--color-bg-option);
+}
+
+.character-item:last-child {
+  border-bottom: none;
+}
+
+.character-checkbox-container {
+  margin-right: 0.75rem;
+}
+
+.character-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  border: 2px solid var(--color-border-light);
+}
+
+.character-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.character-avatar i {
+  font-size: 1.2rem;
+  color: var(--color-text-light-6);
+}
+
+.character-info {
+  flex: 1;
+}
+
+.character-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.character-details {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.character-race, .character-classes {
+  font-size: 0.85rem;
+  color: var(--color-text-light-7);
+}
+
+.character-campaign {
+  font-size: 0.8rem;
+  color: var(--color-text-light-6);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.character-level {
+  margin-left: 1rem;
+}
+
+.level-badge {
+  background: var(--color-bg-option);
+  color: var(--color-text-dark-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.import-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.import-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.import-actions .primary {
+  background: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+}
+
+.import-actions .primary:hover:not(:disabled) {
+  background: var(--color-button-primary-bg-hover);
+}
+
+.import-actions .primary:disabled {
+  background: var(--color-button-disabled-bg);
+  color: var(--color-button-disabled-text);
+  cursor: not-allowed;
+}
+
+.import-actions .secondary {
+  background: var(--color-button-secondary-bg);
+  color: var(--color-button-secondary-text);
+}
+
+.authenticate, .load-characters, .refresh-characters, .select-all, .select-none {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--color-button-secondary-bg);
+  color: var(--color-button-secondary-text);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.authenticate.primary {
+  background: var(--color-button-primary-bg);
+  color: var(--color-button-primary-text);
+}
+
+.authenticate:hover, .load-characters:hover, .refresh-characters:hover:not(:disabled) {
+  background: var(--color-button-secondary-bg-hover);
+}
+
+.authenticate.primary:hover {
+  background: var(--color-button-primary-bg-hover);
+}
+
+.refresh-characters:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

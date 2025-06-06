@@ -17,7 +17,8 @@ export const SETTINGS = {
   API_ENDPOINT: 'apiEndpoint',
   DEBUG_MODE: 'debugMode',
   AUTO_IMPORT_ITEMS: 'autoImportItems',
-  IMPORT_POLICY: 'importPolicy'
+  IMPORT_POLICY: 'importPolicy',
+  COBALT_TOKEN: 'cobaltToken'
 } as const;
 
 // Default import options

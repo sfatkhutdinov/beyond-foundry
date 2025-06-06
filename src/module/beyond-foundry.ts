@@ -2,6 +2,7 @@ import { MODULE_ID, MODULE_NAME } from './constants.js';
 import { registerSettings } from './utils/settings.js';
 import { Logger } from './utils/logger.js';
 import { BeyondFoundryAPI } from './api/BeyondFoundryAPI.js';
+import { CharacterImportDialog } from './apps/CharacterImportDialog.js';
 
 /**
  * Beyond Foundry Module Entry Point
@@ -51,8 +52,7 @@ Hooks.on('getActorSheetHeaderButtons', (app: any, buttons: any[]) => {
     icon: 'fas fa-download',
     onclick: () => {
       Logger.info('D&D Beyond import button clicked');
-      ui.notifications.info('D&D Beyond import dialog - Coming Soon!');
-      // TODO: Open import dialog
+      CharacterImportDialog.show();
     }
   });
 });
@@ -65,8 +65,7 @@ Hooks.on('getActorDirectoryEntryContext', (html: any, options: any[]) => {
     condition: () => game.system.id === 'dnd5e',
     callback: () => {
       Logger.info('D&D Beyond import context menu clicked');
-      ui.notifications.info('D&D Beyond import dialog - Coming Soon!');
-      // TODO: Open import dialog
+      CharacterImportDialog.show();
     }
   });
 });

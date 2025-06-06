@@ -1,0 +1,425 @@
+{
+  "characterName": "Yelris Lethassethra",
+  "totalItems": 17,
+  "itemsByType": {
+    "equipment": [
+      {
+        "name": "Sentinel Shield",
+        "equipped": true,
+        "rarity": "uncommon",
+        "weight": 6,
+        "quantity": 1
+      },
+      {
+        "name": "Shield",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 6,
+        "quantity": 1
+      },
+      {
+        "name": "Leather",
+        "equipped": true,
+        "rarity": "common",
+        "weight": 10,
+        "quantity": 1
+      }
+    ],
+    "loot": [
+      {
+        "name": "Staff of the Adder",
+        "equipped": true,
+        "rarity": "uncommon",
+        "weight": 0,
+        "quantity": 1
+      },
+      {
+        "name": "Manacles",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 6,
+        "quantity": 1
+      },
+      {
+        "name": "Horn",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 2,
+        "quantity": 1
+      },
+      {
+        "name": "Backpack",
+        "equipped": true,
+        "rarity": "common",
+        "weight": 5,
+        "quantity": 1
+      },
+      {
+        "name": "Herbalism Kit",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 3,
+        "quantity": 1
+      },
+      {
+        "name": "Staff",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 4,
+        "quantity": 1
+      },
+      {
+        "name": "Oil",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 1,
+        "quantity": 2
+      },
+      {
+        "name": "Rations",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 2,
+        "quantity": 10
+      },
+      {
+        "name": "Rope",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 5,
+        "quantity": 1
+      },
+      {
+        "name": "Bedroll",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 7,
+        "quantity": 1
+      },
+      {
+        "name": "Tinderbox",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 1,
+        "quantity": 1
+      },
+      {
+        "name": "Torch",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 1,
+        "quantity": 10
+      },
+      {
+        "name": "Waterskin",
+        "equipped": false,
+        "rarity": "common",
+        "weight": 5,
+        "quantity": 1
+      }
+    ],
+    "weapon": [
+      {
+        "name": "Sickle",
+        "equipped": true,
+        "rarity": "common",
+        "weight": 2,
+        "quantity": 1
+      }
+    ]
+  },
+  "totalWeight": 94,
+  "equippedItems": [
+    {
+      "name": "Sentinel Shield",
+      "type": "equipment",
+      "img": "icons/equipment/chest/breastplate-scale-grey.webp",
+      "system": {
+        "description": {
+          "value": "<p>While holding this Shield, you have Advantage on Initiative rolls and Wisdom (Perception) checks. The Shield is emblazoned with a symbol of an eye.</p>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 6,
+        "price": {
+          "value": 0,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "uncommon",
+        "identified": true,
+        "attunement": 0,
+        "armor": {
+          "value": 2,
+          "dex": null,
+          "flat": false
+        },
+        "baseItem": "",
+        "strength": 0,
+        "stealth": false,
+        "proficient": false
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 5403,
+          "ddbType": "Armor",
+          "isHomebrew": false,
+          "rarity": "Uncommon",
+          "lastSync": 1749248744265
+        }
+      }
+    },
+    {
+      "name": "Staff of the Adder",
+      "type": "loot",
+      "img": "https://www.dndbeyond.com/avatars/45205/863/638657414128740626.jpeg?width=350&height=350&fit=bounds&quality=95&auto=webp",
+      "system": {
+        "description": {
+          "value": "<p>As a Bonus Action, you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its inanimate form.</p>\r\n<p>When you take the Attack action, you can make one of the attack rolls using the animated snake head, which has a reach of 5 feet. Apply your Proficiency Bonus and Wisdom modifier to the attack roll. On a hit, the target takes 1d6 Piercing damage and 3d6 Poison damage.</p>\r\n<p>The snake head can be attacked while it is animate. It has AC 15, HP 20, and Immunity to Poison and Psychic damage. If the head drops to 0 Hit Points, the staff is destroyed. As long as it’s not destroyed, the staff regains all lost Hit Points when it reverts to its inanimate form.</p>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 0,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "uncommon",
+        "identified": true,
+        "attunement": 0
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 9229100,
+          "ddbType": "Staff",
+          "isHomebrew": false,
+          "rarity": "Uncommon",
+          "lastSync": 1749248744265
+        }
+      }
+    },
+    {
+      "name": "Leather",
+      "type": "equipment",
+      "img": "icons/equipment/chest/breastplate-scale-grey.webp",
+      "system": {
+        "description": {
+          "value": "<p>The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil. The rest of the armor is made of softer and more flexible materials.</p>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 10,
+        "price": {
+          "value": 10,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "common",
+        "identified": true,
+        "attunement": 0,
+        "armor": {
+          "value": 2,
+          "dex": null,
+          "flat": false
+        },
+        "baseItem": "",
+        "strength": 0,
+        "stealth": false,
+        "proficient": false
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 10,
+          "ddbType": "Armor",
+          "isHomebrew": false,
+          "rarity": "Common",
+          "lastSync": 1749248744266
+        }
+      }
+    },
+    {
+      "name": "Sickle",
+      "type": "weapon",
+      "img": "icons/weapons/swords/sword-broad-silver.webp",
+      "system": {
+        "description": {
+          "value": "<p>Proficiency with a Sickle allows you to add your proficiency bonus to the attack roll for any attack you make with it.</p>\r\n<div class=\"mastery-container\"><hr />\r\n<p>This weapon has the following mastery property. To use this property, you must have a feature that lets you use it.</p>\r\n<p><strong><em>Nick.</em></strong> When you make the extra attack of the Light property, you can make it as part of the Attack action instead of as a Bonus Action. You can make this extra attack only once per turn.</p>\r\n</div>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 2,
+        "price": {
+          "value": 1,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "common",
+        "identified": true,
+        "attunement": 0,
+        "weaponType": "simpleM",
+        "baseItem": "",
+        "damage": {
+          "parts": [
+            [
+              "1d6",
+              "slashing"
+            ]
+          ],
+          "versatile": ""
+        },
+        "range": {
+          "value": 5,
+          "long": null,
+          "units": "ft"
+        },
+        "properties": {},
+        "proficient": false,
+        "actionType": "mwak",
+        "attackBonus": "0",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": null,
+          "scaling": "spell"
+        }
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 13,
+          "ddbType": "Weapon",
+          "isHomebrew": false,
+          "rarity": "Common",
+          "lastSync": 1749248744266
+        }
+      }
+    },
+    {
+      "name": "Backpack",
+      "type": "loot",
+      "img": "icons/containers/bags/pack-leather-brown.webp",
+      "system": {
+        "description": {
+          "value": "<p>A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag.</p>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 5,
+        "price": {
+          "value": 2,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "common",
+        "identified": true,
+        "attunement": 0
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 399,
+          "ddbType": "Other Gear",
+          "isHomebrew": false,
+          "rarity": "Common",
+          "lastSync": 1749248744266
+        }
+      }
+    }
+  ],
+  "magicalItems": [
+    {
+      "name": "Sentinel Shield",
+      "type": "equipment",
+      "img": "icons/equipment/chest/breastplate-scale-grey.webp",
+      "system": {
+        "description": {
+          "value": "<p>While holding this Shield, you have Advantage on Initiative rolls and Wisdom (Perception) checks. The Shield is emblazoned with a symbol of an eye.</p>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 6,
+        "price": {
+          "value": 0,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "uncommon",
+        "identified": true,
+        "attunement": 0,
+        "armor": {
+          "value": 2,
+          "dex": null,
+          "flat": false
+        },
+        "baseItem": "",
+        "strength": 0,
+        "stealth": false,
+        "proficient": false
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 5403,
+          "ddbType": "Armor",
+          "isHomebrew": false,
+          "rarity": "Uncommon",
+          "lastSync": 1749248744265
+        }
+      }
+    },
+    {
+      "name": "Staff of the Adder",
+      "type": "loot",
+      "img": "https://www.dndbeyond.com/avatars/45205/863/638657414128740626.jpeg?width=350&height=350&fit=bounds&quality=95&auto=webp",
+      "system": {
+        "description": {
+          "value": "<p>As a Bonus Action, you can turn the head of this staff into that of an animate, venomous snake for 1 minute or revert the staff to its inanimate form.</p>\r\n<p>When you take the Attack action, you can make one of the attack rolls using the animated snake head, which has a reach of 5 feet. Apply your Proficiency Bonus and Wisdom modifier to the attack roll. On a hit, the target takes 1d6 Piercing damage and 3d6 Poison damage.</p>\r\n<p>The snake head can be attacked while it is animate. It has AC 15, HP 20, and Immunity to Poison and Psychic damage. If the head drops to 0 Hit Points, the staff is destroyed. As long as it’s not destroyed, the staff regains all lost Hit Points when it reverts to its inanimate form.</p>",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "",
+        "quantity": 1,
+        "weight": 0,
+        "price": {
+          "value": 0,
+          "denomination": "gp"
+        },
+        "equipped": true,
+        "rarity": "uncommon",
+        "identified": true,
+        "attunement": 0
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 9229100,
+          "ddbType": "Staff",
+          "isHomebrew": false,
+          "rarity": "Uncommon",
+          "lastSync": 1749248744265
+        }
+      }
+    }
+  ]
+}

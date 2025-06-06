@@ -1,0 +1,450 @@
+{{! Updated character import dialog for manual character ID input }}
+<div class="beyond-foundry-character-import-dialog">
+  <div class="import-header">
+    <h2>Import D&D Beyond Characters</h2>
+    <p>Import characters from your D&D Beyond account using character IDs.</p>
+  </div>
+
+  {{#unless isAuthenticated}}
+    <div class="auth-required">
+      <div class="warning-box">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>Authentication required to access your D&D Beyond characters.</span>
+      </div>
+      <button type="button" class="authenticate primary">
+        <i class="fas fa-sign-in-alt"></i> Authenticate with D&D Beyond
+      </button>
+    </div>
+  {{else}}
+    <div class="character-id-input-section">
+      <div class="help-section">
+        <h3><i class="fas fa-info-circle"></i> How to Find Character IDs</h3>
+        <ol>
+          <li>Go to <a href="https://www.dndbeyond.com/characters" target="_blank">D&D Beyond Characters</a></li>
+          <li>Click on a character</li>
+          <li>Copy the ID from the URL: <code>dndbeyond.com/characters/<strong>{ID}</strong></code></li>
+        </ol>
+        <p class="example">
+          <strong>Example:</strong> URL <code>https://www.dndbeyond.com/characters/123456789</code> → Character ID: <code>123456789</code>
+        </p>
+      </div>
+
+      <div class="input-section">
+        <h3><i class="fas fa-user-plus"></i> Add Characters to Import</h3>
+        
+        <div class="character-id-input">
+          <input 
+            type="text" 
+            id="character-id-input" 
+            placeholder="Enter character ID (e.g., 123456789)"
+            pattern="[0-9]+"
+          />
+          <button type="button" class="add-character-btn">
+            <i class="fas fa-plus"></i> Add Character
+          </button>
+        </div>
+
+        <div class="bulk-input-option">
+          <details>
+            <summary><i class="fas fa-list"></i> Add Multiple Characters</summary>
+            <textarea 
+              id="bulk-character-ids" 
+              placeholder="Enter character IDs, one per line:&#10;123456789&#10;987654321&#10;555666777"
+              rows="5"
+            ></textarea>
+            <button type="button" class="add-bulk-characters-btn">
+              <i class="fas fa-list-plus"></i> Add All Characters
+            </button>
+          </details>
+        </div>
+      </div>
+
+      <div class="character-preview-section">
+        <h3><i class="fas fa-users"></i> Characters to Import</h3>
+        
+        <div class="character-list" id="character-preview-list">
+          {{#if pendingCharacters}}
+            {{#each pendingCharacters}}
+              <div class="character-item" data-character-id="{{id}}">
+                <div class="character-status">
+                  {{#if loading}}
+                    <i class="fas fa-spinner fa-spin status-loading"></i>
+                  {{else if error}}
+                    <i class="fas fa-exclamation-triangle status-error"></i>
+                  {{else if loaded}}
+                    <i class="fas fa-check-circle status-success"></i>
+                  {{else}}
+                    <i class="fas fa-clock status-pending"></i>
+                  {{/if}}
+                </div>
+                
+                {{#if loaded}}
+                  <div class="character-avatar">
+                    {{#if character.avatarUrl}}
+                      <img src="{{character.avatarUrl}}" alt="{{character.name}}" />
+                    {{else}}
+                      <i class="fas fa-user"></i>
+                    {{/if}}
+                  </div>
+                  
+                  <div class="character-info">
+                    <h4 class="character-name">{{character.name}}</h4>
+                    <div class="character-details">
+                      {{#if character.race}}
+                        <span class="character-race">{{character.race.fullName}}</span>
+                      {{/if}}
+                      
+                      {{#if character.classes}}
+                        <span class="character-classes">
+                          {{#each character.classes}}
+                            {{definition.name}} {{level}}{{#unless @last}}, {{/unless}}
+                          {{/each}}
+                        </span>
+                      {{/if}}
+                    </div>
+                  </div>
+                  
+                  <div class="character-level">
+                    <span class="level-badge">Level {{character.totalLevel}}</span>
+                  </div>
+                {{else if error}}
+                  <div class="character-info error">
+                    <h4 class="character-name">Character ID: {{id}}</h4>
+                    <div class="character-error">{{error}}</div>
+                  </div>
+                {{else}}
+                  <div class="character-info">
+                    <h4 class="character-name">Character ID: {{id}}</h4>
+                    <div class="character-details">{{#if loading}}Loading...{{else}}Ready to load{{/if}}</div>
+                  </div>
+                {{/if}}
+                
+                <div class="character-actions">
+                  {{#unless loading}}
+                    <button type="button" class="remove-character-btn" data-character-id="{{id}}">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  {{/unless}}
+                </div>
+              </div>
+            {{/each}}
+          {{else}}
+            <div class="empty-state">
+              <i class="fas fa-user-plus"></i>
+              <p>Add character IDs above to preview and import characters.</p>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="action-section">
+        <div class="preview-actions">
+          <button type="button" class="preview-all-btn" {{#unless pendingCharacters}}disabled{{/unless}}>
+            <i class="fas fa-eye"></i> Preview All Characters
+          </button>
+          <button type="button" class="clear-all-btn" {{#unless pendingCharacters}}disabled{{/unless}}>
+            <i class="fas fa-trash"></i> Clear All
+          </button>
+        </div>
+
+        <div class="import-actions">
+          <button type="button" class="import-characters primary" {{#unless readyToImport}}disabled{{/unless}}>
+            <i class="fas fa-download"></i> Import Characters ({{readyCount}})
+          </button>
+          <button type="button" class="cancel secondary" onclick="this.closest('.app').querySelector('.close').click()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/unless}}
+</div>
+
+<style>
+.beyond-foundry-character-import-dialog {
+  padding: 1rem;
+  min-height: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.import-header {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.import-header h2 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-dark-primary);
+}
+
+.auth-required {
+  text-align: center;
+  padding: 2rem;
+}
+
+.warning-box {
+  background: var(--color-bg-warning);
+  color: var(--color-text-warning);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.help-section {
+  background: var(--color-bg-light);
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--color-border-highlight);
+}
+
+.help-section h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-text-dark-primary);
+  font-size: 1.1em;
+}
+
+.help-section ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.help-section code {
+  background: var(--color-bg-option);
+  padding: 0.1rem 0.3rem;
+  border-radius: 2px;
+  font-family: monospace;
+}
+
+.example {
+  background: var(--color-bg-option);
+  padding: 0.5rem;
+  border-radius: 2px;
+  margin-top: 0.5rem;
+  font-size: 0.9em;
+}
+
+.input-section {
+  margin-bottom: 1.5rem;
+}
+
+.input-section h3 {
+  margin: 0 0 1rem 0;
+  color: var(--color-text-dark-primary);
+  font-size: 1.1em;
+}
+
+.character-id-input {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.character-id-input input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+}
+
+.add-character-btn, .add-bulk-characters-btn {
+  background: var(--color-bg-highlight);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.bulk-input-option {
+  margin-top: 1rem;
+}
+
+.bulk-input-option summary {
+  cursor: pointer;
+  padding: 0.5rem;
+  background: var(--color-bg-option);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.bulk-input-option textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.character-preview-section h3 {
+  margin: 0 0 1rem 0;
+  color: var(--color-text-dark-primary);
+  font-size: 1.1em;
+}
+
+.character-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  background: var(--color-bg-light);
+}
+
+.character-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--color-border-light);
+  gap: 0.75rem;
+}
+
+.character-item:last-child {
+  border-bottom: none;
+}
+
+.character-status {
+  width: 20px;
+  text-align: center;
+}
+
+.status-loading { color: var(--color-text-light); }
+.status-error { color: var(--color-text-danger); }
+.status-success { color: var(--color-text-success); }
+.status-pending { color: var(--color-text-warning); }
+
+.character-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-option);
+}
+
+.character-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.character-info {
+  flex: 1;
+}
+
+.character-info.error {
+  color: var(--color-text-danger);
+}
+
+.character-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 1em;
+}
+
+.character-details {
+  font-size: 0.9em;
+  color: var(--color-text-light);
+}
+
+.character-error {
+  font-size: 0.8em;
+  color: var(--color-text-danger);
+}
+
+.level-badge {
+  background: var(--color-bg-highlight);
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+
+.character-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.remove-character-btn {
+  background: var(--color-bg-danger);
+  color: white;
+  border: none;
+  padding: 0.25rem;
+  border-radius: 2px;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-light);
+}
+
+.action-section {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 1rem;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.import-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.preview-all-btn, .clear-all-btn {
+  background: var(--color-bg-option);
+  border: 1px solid var(--color-border-dark);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.import-characters.primary {
+  background: var(--color-bg-success);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.import-characters.primary:disabled {
+  background: var(--color-bg-light);
+  color: var(--color-text-light);
+  cursor: not-allowed;
+}
+
+.cancel.secondary {
+  background: transparent;
+  border: 1px solid var(--color-border-dark);
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+</style>

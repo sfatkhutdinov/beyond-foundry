@@ -1,0 +1,40 @@
+{
+  "basic": {
+    "id": 147239148,
+    "name": "Yelris Lethassethra",
+    "level": 20,
+    "race": "Aereni Wood Elf",
+    "classes": "Druid 20"
+  },
+  "abilities": {
+    "STR": 14,
+    "DEX": 13,
+    "CON": 14,
+    "INT": 8,
+    "WIS": 15,
+    "CHA": 11
+  },
+  "skills": [],
+  "spells": {
+    "count": 9,
+    "levels": [
+      1,
+      0
+    ]
+  },
+  "equipment": {
+    "count": 17,
+    "types": [
+      null,
+      "Staff",
+      "Shield",
+      "Light Armor",
+      "Sickle",
+      "Gear"
+    ]
+  },
+  "features": {
+    "count": 0,
+    "sources": []
+  }
+}

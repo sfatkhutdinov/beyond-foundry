@@ -39,5 +39,8 @@
   "bugs": {
     "url": "https://github.com/sfatkhutdinov/beyond-foundry/issues"
   },
-  "homepage": "https://github.com/sfatkhutdinov/beyond-foundry#readme"
+  "homepage": "https://github.com/sfatkhutdinov/beyond-foundry#readme",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  }
 }
