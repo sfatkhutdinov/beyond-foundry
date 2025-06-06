@@ -1,0 +1,42 @@
+projects:
+  beyond-foundry:
+    name: "Beyond Foundry Development"
+    contexts:
+      - name: "Core Module"
+        paths:
+          - "src/**/*.ts"
+          - "src/types/**"
+        priority: 1
+        always_loaded: true
+
+      - name: "Character Import"
+        paths:
+          - "../reference/ddb-importer/src/parser/character/**/*.js"
+          - "../reference/foundryvtt-dnd5e/system/data-models/actor/character.js"
+        priority: 2
+        load_on_demand: true
+        tags: ["character", "parser"]
+
+      - name: "Spell Import"
+        paths:
+          - "../reference/ddb-importer/src/parser/spells/**/*.js"
+          - "../reference/foundryvtt-dnd5e/system/data-models/item/spell.js"
+        priority: 2
+        load_on_demand: true
+        tags: ["spells", "parser"]
+
+      - name: "Authentication"
+        paths:
+          - "../reference/ddb-proxy/server/auth.js"
+          - "../reference/ddb-proxy/server/proxy-endpoints.js"
+        priority: 2
+        load_on_demand: true
+        tags: ["auth", "api"]
+
+    context_limits:
+      max_files: 12
+      max_size_mb: 5
+
+    smart_loading:
+      enabled: true
+      strategy: "relevance"
