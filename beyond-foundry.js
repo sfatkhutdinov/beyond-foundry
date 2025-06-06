@@ -1417,12 +1417,13 @@ class SpellParser {
     static parseActivation(definition) {
         const activation = definition.activation || {};
         const typeMap = {
-            1: 'action',
-            2: 'bonus',
-            3: 'reaction',
-            4: 'minute',
-            5: 'hour',
-            6: 'special'
+            1: 'action', // Action
+            2: 'bonus', // Bonus Action
+            3: 'reaction', // Reaction
+            4: 'minute', // Minute
+            5: 'hour', // Hour
+            6: 'minute', // Special (often represents longer casting times)
+            7: 'day' // Day
         };
         return {
             type: typeMap[activation.activationType] || 'action',
@@ -1445,12 +1446,17 @@ class SpellParser {
             'Month': 'month',
             'Year': 'year',
             'Permanent': 'perm',
-            'Special': 'spec'
+            'Special': 'spec',
+            'Time': 'minute', // D&D Beyond uses "Time" for various durations
+            'Concentration': 'minute', // Concentration spells usually have minute duration
+            'Until Dispelled': 'perm',
+            'Until Dispelled or Triggered': 'perm'
         };
         const durationUnit = duration.durationType || 'Instantaneous';
+        const mappedUnit = unitMap[durationUnit];
         return {
             value: duration.durationInterval || null,
-            units: unitMap[durationUnit] || 'inst'
+            units: mappedUnit || 'inst'
         };
     }
     /**
@@ -1641,17 +1647,23 @@ class SpellParser {
             'Necromancy': 'nec',
             'Transmutation': 'trs'
         };
-        return schoolMap[school] || 'evo';
+        // Handle both capitalized and lowercase school names
+        const normalizedSchool = school ? school.charAt(0).toUpperCase() + school.slice(1).toLowerCase() : '';
+        return schoolMap[normalizedSchool] || 'evo';
     }
     /**
      * Parse spell components
      */
     static parseComponents(definition) {
-        const components = definition.components || {};
+        const components = definition.components || [];
+        // D&D Beyond uses numbers: 1=verbal, 2=somatic, 3=material
+        const hasVerbal = components.includes(1);
+        const hasSomatic = components.includes(2);
+        const hasMaterial = components.includes(3);
         return {
-            vocal: components.verbal || false,
-            somatic: components.somatic || false,
-            material: components.material || false,
+            vocal: hasVerbal,
+            somatic: hasSomatic,
+            material: hasMaterial,
             ritual: definition.ritual || false,
             concentration: definition.concentration || false
         };
@@ -1660,10 +1672,10 @@ class SpellParser {
      * Parse material components
      */
     static parseMaterials(definition) {
-        const materials = definition.components?.materialComponent || '';
-        const cost = this.extractCost(materials);
+        const materialComponent = definition.componentsDescription || '';
+        const cost = this.extractCost(materialComponent);
         return {
-            value: materials,
+            value: materialComponent,
             consumed: false,
             cost: cost,
             supply: 0

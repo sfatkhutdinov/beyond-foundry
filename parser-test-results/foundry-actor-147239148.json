@@ -340,7 +340,7 @@
   "flags": {
     "beyond-foundry": {
       "ddbCharacterId": 147239148,
-      "lastSync": 1749248110033,
+      "lastSync": 1749252659394,
       "originalData": {
         "id": 147239148,
         "userId": 100113018,
@@ -42740,7 +42740,7 @@
         "optionalOrigins": [],
         "optionalClassFeatures": [],
         "dateModified": "2025-06-06T22:07:34.358Z",
-        "providedFrom": "cache",
+        "providedFrom": "storage",
         "canEdit": true,
         "status": 1,
         "statusSlug": "active",
