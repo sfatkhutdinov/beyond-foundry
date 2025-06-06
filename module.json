@@ -1,0 +1,62 @@
+{
+  "id": "beyond-foundry",
+  "title": "Beyond Foundry",
+  "description": "Import your purchased D&D Beyond content into FoundryVTT with ease. Features character import, spell/item sync, and seamless integration with the D&D 5e system.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13",
+    "maximum": "13"
+  },
+  "authors": [
+    {
+      "name": "Stanislav Fatkhutdinov",
+      "discord": "dinoV",
+      "url": "https://github.com/sfatkhutdinov",
+      "flags": {}
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "3.0.0"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "beyond-foundry.js"
+  ],
+  "styles": [
+    "beyond-foundry.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "url": "https://github.com/sfatkhutdinov/beyond-foundry",
+  "manifest": "https://raw.githubusercontent.com/sfatkhutdinov/beyond-foundry/main/module.json",
+  "download": "https://github.com/sfatkhutdinov/beyond-foundry/releases/latest/download/beyond-foundry.zip",
+  "bugs": "https://github.com/sfatkhutdinov/beyond-foundry/issues",
+  "changelog": "https://github.com/sfatkhutdinov/beyond-foundry/blob/main/CHANGELOG.md",
+  "readme": "https://github.com/sfatkhutdinov/beyond-foundry/blob/main/README.md",
+  "license": "https://github.com/sfatkhutdinov/beyond-foundry/blob/main/LICENSE",
+  "flags": {
+    "allowBugReporter": true,
+    "hotReload": {
+      "extensions": ["css", "hbs", "html", "json"],
+      "paths": ["templates", "lang"]
+    }
+  },
+  "socket": false,
+  "initiative": false,
+  "grid": false,
+  "primaryTokenAttribute": null,
+  "secondaryTokenAttribute": null
+}
