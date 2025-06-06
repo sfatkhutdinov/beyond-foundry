@@ -380,7 +380,7 @@ Create intuitive UI components:
 - [D&D 5e System Documentation](https://github.com/foundryvtt/dnd5e)
 - [FoundryVTT API](https://foundryvtt.com/api/)
 - [ddb-importer Wiki](https://github.com/MrPrimate/ddb-importer/wiki)
-- [D&D Beyond HTML Structure Analysis](Study ddb-importer's parsing logic)
+- [D&D Beyond HTML Structure Analysis](https://github.com/MrPrimate/ddb-importer)
 
 ## Development Workflow
 

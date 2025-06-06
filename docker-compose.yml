@@ -1,0 +1,27 @@
+services:
+  foundry:
+    image: felddy/foundryvtt:release
+    hostname: my_foundry_host
+    init: true
+    restart: "unless-stopped"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    environment:
+      FOUNDRY_PASSWORD: "cujvy6-cithyx-haxDut"
+      FOUNDRY_USERNAME: "stanislav1992"
+      CONTAINER_PRESERVE_CONFIG: "true"
+    ports:
+      - "30000:30000"  # Exposing Foundry on port 30000
+
+  ddb-proxy:
+    image: ghcr.io/mrprimate/ddb-proxy:latest
+    restart: "unless-stopped"
+    ports:
+      - "3100:3000"  # DDB Proxy port mapping
+
+networks:
+  default:
+    name: foundry_network
+
