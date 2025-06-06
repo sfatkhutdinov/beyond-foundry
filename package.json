@@ -1,0 +1,43 @@
+{
+  "name": "beyond-foundry",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Import your purchased D&D Beyond content into FoundryVTT with ease",
+  "main": "beyond-foundry.js",
+  "scripts": {
+    "build": "rollup -c",
+    "build:watch": "rollup -c -w",
+    "dev": "npm run build:watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "foundry",
+    "dnd",
+    "dnd-beyond",
+    "module"
+  ],
+  "author": "Stanislav Fatkhutdinov",
+  "license": "MIT",
+  "devDependencies": {
+    "@league-of-foundry-developers/foundry-vtt-types": "^12.331.5",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.3.1",
+    "@typescript-eslint/parser": "^7.3.1",
+    "eslint": "^8.57.0",
+    "rollup": "^4.13.0",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sfatkhutdinov/beyond-foundry.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sfatkhutdinov/beyond-foundry/issues"
+  },
+  "homepage": "https://github.com/sfatkhutdinov/beyond-foundry#readme"
+}
