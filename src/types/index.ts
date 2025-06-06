@@ -459,6 +459,7 @@ export interface ImportOptions {
   importSpells: boolean;
   updateExisting: boolean;
   createCompendiumItems: boolean;
+  spellPreparationMode?: 'prepared' | 'pact' | 'always' | 'atwill' | 'innate';
 }
 
 // API response types
@@ -494,4 +495,127 @@ export interface ModuleSettings {
   autoImportItems: boolean;
   importPolicy: ImportPolicy;
   cobaltToken: string;
+}
+
+// Spell parsing types
+export interface FoundrySpell {
+  name: string;
+  type: 'spell';
+  img: string;
+  system: {
+    description: {
+      value: string;
+      chat: string;
+      unidentified: string;
+    };
+    source: string;
+    activation: {
+      type: string;
+      cost: number;
+      condition: string;
+    };
+    duration: {
+      value: number | null;
+      units: string;
+    };
+    target: {
+      value: number | null;
+      width: number | null;
+      units: string;
+      type: string;
+    };
+    range: {
+      value: number | null;
+      long: number | null;
+      units: string;
+    };
+    uses: {
+      value: number | null;
+      max: string;
+      per: string | null;
+      recovery: string;
+    };
+    consume: {
+      type: string;
+      target: string;
+      amount: number;
+      scale: boolean;
+    };
+    ability: string | null;
+    actionType: string;
+    attackBonus: string;
+    chatFlavor: string;
+    critical: {
+      threshold: number | null;
+      damage: string;
+    };
+    damage: {
+      parts: [string, string][];
+      versatile: string;
+      value: string;
+    };
+    formula: string;
+    save: {
+      ability: string;
+      dc: number | null;
+      scaling: string;
+    };
+    level: number;
+    school: string;
+    components: {
+      vocal: boolean;
+      somatic: boolean;
+      material: boolean;
+      ritual: boolean;
+      concentration: boolean;
+    };
+    materials: {
+      value: string;
+      consumed: boolean;
+      cost: number;
+      supply: number;
+    };
+    preparation: {
+      mode: string;
+      prepared: boolean;
+    };
+    scaling: {
+      mode: string;
+      formula: string;
+    };
+    properties: string[];
+  };
+  effects: any[];
+  flags: {
+    'beyond-foundry'?: {
+      ddbId: number;
+      sourceId: number;
+      spellListId?: number;
+      prepared: boolean;
+      alwaysPrepared: boolean;
+      usesSpellSlot: boolean;
+      castAtLevel: number | null;
+      restriction: string | null;
+    };
+    [key: string]: any;
+  };
+}
+
+// FoundryVTT Actor interface for proper typing
+declare global {
+  interface Actor {
+    items: any; // Collection of items
+    createEmbeddedDocuments(type: string, data: any[]): Promise<any[]>;
+    update(data: any): Promise<any>;
+    getFlag(scope: string, key: string): any;
+    name: string;
+  }
+}
+
+export interface SpellParsingOptions {
+  preparationMode?: 'prepared' | 'pact' | 'always' | 'atwill' | 'innate';
+  includeUnprepared?: boolean;
+  filterByLevel?: number[];
+  filterBySchool?: string[];
+  customIconMapping?: Record<string, string>;
 }

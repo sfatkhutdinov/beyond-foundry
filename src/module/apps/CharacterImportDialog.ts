@@ -270,6 +270,24 @@ export class CharacterImportDialog extends Application {
   }
 
   /**
+   * Get import options from form inputs
+   */
+  private _getImportOptions(): Partial<ImportOptions> {
+    const importSpells = (this.element.find('#import-spells')[0] as HTMLInputElement)?.checked ?? true;
+    const importItems = (this.element.find('#import-items')[0] as HTMLInputElement)?.checked ?? true;
+    const updateExisting = (this.element.find('#update-existing')[0] as HTMLInputElement)?.checked ?? false;
+    const spellPreparationMode = (this.element.find('#spell-preparation-mode')[0] as HTMLSelectElement)?.value ?? 'prepared';
+    
+    return {
+      importSpells,
+      importItems,
+      updateExisting,
+      spellPreparationMode: spellPreparationMode as any,
+      createCompendiumItems: false // Default to false for now
+    };
+  }
+
+  /**
    * Import all loaded characters
    */
   private async _onImportCharacters(event: Event): Promise<void> {
@@ -283,6 +301,9 @@ export class CharacterImportDialog extends Application {
       return;
     }
 
+    // Get import options from form
+    const importOptions = this._getImportOptions();
+
     const button = event.target as HTMLButtonElement;
     const originalText = button.textContent;
     button.textContent = 'Importing...';
@@ -295,7 +316,7 @@ export class CharacterImportDialog extends Application {
       for (const pendingChar of readyCharacters) {
         Logger.info(`Importing character: ${pendingChar.character!.name} (ID: ${pendingChar.id})`);
         
-        const result = await api.importCharacter(pendingChar.id);
+        const result = await api.importCharacter(pendingChar.id, importOptions);
         results.push({
           characterId: pendingChar.id,
           characterName: pendingChar.character!.name,
@@ -316,9 +337,16 @@ export class CharacterImportDialog extends Application {
         
         // Log failed imports
         results.filter(r => !r.result.success).forEach(r => {
-          Logger.error(`Failed to import ${r.characterName}: ${r.result.error}`);
+          Logger.error(`Failed to import ${r.characterName}: ${r.result.errors?.join(', ')}`);
         });
       }
+
+      // Show spell import warnings if any
+      results.forEach(r => {
+        if (r.result.warnings?.length > 0) {
+          Logger.warn(`Warnings for ${r.characterName}: ${r.result.warnings.join(', ')}`);
+        }
+      });
 
       // Close dialog if all successful
       if (failed === 0) {
