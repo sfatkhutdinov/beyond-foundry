@@ -73,3 +73,6 @@ foundryconfig-*.json
 # Temporary files
 tmp/
 temp/
+
+# Docker files
+docker-compose.yml
