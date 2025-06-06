@@ -137,6 +137,52 @@
         </div>
       </div>
 
+      {{#if readyToImport}}
+        <div class="import-options-section">
+          <h3><i class="fas fa-cog"></i> Import Options</h3>
+          <div class="options-grid">
+            <div class="option-group">
+              <label class="checkbox-option">
+                <input type="checkbox" id="import-spells" checked />
+                <span class="checkmark"></span>
+                Import Spells
+              </label>
+              <small>Import character spells and spell progression</small>
+            </div>
+
+            <div class="option-group">
+              <label class="checkbox-option">
+                <input type="checkbox" id="import-items" checked />
+                <span class="checkmark"></span>
+                Import Equipment
+              </label>
+              <small>Import character inventory and equipment</small>
+            </div>
+
+            <div class="option-group">
+              <label class="checkbox-option">
+                <input type="checkbox" id="update-existing" />
+                <span class="checkmark"></span>
+                Update Existing
+              </label>
+              <small>Update characters if they already exist</small>
+            </div>
+
+            <div class="option-group spell-options">
+              <label for="spell-preparation-mode">Spell Preparation Mode:</label>
+              <select id="spell-preparation-mode">
+                <option value="prepared">Prepared (default)</option>
+                <option value="always">Always Prepared</option>
+                <option value="pact">Pact Magic</option>
+                <option value="atwill">At Will</option>
+                <option value="innate">Innate Spellcasting</option>
+              </select>
+              <small>How spells should be prepared in FoundryVTT</small>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+
       <div class="action-section">
         <div class="preview-actions">
           <button type="button" class="preview-all-btn" {{#unless pendingCharacters}}disabled{{/unless}}>
@@ -446,5 +492,67 @@
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.import-options-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+}
+
+.import-options-section h3 {
+  margin: 0 0 1rem 0;
+  color: var(--color-text-dark-primary);
+  font-size: 1.1em;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.checkbox-option input[type="checkbox"] {
+  margin: 0;
+}
+
+.checkbox-option small,
+.option-group small {
+  color: var(--color-text-light);
+  font-size: 0.8em;
+  font-weight: normal;
+}
+
+.spell-options {
+  grid-column: 1 / -1;
+}
+
+.spell-options label {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.spell-options select {
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 4px;
+  background: white;
+  font-size: 0.9em;
 }
 </style>

@@ -9,6 +9,7 @@ import { getModuleSettings } from '../utils/settings.js';
 import { Logger, getErrorMessage } from '../utils/logger.js';
 import { DEFAULT_IMPORT_OPTIONS } from '../constants.js';
 import { CharacterParser } from '../../parsers/character/CharacterParser.js';
+import { SpellParser } from '../../parsers/spells/SpellParser.js';
 
 /**
  * Main API class for Beyond Foundry module
@@ -254,12 +255,40 @@ export class BeyondFoundryAPI {
         };
       }
 
+      const warnings: string[] = [];
+      
+      // Import spells if the character has any
+      if (importOptions.importSpells && ddbCharacter.spells) {
+        try {
+          // Count total spells across all spell lists
+          const totalSpells = Object.values(ddbCharacter.spells).reduce(
+            (sum, spellArray) => sum + (Array.isArray(spellArray) ? spellArray.length : 0), 
+            0
+          );
+          
+          if (totalSpells > 0) {
+            Logger.info(`Importing ${totalSpells} spells for character: ${actor.name}`);
+            
+            const spellResults = await this.importCharacterSpells(actor, ddbCharacter, importOptions);
+            if (spellResults.warnings?.length > 0) {
+              warnings.push(...spellResults.warnings);
+            }
+            if (spellResults.errors?.length > 0) {
+              warnings.push(`Some spells failed to import: ${spellResults.errors.join(', ')}`);
+            }
+          }
+        } catch (spellError) {
+          Logger.warn(`Spell import failed: ${getErrorMessage(spellError)}`);
+          warnings.push(`Spell import failed: ${getErrorMessage(spellError)}`);
+        }
+      }
+
       Logger.info(`Successfully imported character: ${actor.name}`);
       
       return {
         success: true,
         actor: actor,
-        warnings: []
+        warnings
       };
 
     } catch (error) {
@@ -267,6 +296,89 @@ export class BeyondFoundryAPI {
       return {
         success: false,
         errors: [`Character import error: ${getErrorMessage(error)}`]
+      };
+    }
+  }
+
+  /**
+   * Import character spells into FoundryVTT actor
+   * @param actor - The FoundryVTT actor to import spells into
+   * @param ddbCharacter - The D&D Beyond character data
+   * @param options - Import options
+   */
+  public async importCharacterSpells(
+    actor: Actor, 
+    ddbCharacter: DDBCharacter, 
+    options: Partial<ImportOptions> = {}
+  ): Promise<{ success: boolean; warnings?: string[]; errors?: string[] }> {
+    try {
+      const warnings: string[] = [];
+      const errors: string[] = [];
+      
+      if (!ddbCharacter.spells) {
+        return { success: true, warnings: ['No spells found for character'] };
+      }
+
+      // Parse all spells from all spell lists
+      const allSpells: any[] = [];
+      Object.entries(ddbCharacter.spells).forEach(([listKey, spellArray]) => {
+        if (Array.isArray(spellArray)) {
+          spellArray.forEach(ddbSpell => {
+            try {
+              const foundrySpell = SpellParser.parseSpell(ddbSpell, {
+                preparationMode: options.spellPreparationMode || 'prepared'
+              });
+              allSpells.push(foundrySpell);
+            } catch (error) {
+              errors.push(`Failed to parse spell: ${ddbSpell.definition?.name || 'Unknown'} - ${getErrorMessage(error)}`);
+              Logger.warn(`Spell parsing error: ${getErrorMessage(error)}`);
+            }
+          });
+        }
+      });
+
+      // Create spell items in FoundryVTT
+      const createdSpells: any[] = [];
+      for (const spellData of allSpells) {
+        try {
+          // Check if spell already exists
+          const existingSpell = actor.items.find(item => 
+            item.type === 'spell' && 
+            item.name === spellData.name &&
+            item.getFlag('beyond-foundry', 'ddbId') === spellData.flags?.['beyond-foundry']?.ddbId
+          );
+
+          if (existingSpell) {
+            if (options.updateExisting) {
+              await existingSpell.update(spellData);
+              Logger.debug(`Updated existing spell: ${spellData.name}`);
+            } else {
+              warnings.push(`Spell "${spellData.name}" already exists, skipped`);
+            }
+          } else {
+            const createdSpell = await actor.createEmbeddedDocuments('Item', [spellData]);
+            createdSpells.push(...createdSpell);
+            Logger.debug(`Created new spell: ${spellData.name}`);
+          }
+        } catch (error) {
+          errors.push(`Failed to create spell item: ${spellData.name} - ${getErrorMessage(error)}`);
+          Logger.warn(`Spell creation error: ${getErrorMessage(error)}`);
+        }
+      }
+
+      Logger.info(`Successfully imported ${createdSpells.length} spells for character: ${actor.name}`);
+      
+      return {
+        success: true,
+        warnings: warnings.length > 0 ? warnings : undefined,
+        errors: errors.length > 0 ? errors : undefined
+      };
+
+    } catch (error) {
+      Logger.error(`Character spell import error: ${getErrorMessage(error)}`);
+      return {
+        success: false,
+        errors: [`Character spell import error: ${getErrorMessage(error)}`]
       };
     }
   }
