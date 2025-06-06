@@ -1,0 +1,29 @@
+
+[35m=== COMPLETE DATA STRUCTURE ANALYSIS ===[0m
+character: Object
+  character.id: number = 147239148
+  character.userId: number = 100113018
+  character.username: string = "Stan1992"
+  character.isAssignedToPlayer: boolean = true
+  character.readonlyUrl: string = "https://dndbeyond.com/characters/147239148"
+  character.decorations: Object
+    character.decorations.avatarUrl: string = "https://www.dndbeyond.com/avatars/10/72/6363393802..."
+    character.decorations.frameAvatarUrl: object = null
+    character.decorations.backdropAvatarUrl: object = null
+    character.decorations.smallBackdropAvatarUrl: object = null
+    character.decorations.largeBackdropAvatarUrl: object = null
+    character.decorations.thumbnailBackdropAvatarUrl: object = null
+    character.decorations.defaultBackdrop: Object
+      character.decorations.defaultBackdrop.backdropAvatarUrl: string = "https://www.dndbeyond.com/avatars/43993/195/638609..."
+      character.decorations.defaultBackdrop.smallBackdropAvatarUrl: string = "https://www.dndbeyond.com/avatars/43993/196/638609..."
+      character.decorations.defaultBackdrop.largeBackdropAvatarUrl: string = "https://www.dndbeyond.com/avatars/43993/197/638609..."
+      character.decorations.defaultBackdrop.thumbnailBackdropAvatarUrl: string = "https://www.dndbeyond.com/avatars/43993/198/638609..."
+    character.decorations.avatarId: number = 10072
+    character.decorations.portraitDecorationKey: string = "10"
+    character.decorations.frameAvatarDecorationKey: object = null
+    ... and 10 more properties
+  character.name: string = "Yelris Lethassethra"
+  character.socialName: object = null
+  character.gender: object = null
+  character.faith: object = null
+  ... and 61 more properties

@@ -77,6 +77,16 @@ export function registerSettings(): void {
     },
     default: 'ask'
   });
+
+  // Authentication
+  game.settings.register(MODULE_ID, SETTINGS.COBALT_TOKEN, {
+    name: 'beyond-foundry.settings.cobaltToken.name',
+    hint: 'beyond-foundry.settings.cobaltToken.hint',
+    scope: 'world',
+    config: false, // Hidden from UI - managed by auth dialog
+    type: String,
+    default: ''
+  });
 }
 
 /**
@@ -103,6 +113,7 @@ export function getModuleSettings(): ModuleSettings {
     apiEndpoint: getModuleSetting(SETTINGS.API_ENDPOINT), 
     debugMode: getModuleSetting(SETTINGS.DEBUG_MODE),
     autoImportItems: getModuleSetting(SETTINGS.AUTO_IMPORT_ITEMS),
-    importPolicy: getModuleSetting(SETTINGS.IMPORT_POLICY) as ImportPolicy
+    importPolicy: getModuleSetting(SETTINGS.IMPORT_POLICY) as ImportPolicy,
+    cobaltToken: getModuleSetting(SETTINGS.COBALT_TOKEN)
   };
 }

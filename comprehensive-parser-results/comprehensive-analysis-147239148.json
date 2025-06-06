@@ -1,0 +1,293 @@
+{
+  "parsingVersion": "2.0.0",
+  "characterName": "Yelris Lethassethra",
+  "level": 20,
+  "classes": {
+    "druid": {
+      "levels": 20,
+      "subclass": "Circle of Wildfire (TCoE)",
+      "hitDice": {
+        "used": 0,
+        "max": 20
+      },
+      "advancement": [],
+      "spellcasting": "full"
+    }
+  },
+  "abilities": {
+    "str": {
+      "score": 14,
+      "modifier": 2,
+      "saveProficient": false,
+      "saveBonus": 2
+    },
+    "dex": {
+      "score": 13,
+      "modifier": 1,
+      "saveProficient": false,
+      "saveBonus": 1
+    },
+    "con": {
+      "score": 14,
+      "modifier": 2,
+      "saveProficient": false,
+      "saveBonus": 2
+    },
+    "int": {
+      "score": 8,
+      "modifier": -1,
+      "saveProficient": false,
+      "saveBonus": -1
+    },
+    "wis": {
+      "score": 15,
+      "modifier": 2,
+      "saveProficient": false,
+      "saveBonus": 2
+    },
+    "cha": {
+      "score": 11,
+      "modifier": 0,
+      "saveProficient": false,
+      "saveBonus": 0
+    }
+  },
+  "skills": {
+    "ins": {
+      "ability": "wis",
+      "total": 8,
+      "passive": 18
+    },
+    "inv": {
+      "ability": "int",
+      "total": 5,
+      "passive": 15
+    },
+    "med": {
+      "ability": "wis",
+      "total": 8,
+      "passive": 18
+    },
+    "per": {
+      "ability": "wis",
+      "total": 8,
+      "passive": 18
+    },
+    "sur": {
+      "ability": "wis",
+      "total": 8,
+      "passive": 18
+    }
+  },
+  "spellcasting": {
+    "ability": "wis",
+    "spellDC": 16,
+    "spellAttackBonus": 8,
+    "spellSlots": {
+      "spell1": "4/4",
+      "spell2": "3/3",
+      "spell3": "3/3",
+      "spell4": "3/3",
+      "spell5": "2/2",
+      "spell6": "1/1",
+      "spell7": "1/1",
+      "spell8": "1/1",
+      "spell9": "1/1"
+    }
+  },
+  "equipment": {
+    "totalItems": 26,
+    "totalWeight": 94,
+    "itemsByType": {
+      "equipment": {
+        "count": 3,
+        "equipped": 2,
+        "items": [
+          {
+            "name": "Sentinel Shield",
+            "equipped": true,
+            "rarity": "uncommon",
+            "weight": 6
+          },
+          {
+            "name": "Shield",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 6
+          },
+          {
+            "name": "Leather",
+            "equipped": true,
+            "rarity": "common",
+            "weight": 10
+          }
+        ]
+      },
+      "loot": {
+        "count": 13,
+        "equipped": 2,
+        "items": [
+          {
+            "name": "Staff of the Adder",
+            "equipped": true,
+            "rarity": "uncommon",
+            "weight": 0
+          },
+          {
+            "name": "Manacles",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 6
+          },
+          {
+            "name": "Horn",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 2
+          },
+          {
+            "name": "Backpack",
+            "equipped": true,
+            "rarity": "common",
+            "weight": 5
+          },
+          {
+            "name": "Herbalism Kit",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 3
+          },
+          {
+            "name": "Staff",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 4
+          },
+          {
+            "name": "Oil",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 1
+          },
+          {
+            "name": "Rations",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 2
+          },
+          {
+            "name": "Rope",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 5
+          },
+          {
+            "name": "Bedroll",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 7
+          },
+          {
+            "name": "Tinderbox",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 1
+          },
+          {
+            "name": "Torch",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 1
+          },
+          {
+            "name": "Waterskin",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 5
+          }
+        ]
+      },
+      "weapon": {
+        "count": 1,
+        "equipped": 1,
+        "items": [
+          {
+            "name": "Sickle",
+            "equipped": true,
+            "rarity": "common",
+            "weight": 2
+          }
+        ]
+      },
+      "spell": {
+        "count": 9,
+        "equipped": 0,
+        "items": [
+          {
+            "name": "Speak with Animals",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Find Familiar",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Thunderclap",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Comprehend Languages",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Identify",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Find Familiar",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Produce Flame",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Message",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          },
+          {
+            "name": "Faerie Fire",
+            "equipped": false,
+            "rarity": "common",
+            "weight": 0
+          }
+        ]
+      }
+    }
+  },
+  "features": {
+    "advancedParsing": true,
+    "skillProficiencies": 5,
+    "spellSlotLevels": 9,
+    "equipmentTypes": 4,
+    "senses": [
+      "darkvision"
+    ]
+  }
+}
