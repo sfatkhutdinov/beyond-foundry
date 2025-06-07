@@ -1,19 +1,19 @@
 import { Logger } from '../../module/utils/logger.js';
-import type { 
-  DDBCharacter, 
-  FoundryActor, 
-  DDBClass, 
-  DDBModifier, 
-  DDBItem, 
-  DDBSpell 
+import type {
+  DDBCharacter,
+  FoundryActor,
+  DDBClass,
+  DDBModifier,
+  DDBItem,
+  DDBSpell,
 } from '../../types/index.js';
 
 /**
  * Comprehensive Character Parser for D&D Beyond to FoundryVTT D&D 5e system
- * 
+ *
  * This parser implements advanced features including:
  * - Enhanced abilities with saving throw proficiencies from modifiers
- * - Skills with proficiency detection and passive scores  
+ * - Skills with proficiency detection and passive scores
  * - Proper HP calculation with Constitution modifier
  * - Equipment parsing (weapons, armor, gear, magical items)
  * - Spell system with slot calculation and spellcasting attributes
@@ -22,7 +22,6 @@ import type {
  * - Complete FoundryVTT D&D 5e actor structure
  */
 export class CharacterParser {
-  
   /**
    * Parse a complete D&D Beyond character into FoundryVTT actor data
    * @param ddbCharacter - The D&D Beyond character data
@@ -44,7 +43,7 @@ export class CharacterParser {
         skills: this.parseSkills(ddbCharacter),
         spells: this.parseSpells(ddbCharacter),
         resources: this.parseResources(ddbCharacter),
-        bonuses: this.parseBonuses(ddbCharacter)
+        bonuses: this.parseBonuses(ddbCharacter),
       },
       items: this.parseAllItems(ddbCharacter),
       effects: this.parseActiveEffects(ddbCharacter),
@@ -56,13 +55,13 @@ export class CharacterParser {
           parsingVersion: '2.0.0',
           features: [
             'enhanced-abilities',
-            'equipment-parsing', 
+            'equipment-parsing',
             'spell-integration',
             'modifier-system',
-            'comprehensive-traits'
-          ]
-        }
-      }
+            'comprehensive-traits',
+          ],
+        },
+      },
     };
 
     Logger.info(`✅ Comprehensive parsing complete: ${actorData.name}`);
@@ -75,7 +74,12 @@ export class CharacterParser {
   private static parseAbilities(ddbCharacter: DDBCharacter) {
     const abilities: any = {};
     const abilityMap: Record<number, string> = {
-      1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
+      1: 'str',
+      2: 'dex',
+      3: 'con',
+      4: 'int',
+      5: 'wis',
+      6: 'cha',
     };
 
     // Initialize abilities
@@ -85,7 +89,7 @@ export class CharacterParser {
         proficient: 0,
         bonuses: { check: '', save: '' },
         min: 3,
-        mod: 0
+        mod: 0,
       };
     });
 
@@ -136,7 +140,7 @@ export class CharacterParser {
       ac: {
         flat: null,
         calc: 'default',
-        formula: ''
+        formula: '',
       },
       hp: {
         value: ddbCharacter.baseHitPoints || 0,
@@ -145,18 +149,20 @@ export class CharacterParser {
         tempmax: 0,
         bonuses: {
           level: '',
-          overall: ''
-        }
+          overall: '',
+        },
       },
       init: {
         ability: 'dex',
-        bonus: 0
+        bonus: 0,
       },
       movement: this.parseMovement(ddbCharacter),
       senses: this.parseSenses(ddbCharacter),
-      spellcasting: ddbCharacter.spellcastingAbilityId ? this.getAbilityKey(ddbCharacter.spellcastingAbilityId) : '',
+      spellcasting: ddbCharacter.spellcastingAbilityId
+        ? this.getAbilityKey(ddbCharacter.spellcastingAbilityId)
+        : '',
       prof: this.calculateProficiencyBonus(ddbCharacter.classes || []),
-      spelldc: 8 // Will be calculated based on spellcasting ability
+      spelldc: 8, // Will be calculated based on spellcasting ability
     };
   }
 
@@ -166,11 +172,11 @@ export class CharacterParser {
   private static parseDetails(ddbCharacter: DDBCharacter) {
     const totalLevel = this.getTotalLevel(ddbCharacter);
     const primaryClass = this.getPrimaryClass(ddbCharacter);
-    
+
     return {
       biography: {
         value: ddbCharacter.notes?.backstory || '',
-        public: ''
+        public: '',
       },
       alignment: ddbCharacter.alignmentId ? this.parseAlignment(ddbCharacter.alignmentId) : '',
       race: ddbCharacter.race?.fullName || '',
@@ -181,13 +187,13 @@ export class CharacterParser {
       xp: {
         value: ddbCharacter.currentXp || 0,
         max: this.getXpForLevel(totalLevel + 1),
-        pct: 0
+        pct: 0,
       },
       appearance: ddbCharacter.notes?.appearance || '',
       trait: ddbCharacter.notes?.personalityTraits || '',
       ideal: ddbCharacter.notes?.ideals || '',
       bond: ddbCharacter.notes?.bonds || '',
-      flaw: ddbCharacter.notes?.flaws || ''
+      flaw: ddbCharacter.notes?.flaws || '',
     };
   }
 
@@ -196,17 +202,17 @@ export class CharacterParser {
    */
   private static parseClassDetails(ddbCharacter: DDBCharacter): any {
     if (!ddbCharacter.classes) return {};
-    
+
     const classDetails: any = {};
     ddbCharacter.classes.forEach(cls => {
       const className = cls.definition.name.toLowerCase();
       classDetails[className] = {
         levels: cls.level,
         subclass: cls.subclassDefinition?.name || '',
-        hitDie: cls.definition.hitDie
+        hitDie: cls.definition.hitDie,
       };
     });
-    
+
     return classDetails;
   }
 
@@ -219,24 +225,24 @@ export class CharacterParser {
       senses: '',
       languages: {
         value: this.parseLanguages(ddbCharacter),
-        custom: ''
+        custom: '',
       },
       di: { value: [], custom: '' }, // Damage immunities
-      dr: { value: [], custom: '' }, // Damage resistances  
+      dr: { value: [], custom: '' }, // Damage resistances
       dv: { value: [], custom: '' }, // Damage vulnerabilities
       ci: { value: [], custom: '' }, // Condition immunities
       weaponProf: {
         value: this.parseWeaponProficiencies(ddbCharacter),
-        custom: ''
+        custom: '',
       },
       armorProf: {
         value: this.parseArmorProficiencies(ddbCharacter),
-        custom: ''
+        custom: '',
       },
       toolProf: {
         value: this.parseToolProficiencies(ddbCharacter),
-        custom: ''
-      }
+        custom: '',
+      },
     };
   }
 
@@ -246,19 +252,21 @@ export class CharacterParser {
   private static parseWeaponProficiencies(ddbCharacter: DDBCharacter): string[] {
     const proficiencies: string[] = [];
     const modifiers = ddbCharacter.modifiers || {};
-    
+
     Object.values(modifiers).forEach(modifierArray => {
       if (Array.isArray(modifierArray)) {
         modifierArray.forEach(modifier => {
-          if (modifier.type === 'proficiency' && 
-              modifier.subType && 
-              modifier.subType.includes('weapon')) {
+          if (
+            modifier.type === 'proficiency' &&
+            modifier.subType &&
+            modifier.subType.includes('weapon')
+          ) {
             proficiencies.push(modifier.friendlySubtypeName || modifier.subType);
           }
         });
       }
     });
-    
+
     return proficiencies;
   }
 
@@ -268,19 +276,21 @@ export class CharacterParser {
   private static parseArmorProficiencies(ddbCharacter: DDBCharacter): string[] {
     const proficiencies: string[] = [];
     const modifiers = ddbCharacter.modifiers || {};
-    
+
     Object.values(modifiers).forEach(modifierArray => {
       if (Array.isArray(modifierArray)) {
         modifierArray.forEach(modifier => {
-          if (modifier.type === 'proficiency' && 
-              modifier.subType && 
-              modifier.subType.includes('armor')) {
+          if (
+            modifier.type === 'proficiency' &&
+            modifier.subType &&
+            modifier.subType.includes('armor')
+          ) {
             proficiencies.push(modifier.friendlySubtypeName || modifier.subType);
           }
         });
       }
     });
-    
+
     return proficiencies;
   }
 
@@ -290,19 +300,21 @@ export class CharacterParser {
   private static parseToolProficiencies(ddbCharacter: DDBCharacter): string[] {
     const proficiencies: string[] = [];
     const modifiers = ddbCharacter.modifiers || {};
-    
+
     Object.values(modifiers).forEach(modifierArray => {
       if (Array.isArray(modifierArray)) {
         modifierArray.forEach(modifier => {
-          if (modifier.type === 'proficiency' && 
-              modifier.subType && 
-              (modifier.subType.includes('tool') || modifier.subType.includes('kit'))) {
+          if (
+            modifier.type === 'proficiency' &&
+            modifier.subType &&
+            (modifier.subType.includes('tool') || modifier.subType.includes('kit'))
+          ) {
             proficiencies.push(modifier.friendlySubtypeName || modifier.subType);
           }
         });
       }
     });
-    
+
     return proficiencies;
   }
 
@@ -313,10 +325,10 @@ export class CharacterParser {
     const currencies = ddbCharacter.currencies || { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
     return {
       pp: currencies.pp || 0,
-      gp: currencies.gp || 0, 
+      gp: currencies.gp || 0,
       ep: currencies.ep || 0,
       sp: currencies.sp || 0,
-      cp: currencies.cp || 0
+      cp: currencies.cp || 0,
     };
   }
 
@@ -325,11 +337,27 @@ export class CharacterParser {
    */
   private static parseSkills(ddbCharacter: DDBCharacter) {
     const skills: any = {};
-    
+
     // D&D 5e system skills
     const skillList = [
-      'acr', 'ani', 'arc', 'ath', 'dec', 'his', 'ins', 'itm', 'inv', 
-      'med', 'nat', 'prc', 'prf', 'per', 'rel', 'slt', 'ste', 'sur'
+      'acr',
+      'ani',
+      'arc',
+      'ath',
+      'dec',
+      'his',
+      'ins',
+      'itm',
+      'inv',
+      'med',
+      'nat',
+      'prc',
+      'prf',
+      'per',
+      'rel',
+      'slt',
+      'ste',
+      'sur',
     ];
 
     skillList.forEach(skill => {
@@ -338,8 +366,8 @@ export class CharacterParser {
         ability: this.getSkillAbility(skill),
         bonuses: {
           check: '',
-          passive: ''
-        }
+          passive: '',
+        },
       };
     });
 
@@ -354,7 +382,7 @@ export class CharacterParser {
    */
   private static applySkillProficiencies(ddbCharacter: DDBCharacter, skills: any) {
     const modifiers = ddbCharacter.modifiers || {};
-    
+
     Object.values(modifiers).forEach(modifierArray => {
       if (Array.isArray(modifierArray)) {
         modifierArray.forEach(modifier => {
@@ -365,7 +393,7 @@ export class CharacterParser {
               Logger.debug(`🎯 Skill proficiency: ${skillKey}`);
             }
           }
-          
+
           if (modifier.type === 'expertise' && modifier.subType) {
             const skillKey = this.getSkillKeyFromModifier(modifier);
             if (skillKey && skills[skillKey]) {
@@ -383,8 +411,9 @@ export class CharacterParser {
    */
   private static parseSpells(ddbCharacter: DDBCharacter) {
     const primaryClass = this.getPrimarySpellcastingClass(ddbCharacter);
-    const spellSlots = primaryClass ? 
-      this.calculateSpellSlots(primaryClass.definition.name, primaryClass.level) : {};
+    const spellSlots = primaryClass
+      ? this.calculateSpellSlots(primaryClass.definition.name, primaryClass.level)
+      : {};
 
     return {
       spell1: { value: spellSlots.spell1 || 0, override: null, max: spellSlots.spell1 || 0 },
@@ -406,7 +435,7 @@ export class CharacterParser {
       spells6: { value: 0, max: 0 },
       spells7: { value: 0, max: 0 },
       spells8: { value: 0, max: 0 },
-      spells9: { value: 0, max: 0 }
+      spells9: { value: 0, max: 0 },
     };
   }
 
@@ -417,7 +446,7 @@ export class CharacterParser {
     return {
       primary: { value: 0, max: 0, sr: false, lr: false, label: '' },
       secondary: { value: 0, max: 0, sr: false, lr: false, label: '' },
-      tertiary: { value: 0, max: 0, sr: false, lr: false, label: '' }
+      tertiary: { value: 0, max: 0, sr: false, lr: false, label: '' },
     };
   }
 
@@ -437,7 +466,7 @@ export class CharacterParser {
       swim: 0,
       walk: ddbCharacter.race?.weightSpeeds?.normal?.walk || 30,
       units: 'ft',
-      hover: false
+      hover: false,
     };
   }
 
@@ -448,7 +477,7 @@ export class CharacterParser {
       tremorsense: 0,
       truesight: 0,
       units: 'ft',
-      special: ''
+      special: '',
     };
   }
 
@@ -459,33 +488,46 @@ export class CharacterParser {
 
   private static getAbilityKey(abilityId: number): string {
     const map: Record<number, string> = {
-      1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
+      1: 'str',
+      2: 'dex',
+      3: 'con',
+      4: 'int',
+      5: 'wis',
+      6: 'cha',
     };
     return map[abilityId] || '';
   }
 
   private static parseAlignment(alignmentId: number): string {
     const alignments: Record<number, string> = {
-      1: 'lg', 2: 'ln', 3: 'le', 4: 'ng', 5: 'n', 6: 'ne', 7: 'cg', 8: 'cn', 9: 'ce'
+      1: 'lg',
+      2: 'ln',
+      3: 'le',
+      4: 'ng',
+      5: 'n',
+      6: 'ne',
+      7: 'cg',
+      8: 'cn',
+      9: 'ce',
     };
     return alignments[alignmentId] || 'n';
   }
 
   private static parseSize(size: string): string {
     const sizeMap: Record<string, string> = {
-      'tiny': 'tiny',
-      'small': 'sm', 
-      'medium': 'med',
-      'large': 'lg',
-      'huge': 'huge',
-      'gargantuan': 'grg'
+      tiny: 'tiny',
+      small: 'sm',
+      medium: 'med',
+      large: 'lg',
+      huge: 'huge',
+      gargantuan: 'grg',
     };
     return sizeMap[size.toLowerCase()] || 'med';
   }
 
   private static parseLanguages(ddbCharacter: DDBCharacter): string[] {
     const languages: string[] = [];
-    
+
     try {
       // Check for language racial traits
       if (ddbCharacter.race?.racialTraits && Array.isArray(ddbCharacter.race.racialTraits)) {
@@ -493,7 +535,9 @@ export class CharacterParser {
           const definition = trait.definition;
           if (definition && definition.name === 'Languages' && definition.description) {
             // Extract language names from the description
-            const languageMatches = definition.description.match(/\b(Common|Elvish|Dwarvish|Halfling|Draconic|Giant|Gnomish|Goblin|Orcish|Abyssal|Celestial|Deep Speech|Infernal|Primordial|Sylvan|Undercommon|Druidic)\b/gi);
+            const languageMatches = definition.description.match(
+              /\b(Common|Elvish|Dwarvish|Halfling|Draconic|Giant|Gnomish|Goblin|Orcish|Abyssal|Celestial|Deep Speech|Infernal|Primordial|Sylvan|Undercommon|Druidic)\b/gi
+            );
             if (languageMatches) {
               languages.push(...languageMatches.map(lang => lang.toLowerCase()));
             }
@@ -506,7 +550,9 @@ export class CharacterParser {
         const bgLanguages = ddbCharacter.background.definition.languagesDescription;
         // If it says "Two of your choice" or similar, we can't extract specific languages
         if (!bgLanguages.includes('choice') && !bgLanguages.includes('any')) {
-          const languageMatches = bgLanguages.match(/\b(Common|Elvish|Dwarvish|Halfling|Draconic|Giant|Gnomish|Goblin|Orcish|Abyssal|Celestial|Deep Speech|Infernal|Primordial|Sylvan|Undercommon|Druidic)\b/gi);
+          const languageMatches = bgLanguages.match(
+            /\b(Common|Elvish|Dwarvish|Halfling|Draconic|Giant|Gnomish|Goblin|Orcish|Abyssal|Celestial|Deep Speech|Infernal|Primordial|Sylvan|Undercommon|Druidic)\b/gi
+          );
           if (languageMatches) {
             languages.push(...languageMatches.map(lang => lang.toLowerCase()));
           }
@@ -531,10 +577,10 @@ export class CharacterParser {
 
       // Remove duplicates and ensure Druidic is included for druids
       const uniqueLanguages = [...new Set(languages)];
-      
+
       // Check if character is a druid and add Druidic if not already present
       if (ddbCharacter.classes && Array.isArray(ddbCharacter.classes)) {
-        const isDruid = ddbCharacter.classes.some(cls => 
+        const isDruid = ddbCharacter.classes.some(cls =>
           cls.definition?.name?.toLowerCase().includes('druid')
         );
         if (isDruid && !uniqueLanguages.includes('druidic')) {
@@ -551,10 +597,24 @@ export class CharacterParser {
 
   private static getSkillAbility(skill: string): string {
     const skillAbilities: Record<string, string> = {
-      'acr': 'dex', 'ani': 'wis', 'arc': 'int', 'ath': 'str', 'dec': 'cha',
-      'his': 'int', 'ins': 'wis', 'itm': 'cha', 'inv': 'int', 'med': 'wis',
-      'nat': 'int', 'prc': 'wis', 'prf': 'cha', 'per': 'cha', 'rel': 'int',
-      'slt': 'dex', 'ste': 'dex', 'sur': 'wis'
+      acr: 'dex',
+      ani: 'wis',
+      arc: 'int',
+      ath: 'str',
+      dec: 'cha',
+      his: 'int',
+      ins: 'wis',
+      itm: 'cha',
+      inv: 'int',
+      med: 'wis',
+      nat: 'int',
+      prc: 'wis',
+      prf: 'cha',
+      per: 'cha',
+      rel: 'int',
+      slt: 'dex',
+      ste: 'dex',
+      sur: 'wis',
     };
     return skillAbilities[skill] || 'int';
   }
@@ -581,13 +641,13 @@ export class CharacterParser {
   }
 
   private static getStatIdForAbility(ability: string): number {
-    const map = { 'str': 1, 'dex': 2, 'con': 3, 'int': 4, 'wis': 5, 'cha': 6 };
+    const map = { str: 1, dex: 2, con: 3, int: 4, wis: 5, cha: 6 };
     return map[ability as keyof typeof map] || 4;
   }
 
   private static getPrimaryClass(ddbCharacter: DDBCharacter): string {
     if (!ddbCharacter.classes || ddbCharacter.classes.length === 0) return '';
-    const primaryClass = ddbCharacter.classes.reduce((prev, current) => 
+    const primaryClass = ddbCharacter.classes.reduce((prev, current) =>
       (current.level || 0) > (prev.level || 0) ? current : prev
     );
     return primaryClass.definition?.name || '';
@@ -595,11 +655,11 @@ export class CharacterParser {
 
   private static getPrimarySpellcastingClass(ddbCharacter: DDBCharacter): DDBClass | null {
     if (!ddbCharacter.classes) return null;
-    const spellcastingClasses = ddbCharacter.classes.filter(cls => 
-      cls.definition && this.isSpellcastingClass(cls.definition.name)
+    const spellcastingClasses = ddbCharacter.classes.filter(
+      cls => cls.definition && this.isSpellcastingClass(cls.definition.name)
     );
     if (spellcastingClasses.length === 0) return null;
-    return spellcastingClasses.reduce((prev, current) => 
+    return spellcastingClasses.reduce((prev, current) =>
       (current.level || 0) > (prev.level || 0) ? current : prev
     );
   }
@@ -607,15 +667,31 @@ export class CharacterParser {
   private static getSpellcastingAbility(classObj: DDBClass | null): string {
     if (!classObj || !classObj.definition) return 'int';
     const abilities: Record<string, string> = {
-      'druid': 'wis', 'cleric': 'wis', 'ranger': 'wis',
-      'bard': 'cha', 'sorcerer': 'cha', 'warlock': 'cha', 'paladin': 'cha',
-      'wizard': 'int', 'artificer': 'int'
+      druid: 'wis',
+      cleric: 'wis',
+      ranger: 'wis',
+      bard: 'cha',
+      sorcerer: 'cha',
+      warlock: 'cha',
+      paladin: 'cha',
+      wizard: 'int',
+      artificer: 'int',
     };
     return abilities[classObj.definition.name.toLowerCase()] || 'int';
   }
 
   private static isSpellcastingClass(className: string): boolean {
-    return ['Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'].includes(className);
+    return [
+      'Artificer',
+      'Bard',
+      'Cleric',
+      'Druid',
+      'Paladin',
+      'Ranger',
+      'Sorcerer',
+      'Warlock',
+      'Wizard',
+    ].includes(className);
   }
 
   private static calculateSpellSlots(className: string, level: number): Record<string, number> {
@@ -647,26 +723,45 @@ export class CharacterParser {
   }
 
   private static getXpForLevel(level: number): number {
-    const xpTable = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+    const xpTable = [
+      0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000,
+      165000, 195000, 225000, 265000, 305000, 355000,
+    ];
     return xpTable[Math.min(level - 1, xpTable.length - 1)] || 355000;
   }
 
   private static getSkillKeyFromModifier(modifier: DDBModifier): string | null {
     const skillMapping: Record<string, string> = {
-      'acrobatics': 'acr', 'animal-handling': 'ani', 'arcana': 'arc',
-      'athletics': 'ath', 'deception': 'dec', 'history': 'his',
-      'insight': 'ins', 'intimidation': 'inti', 'investigation': 'inv',
-      'medicine': 'med', 'nature': 'nat', 'perception': 'per',
-      'performance': 'prf', 'persuasion': 'per', 'religion': 'rel',
-      'sleight-of-hand': 'slt', 'stealth': 'ste', 'survival': 'sur'
+      acrobatics: 'acr',
+      'animal-handling': 'ani',
+      arcana: 'arc',
+      athletics: 'ath',
+      deception: 'dec',
+      history: 'his',
+      insight: 'ins',
+      intimidation: 'inti',
+      investigation: 'inv',
+      medicine: 'med',
+      nature: 'nat',
+      perception: 'per',
+      performance: 'prf',
+      persuasion: 'per',
+      religion: 'rel',
+      'sleight-of-hand': 'slt',
+      stealth: 'ste',
+      survival: 'sur',
     };
     return skillMapping[modifier.subType] || null;
   }
 
   private static getFoundryItemType(definition: any): string {
     const typeMap: Record<string, string> = {
-      'Weapon': 'weapon', 'Armor': 'equipment', 'Shield': 'equipment',
-      'Gear': 'loot', 'Tool': 'tool', 'Potion': 'consumable'
+      Weapon: 'weapon',
+      Armor: 'equipment',
+      Shield: 'equipment',
+      Gear: 'loot',
+      Tool: 'tool',
+      Potion: 'consumable',
     };
     return typeMap[definition.filterType] || 'loot';
   }
@@ -675,7 +770,7 @@ export class CharacterParser {
     const iconMap: Record<string, string> = {
       weapon: 'icons/weapons/swords/sword-broad-silver.webp',
       equipment: 'icons/equipment/chest/breastplate-scale-grey.webp',
-      loot: 'icons/containers/bags/pack-leather-brown.webp'
+      loot: 'icons/containers/bags/pack-leather-brown.webp',
     };
     return iconMap[itemType] || 'icons/svg/item-bag.svg';
   }
@@ -688,22 +783,22 @@ export class CharacterParser {
   private static parseEnhancedAttributes(ddbCharacter: DDBCharacter): any {
     const totalLevel = this.getTotalLevel(ddbCharacter);
     const constitutionMod = this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 3));
-    
+
     // Enhanced HP calculation
     const baseHP = ddbCharacter.baseHitPoints || 0;
     const bonusHP = ddbCharacter.bonusHitPoints || 0;
     const overrideHP = ddbCharacter.overrideHitPoints;
     const removedHP = ddbCharacter.removedHitPoints || 0;
-    
+
     let maxHP;
     if (overrideHP !== null && overrideHP !== undefined) {
       maxHP = overrideHP;
     } else {
-      maxHP = baseHP + (constitutionMod * totalLevel) + bonusHP;
+      maxHP = baseHP + constitutionMod * totalLevel + bonusHP;
     }
-    
+
     const currentHP = Math.max(0, maxHP - removedHP);
-    
+
     // Spellcasting attributes
     const primaryClass = this.getPrimarySpellcastingClass(ddbCharacter);
     const spellcastingAbility = this.getSpellcastingAbility(primaryClass);
@@ -714,25 +809,25 @@ export class CharacterParser {
 
     return {
       ac: { flat: null, calc: 'default', formula: '' },
-      hp: { 
-        value: currentHP, 
-        max: maxHP, 
-        temp: ddbCharacter.temporaryHitPoints || 0, 
-        tempmax: 0 
+      hp: {
+        value: currentHP,
+        max: maxHP,
+        temp: ddbCharacter.temporaryHitPoints || 0,
+        tempmax: 0,
       },
-      init: { 
-        ability: 'dex', 
+      init: {
+        ability: 'dex',
         bonus: 0,
         mod: this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 2)),
         prof: 0,
-        total: this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 2))
+        total: this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 2)),
       },
       movement: this.parseMovement(ddbCharacter),
       senses: this.parseSenses(ddbCharacter),
       spellcasting: spellcastingAbility,
       prof: profBonus,
       spelldc: 8 + profBonus + spellcastingMod,
-      encumbrance: this.parseEncumbrance(ddbCharacter)
+      encumbrance: this.parseEncumbrance(ddbCharacter),
     };
   }
 
@@ -742,12 +837,12 @@ export class CharacterParser {
   private static parseEncumbrance(ddbCharacter: DDBCharacter): any {
     const strengthScore = this.getAbilityScore(ddbCharacter, 1); // Strength ID = 1
     const carryingCapacity = strengthScore * 15;
-    
+
     return {
       value: 0, // Current encumbrance - would need to calculate from inventory
       max: carryingCapacity,
       pct: 0,
-      encumbered: false
+      encumbered: false,
     };
   }
 
@@ -756,13 +851,13 @@ export class CharacterParser {
    */
   private static parseAllItems(ddbCharacter: DDBCharacter): any[] {
     const items: any[] = [];
-    
+
     // Parse equipment
     items.push(...this.parseEquipment(ddbCharacter));
-    
+
     // Parse spells as items
     items.push(...this.parseSpellItems(ddbCharacter));
-    
+
     // Parse features (simplified for now)
     items.push(...this.parseFeatures(ddbCharacter));
 
@@ -787,7 +882,7 @@ export class CharacterParser {
       msak: { attack: '', damage: '' },
       rsak: { attack: '', damage: '' },
       abilities: { check: '', save: '', skill: '' },
-      spell: { dc: '' }
+      spell: { dc: '' },
     };
   }
 
@@ -796,7 +891,7 @@ export class CharacterParser {
    */
   private static parseEquipment(ddbCharacter: DDBCharacter): any[] {
     const items: any[] = [];
-    
+
     if (ddbCharacter.inventory) {
       ddbCharacter.inventory.forEach(item => {
         try {
@@ -822,7 +917,7 @@ export class CharacterParser {
 
     const definition = ddbItem.definition;
     const itemType = this.getFoundryItemType(definition);
-    
+
     return {
       name: definition.name,
       type: itemType,
@@ -835,15 +930,15 @@ export class CharacterParser {
         equipped: ddbItem.equipped || false,
         rarity: definition.rarity?.toLowerCase() || 'common',
         identified: true,
-        attuned: (ddbItem as any).isAttuned || false
+        attuned: (ddbItem as any).isAttuned || false,
       },
       flags: {
         'beyond-foundry': {
           ddbId: definition.id,
           ddbType: definition.type,
-          isHomebrew: (definition as any).isHomebrew || false
-        }
-      }
+          isHomebrew: (definition as any).isHomebrew || false,
+        },
+      },
     };
   }
 
@@ -852,7 +947,7 @@ export class CharacterParser {
    */
   private static parseSpellItems(ddbCharacter: DDBCharacter): any[] {
     const spellItems: any[] = [];
-    
+
     if (ddbCharacter.spells) {
       Object.values(ddbCharacter.spells).forEach(spellArray => {
         if (Array.isArray(spellArray)) {
@@ -881,7 +976,7 @@ export class CharacterParser {
     if (!ddbSpell.definition) return null;
 
     const definition = ddbSpell.definition;
-    
+
     return {
       name: definition.name,
       type: 'spell',
@@ -895,7 +990,7 @@ export class CharacterParser {
           somatic: definition.components?.somatic || false,
           material: definition.components?.material || false,
           ritual: definition.ritual || false,
-          concentration: definition.concentration || false
+          concentration: definition.concentration || false,
         },
         materials: { value: definition.components?.materialComponent || '' },
         preparation: { mode: 'prepared', prepared: ddbSpell.prepared || false },
@@ -903,14 +998,14 @@ export class CharacterParser {
         range: { value: null, units: 'ft' },
         target: { value: null, width: null, units: '', type: '' },
         duration: { value: null, units: '' },
-        activation: { type: 'action', cost: 1, condition: '' }
+        activation: { type: 'action', cost: 1, condition: '' },
       },
       flags: {
         'beyond-foundry': {
           ddbId: definition.id,
-          spellListId: (ddbSpell as any).spellListId
-        }
-      }
+          spellListId: (ddbSpell as any).spellListId,
+        },
+      },
     };
   }
 
@@ -919,7 +1014,7 @@ export class CharacterParser {
    */
   private static parseFeatures(ddbCharacter: DDBCharacter): any[] {
     const features: any[] = [];
-    
+
     try {
       // Parse class features
       if (ddbCharacter.classes && Array.isArray(ddbCharacter.classes)) {
@@ -934,7 +1029,7 @@ export class CharacterParser {
                   description: {
                     value: feature.description || '',
                     chat: '',
-                    unidentified: ''
+                    unidentified: '',
                   },
                   source: `${ddbClass.definition?.name || 'Class'} Level ${feature.requiredLevel || 1}`,
                   activation: { type: '', cost: 0, condition: '' },
@@ -952,7 +1047,7 @@ export class CharacterParser {
                   formula: '',
                   save: { ability: '', dc: null, scaling: 'spell' },
                   requirements: feature.prerequisite || '',
-                  recharge: { value: null, charged: false }
+                  recharge: { value: null, charged: false },
                 },
                 effects: [],
                 folder: null,
@@ -963,15 +1058,18 @@ export class CharacterParser {
                     type: 'classFeature',
                     class: ddbClass.definition?.name || 'Unknown',
                     level: feature.requiredLevel || 1,
-                    id: feature.id
-                  }
-                }
+                    id: feature.id,
+                  },
+                },
               });
             }
           }
 
           // Parse subclass features
-          if (ddbClass.subclassDefinition?.classFeatures && Array.isArray(ddbClass.subclassDefinition.classFeatures)) {
+          if (
+            ddbClass.subclassDefinition?.classFeatures &&
+            Array.isArray(ddbClass.subclassDefinition.classFeatures)
+          ) {
             for (const feature of ddbClass.subclassDefinition.classFeatures) {
               features.push({
                 name: feature.name || 'Unknown Subclass Feature',
@@ -981,7 +1079,7 @@ export class CharacterParser {
                   description: {
                     value: feature.description || '',
                     chat: '',
-                    unidentified: ''
+                    unidentified: '',
                   },
                   source: `${ddbClass.subclassDefinition?.name || 'Subclass'} Level ${feature.requiredLevel || 1}`,
                   activation: { type: '', cost: 0, condition: '' },
@@ -999,7 +1097,7 @@ export class CharacterParser {
                   formula: '',
                   save: { ability: '', dc: null, scaling: 'spell' },
                   requirements: feature.prerequisite || '',
-                  recharge: { value: null, charged: false }
+                  recharge: { value: null, charged: false },
                 },
                 effects: [],
                 folder: null,
@@ -1010,9 +1108,9 @@ export class CharacterParser {
                     type: 'subclassFeature',
                     subclass: ddbClass.subclassDefinition?.name || 'Unknown',
                     level: feature.requiredLevel || 1,
-                    id: feature.id
-                  }
-                }
+                    id: feature.id,
+                  },
+                },
               });
             }
           }
@@ -1032,14 +1130,16 @@ export class CharacterParser {
                 description: {
                   value: definition.description || '',
                   chat: definition.snippet || '',
-                  unidentified: ''
+                  unidentified: '',
                 },
                 source: ddbCharacter.race?.fullName || 'Racial Trait',
-                activation: definition.activation ? {
-                  type: definition.activation.activationType || '',
-                  cost: definition.activation.activationTime || 0,
-                  condition: ''
-                } : { type: '', cost: 0, condition: '' },
+                activation: definition.activation
+                  ? {
+                      type: definition.activation.activationType || '',
+                      cost: definition.activation.activationTime || 0,
+                      condition: '',
+                    }
+                  : { type: '', cost: 0, condition: '' },
                 duration: { value: null, units: '' },
                 target: { value: null, width: null, units: '', type: '' },
                 range: { value: null, long: null, units: '' },
@@ -1054,7 +1154,7 @@ export class CharacterParser {
                 formula: '',
                 save: { ability: '', dc: null, scaling: 'spell' },
                 requirements: '',
-                recharge: { value: null, charged: false }
+                recharge: { value: null, charged: false },
               },
               effects: [],
               folder: null,
@@ -1064,9 +1164,9 @@ export class CharacterParser {
                 'beyond-foundry': {
                   type: 'racialTrait',
                   race: ddbCharacter.race?.fullName || 'Unknown',
-                  id: definition.id
-                }
-              }
+                  id: definition.id,
+                },
+              },
             });
           }
         }
@@ -1082,7 +1182,7 @@ export class CharacterParser {
             description: {
               value: ddbCharacter.background.definition.featureDescription || '',
               chat: '',
-              unidentified: ''
+              unidentified: '',
             },
             source: ddbCharacter.background.definition.name || 'Background',
             activation: { type: '', cost: 0, condition: '' },
@@ -1100,7 +1200,7 @@ export class CharacterParser {
             formula: '',
             save: { ability: '', dc: null, scaling: 'spell' },
             requirements: '',
-            recharge: { value: null, charged: false }
+            recharge: { value: null, charged: false },
           },
           effects: [],
           folder: null,
@@ -1110,9 +1210,9 @@ export class CharacterParser {
             'beyond-foundry': {
               type: 'backgroundFeature',
               background: ddbCharacter.background.definition.name || 'Unknown',
-              id: ddbCharacter.background.definition.id
-            }
-          }
+              id: ddbCharacter.background.definition.id,
+            },
+          },
         });
       }
 
@@ -1128,7 +1228,7 @@ export class CharacterParser {
                 description: {
                   value: feat.definition.description || '',
                   chat: feat.definition.snippet || '',
-                  unidentified: ''
+                  unidentified: '',
                 },
                 source: 'Feat',
                 activation: { type: '', cost: 0, condition: '' },
@@ -1146,7 +1246,7 @@ export class CharacterParser {
                 formula: '',
                 save: { ability: '', dc: null, scaling: 'spell' },
                 requirements: feat.definition.prerequisite || '',
-                recharge: { value: null, charged: false }
+                recharge: { value: null, charged: false },
               },
               effects: [],
               folder: null,
@@ -1155,9 +1255,9 @@ export class CharacterParser {
               flags: {
                 'beyond-foundry': {
                   type: 'feat',
-                  id: feat.definition.id
-                }
-              }
+                  id: feat.definition.id,
+                },
+              },
             });
           }
         }
@@ -1175,7 +1275,7 @@ export class CharacterParser {
                 description: {
                   value: feature.definition.description || '',
                   chat: feature.definition.snippet || '',
-                  unidentified: ''
+                  unidentified: '',
                 },
                 source: 'Optional Class Feature',
                 activation: { type: '', cost: 0, condition: '' },
@@ -1193,7 +1293,7 @@ export class CharacterParser {
                 formula: '',
                 save: { ability: '', dc: null, scaling: 'spell' },
                 requirements: feature.definition.prerequisite || '',
-                recharge: { value: null, charged: false }
+                recharge: { value: null, charged: false },
               },
               effects: [],
               folder: null,
@@ -1202,14 +1302,13 @@ export class CharacterParser {
               flags: {
                 'beyond-foundry': {
                   type: 'optionalClassFeature',
-                  id: feature.definition.id
-                }
-              }
+                  id: feature.definition.id,
+                },
+              },
             });
           }
         }
       }
-
     } catch (error) {
       Logger.error(`Error parsing features: ${error}`);
     }

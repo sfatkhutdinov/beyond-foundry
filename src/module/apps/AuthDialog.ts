@@ -31,10 +31,10 @@ export class AuthDialog extends Application {
 
     // Handle form submission
     html.find('form').on('submit', this._onSubmitAuth.bind(this));
-    
+
     // Handle test connection button
     html.find('.test-connection').on('click', this._onTestConnection.bind(this));
-    
+
     // Handle help button
     html.find('.help-button').on('click', this._onShowHelp.bind(this));
   }
@@ -44,11 +44,11 @@ export class AuthDialog extends Application {
    */
   private async _onSubmitAuth(event: Event): Promise<void> {
     event.preventDefault();
-    
+
     const form = event.target as HTMLFormElement;
     const formData = new FormData(form);
     const cobaltToken = formData.get('cobaltToken') as string;
-    
+
     if (!cobaltToken || cobaltToken.trim() === '') {
       ui.notifications.error('Please enter your Cobalt session token');
       return;
@@ -56,7 +56,7 @@ export class AuthDialog extends Application {
 
     try {
       Logger.info('Attempting D&D Beyond authentication...');
-      
+
       // Show loading state
       const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
       const originalText = submitButton.textContent;
@@ -68,19 +68,18 @@ export class AuthDialog extends Application {
 
       if (result.success) {
         ui.notifications.info('Authentication successful!');
-        
+
         // Store token in settings for future use
         await game.settings.set(MODULE_ID, 'cobaltToken', cobaltToken.trim());
-        
+
         this.close();
       } else {
         ui.notifications.error(`Authentication failed: ${result.message}`);
       }
-      
+
       // Restore button state
       submitButton.textContent = originalText;
       submitButton.disabled = false;
-      
     } catch (error) {
       Logger.error(`Authentication error: ${getErrorMessage(error)}`);
       ui.notifications.error(`Authentication error: ${getErrorMessage(error)}`);
@@ -92,11 +91,11 @@ export class AuthDialog extends Application {
    */
   private async _onTestConnection(event: Event): Promise<void> {
     event.preventDefault();
-    
+
     try {
       const api = BeyondFoundryAPI.getInstance();
       const connected = await api.testProxyConnection();
-      
+
       if (connected) {
         ui.notifications.info('Proxy connection successful!');
       } else {
@@ -113,7 +112,7 @@ export class AuthDialog extends Application {
    */
   private _onShowHelp(event: Event): void {
     event.preventDefault();
-    
+
     new Dialog({
       title: 'Getting Your Cobalt Token',
       content: `
@@ -134,9 +133,9 @@ export class AuthDialog extends Application {
       buttons: {
         ok: {
           label: 'Got it!',
-          callback: () => {}
-        }
-      }
+          callback: () => {},
+        },
+      },
     }).render(true);
   }
 
@@ -146,7 +145,7 @@ export class AuthDialog extends Application {
   override getData(): any {
     return {
       isConnected: false, // TODO: Check if already authenticated
-      proxyUrl: game.settings.get(MODULE_ID, 'proxyUrl')
+      proxyUrl: game.settings.get(MODULE_ID, 'proxyUrl'),
     };
   }
 

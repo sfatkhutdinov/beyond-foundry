@@ -6,7 +6,7 @@ import { CharacterImportDialog } from './apps/CharacterImportDialog.js';
 
 /**
  * Beyond Foundry Module Entry Point
- * 
+ *
  * This module allows importing purchased D&D Beyond content into FoundryVTT
  * with support for characters, spells, items, and more.
  */
@@ -14,27 +14,27 @@ import { CharacterImportDialog } from './apps/CharacterImportDialog.js';
 // Initialize module when Foundry is ready
 Hooks.once('init', async () => {
   Logger.info(`Initializing ${MODULE_NAME}...`);
-  
+
   // Register module settings
   registerSettings();
-  
+
   // Initialize API
   const api = BeyondFoundryAPI.getInstance();
-  
+
   // Expose API globally for console access and other modules
   (game as any).modules.get(MODULE_ID).api = api;
-  
+
   Logger.info(`${MODULE_NAME} initialized successfully`);
 });
 
 // Setup module when ready
 Hooks.once('ready', async () => {
   Logger.info(`${MODULE_NAME} ready`);
-  
+
   // Initialize API with current settings
   const api = BeyondFoundryAPI.getInstance();
   api.init();
-  
+
   // Add console message for developers
   Logger.info('Access the API via: game.modules.get("beyond-foundry").api');
 });
@@ -45,7 +45,7 @@ Hooks.on('getActorSheetHeaderButtons', (app: any, buttons: any[]) => {
   if (app.actor.type !== 'character' || game.system.id !== 'dnd5e') {
     return;
   }
-  
+
   buttons.unshift({
     label: 'Import from D&D Beyond',
     class: 'beyond-foundry-import',
@@ -53,7 +53,7 @@ Hooks.on('getActorSheetHeaderButtons', (app: any, buttons: any[]) => {
     onclick: () => {
       Logger.info('D&D Beyond import button clicked');
       CharacterImportDialog.show();
-    }
+    },
   });
 });
 
@@ -66,7 +66,7 @@ Hooks.on('getActorDirectoryEntryContext', (html: any, options: any[]) => {
     callback: () => {
       Logger.info('D&D Beyond import context menu clicked');
       CharacterImportDialog.show();
-    }
+    },
   });
 });
 

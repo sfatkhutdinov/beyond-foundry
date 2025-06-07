@@ -10,7 +10,8 @@ export default [
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: 'module'
+        sourceType: 'module',
+        project: './tsconfig.json'
       },
       globals: {
         // FoundryVTT globals
@@ -37,24 +38,31 @@ export default [
       '@typescript-eslint': tseslint
     },
     rules: {
-      ...tseslint.configs.recommended.rules,
-      
-      // TypeScript specific rules
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/prefer-const': 'error',
-      '@typescript-eslint/no-inferrable-types': 'off',
-      
-      // General JavaScript rules
+      // Base JavaScript rules
       'no-console': 'off', // Allow console for FoundryVTT
       'no-debugger': 'warn',
       'prefer-const': 'error',
       'no-var': 'error',
       'object-shorthand': 'error',
       'prefer-arrow-callback': 'error',
+      'no-undef': 'off', // TypeScript handles this better
       
-      // FoundryVTT specific allowances
-      'no-undef': 'off' // TypeScript handles this better
+      // TypeScript specific rules - using correct rule names
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-inferrable-types': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/ban-ts-comment': 'warn'
+    }
+  },
+  {
+    files: ['src/types/**/*.d.ts'],
+    rules: {
+      // Disable unused vars for type declaration files
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off'
     }
   },
   {
