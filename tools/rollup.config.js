@@ -4,7 +4,7 @@ import typescript from '@rollup/plugin-typescript';
 export default {
   input: 'src/module/beyond-foundry.ts',
   output: {
-    dir: '.',
+    dir: 'build',
     format: 'es',
     entryFileNames: 'beyond-foundry.js',
     sourcemap: true

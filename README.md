@@ -59,6 +59,41 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 
 ## 📚 Documentation
 
-...
+- **[Project Organization](docs/project-organization.md)** - Directory structure and file organization
+- **[Development Setup](docs/setup.md)** - Getting started with development
+- **[Authentication Guide](docs/authentication.md)** - Setting up D&D Beyond authentication
+- **[Parser Documentation](docs/parsers.md)** - Understanding the parsing system
+- **[Quick Reference](docs/quick-reference.md)** - Developer quick reference
+
+## 🛠️ Development
+
+### Project Structure
+```
+src/                   # Source code
+├── module/           # Core module files
+├── parsers/          # D&D Beyond data parsers
+└── types/            # TypeScript definitions
+
+build/                # Compiled output
+tests/                # Test files
+scripts/              # Utility scripts
+docs/                 # Documentation
+analysis/             # Character analysis results
+```
+
+### Build Commands
+```bash
+npm run build         # Build once
+npm run build:watch   # Build and watch for changes
+npm run clean         # Clean build directory
+npm run lint          # Check code style
+npm run type-check    # Validate TypeScript
+```
+
+### Maintenance
+```bash
+# Run project maintenance
+./scripts/maintain-project.sh
+```
 
 See `docs/roadmap.md` for detailed progress and goals.
