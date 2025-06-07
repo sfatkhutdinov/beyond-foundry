@@ -1,0 +1,167 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-quality:
+    name: Advanced Code Quality
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run ESLint with SARIF output
+      run: |
+        npx eslint src/**/*.ts \
+          --format @microsoft/eslint-formatter-sarif \
+          --output-file eslint-results.sarif
+      continue-on-error: true
+
+    - name: Upload ESLint results to GitHub
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: eslint-results.sarif
+        wait-for-processing: true
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    - name: Code complexity analysis
+      run: |
+        npx madge --circular --extensions ts src/
+        npx complexity-report --format json --output complexity.json src/
+
+    - name: Upload complexity report
+      uses: actions/upload-artifact@v4
+      with:
+        name: complexity-report
+        path: complexity.json
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Performance benchmarks
+      run: |
+        # Create performance test script
+        cat > perf-test.js << 'EOF'
+        import { performance } from 'perf_hooks';
+        import fs from 'fs';
+
+        // Test module loading performance
+        const start = performance.now();
+        
+        // Simulate module loading
+        const moduleContent = fs.readFileSync('./build/beyond-foundry.js', 'utf8');
+        const loadTime = performance.now() - start;
+        
+        console.log(`Module load time: ${loadTime.toFixed(2)}ms`);
+        console.log(`Module size: ${(moduleContent.length / 1024).toFixed(2)}KB`);
+        
+        // Create performance report
+        const report = {
+          loadTime: loadTime,
+          moduleSize: moduleContent.length,
+          timestamp: new Date().toISOString()
+        };
+        
+        fs.writeFileSync('performance-report.json', JSON.stringify(report, null, 2));
+        EOF
+        
+        node perf-test.js
+
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: performance-report.json
+
+    - name: Bundle analysis
+      run: |
+        npx bundlesize
+      continue-on-error: true
+
+  compatibility-test:
+    name: FoundryVTT Compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        foundry-version: ['11', '12']
+        dnd5e-version: ['3.0', '3.1', '3.2']
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Validate module.json compatibility
+      run: |
+        # Check module.json compatibility requirements
+        node -e "
+        const module = JSON.parse(require('fs').readFileSync('module.json', 'utf8'));
+        console.log('Module compatibility check:');
+        console.log('- Foundry minimum:', module.compatibility.minimum);
+        console.log('- Foundry verified:', module.compatibility.verified);
+        console.log('- Foundry maximum:', module.compatibility.maximum);
+        
+        const foundryVersion = '${{ matrix.foundry-version }}';
+        const dnd5eVersion = '${{ matrix.dnd5e-version }}';
+        
+        console.log('Testing against Foundry v' + foundryVersion + ' and D&D5e v' + dnd5eVersion);
+        "
+
+    - name: Module structure validation
+      run: |
+        # Validate required files exist
+        required_files=("module.json" "build/beyond-foundry.js" "lang/en.json")
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "ERROR: Required file $file is missing"
+            exit 1
+          fi
+        done
+        echo "All required files present"

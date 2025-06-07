@@ -1,0 +1,140 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests with coverage
+      run: npm run test:coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/lcov.info
+        flags: unittests
+        name: beyond-foundry-coverage
+        fail_ci_if_error: true
+
+    - name: Upload coverage to Coveralls
+      uses: coverallsapp/github-action@v2
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: ./coverage/lcov.info
+
+    - name: Coverage Summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage/cobertura-coverage.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '60 80'
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
+
+    - name: Check coverage threshold
+      run: |
+        # Extract coverage percentage
+        COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+        echo "Current coverage: ${COVERAGE}%"
+        
+        # Set minimum threshold
+        THRESHOLD=70
+        
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "::error::Coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+          exit 1
+        else
+          echo "::notice::Coverage ${COVERAGE}% meets threshold ${THRESHOLD}%"
+        fi
+
+    - name: Generate coverage badge
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Create coverage badge
+        COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
+        COLOR="red"
+        
+        if (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+          COLOR="brightgreen"
+        elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+          COLOR="yellow"
+        elif (( $(echo "$COVERAGE >= 40" | bc -l) )); then
+          COLOR="orange"
+        fi
+        
+        curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}" > coverage-badge.svg
+
+    - name: Update README with coverage
+      if: github.ref == 'refs/heads/main'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          // Read current README
+          let readme = fs.readFileSync('README.md', 'utf8');
+          
+          // Read coverage data
+          const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          const coveragePercent = coverage.total.lines.pct;
+          
+          // Update coverage badge in README
+          const badgeRegex = /!\[Coverage\]\([^)]*\)/;
+          const newBadge = `![Coverage](https://img.shields.io/badge/coverage-${coveragePercent}%25-brightgreen)`;
+          
+          if (badgeRegex.test(readme)) {
+            readme = readme.replace(badgeRegex, newBadge);
+          } else {
+            // Add badge if it doesn't exist
+            const titleMatch = readme.match(/^# .+$/m);
+            if (titleMatch) {
+              const insertIndex = readme.indexOf('\n', titleMatch.index) + 1;
+              readme = readme.slice(0, insertIndex) + '\n' + newBadge + '\n' + readme.slice(insertIndex);
+            }
+          }
+          
+          fs.writeFileSync('README.md', readme);
+
+    - name: Commit updated README
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update coverage badge [skip ci]"
+          git push
+        fi

@@ -1,0 +1,105 @@
+name: ❓ Question or Support
+description: Ask a question or get help with Beyond Foundry
+title: "[Question]: "
+labels: ["question", "support"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Need help with Beyond Foundry? Please fill out the form below and we'll do our best to assist you!
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission checklist
+      description: Please confirm the following before asking your question
+      options:
+        - label: I have read the documentation and README
+          required: true
+        - label: I have searched existing issues for similar questions
+          required: true
+
+  - type: dropdown
+    id: question-category
+    attributes:
+      label: Question Category
+      description: What area does your question relate to?
+      options:
+        - Installation and Setup
+        - Authentication with D&D Beyond
+        - Character Import
+        - Spell Import
+        - Monster Import
+        - Item/Equipment Import
+        - Troubleshooting
+        - Configuration
+        - Compatibility
+        - General Usage
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: Please describe your question or issue in detail
+      placeholder: What would you like to know or what help do you need?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any relevant context about your setup or what you're trying to achieve
+      placeholder: Describe your setup, what you're trying to do, and any relevant details
+    validations:
+      required: false
+
+  - type: input
+    id: foundry-version
+    attributes:
+      label: FoundryVTT Version
+      description: What version of FoundryVTT are you using?
+      placeholder: "e.g., 11.315"
+    validations:
+      required: false
+
+  - type: input
+    id: dnd5e-version
+    attributes:
+      label: D&D 5e System Version
+      description: What version of the D&D 5e system are you using?
+      placeholder: "e.g., 3.0.2"
+    validations:
+      required: false
+
+  - type: input
+    id: module-version
+    attributes:
+      label: Beyond Foundry Version
+      description: What version of Beyond Foundry are you using?
+      placeholder: "e.g., 1.0.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: attempted-solutions
+    attributes:
+      label: What have you tried?
+      description: Describe any troubleshooting steps or solutions you've already attempted
+      placeholder: List any steps you've already taken to solve this
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any other information that might be helpful
+      placeholder: Screenshots, error messages, or other relevant details
+    validations:
+      required: false

@@ -1,0 +1,130 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature! Please fill out the form below to help us understand your request.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission checklist
+      description: Please confirm the following before submitting your feature request
+      options:
+        - label: I have searched existing issues to make sure this feature hasn't been requested before
+          required: true
+        - label: I have checked the project roadmap to see if this feature is already planned
+          required: true
+
+  - type: dropdown
+    id: feature-category
+    attributes:
+      label: Feature Category
+      description: What type of feature is this?
+      options:
+        - Character Import
+        - Spell Import
+        - Monster Import
+        - Item/Equipment Import
+        - Adventure Import
+        - Authentication
+        - User Interface
+        - Performance
+        - Configuration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: What problem does this feature solve? What is the current limitation?
+      placeholder: Describe the problem or limitation this feature would address
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your proposed solution in detail
+      placeholder: Describe how you envision this feature working
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: Describe any alternative solutions you've thought about
+    validations:
+      required: false
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe a specific scenario where this feature would be useful
+      placeholder: "As a [user type], I want [feature] so that [benefit]"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low - Nice to have
+        - Medium - Would improve my workflow
+        - High - Essential for my use case
+        - Critical - Blocking my adoption
+    validations:
+      required: true
+
+  - type: textarea
+    id: ddb-reference
+    attributes:
+      label: D&D Beyond Reference
+      description: If this relates to specific D&D Beyond functionality, please provide details
+      placeholder: Describe the D&D Beyond feature or content this relates to
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: implementation
+    attributes:
+      label: Implementation Considerations
+      description: Are there any specific implementation details to consider?
+      options:
+        - label: This feature should maintain compatibility with existing imports
+        - label: This feature may require changes to the D&D 5e system schema
+        - label: This feature may require new UI components
+        - label: This feature may impact performance
+        - label: This feature may require additional D&D Beyond API endpoints
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other context, mockups, or examples that would help
+      placeholder: Add any other context, screenshots, or examples here
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be interested in contributing to this feature?
+      options:
+        - label: I would be willing to help implement this feature
+        - label: I would be willing to test this feature
+        - label: I would be willing to provide feedback during development

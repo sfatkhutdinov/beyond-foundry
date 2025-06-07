@@ -1,0 +1,179 @@
+name: Auto-assign and Label
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  auto-assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-assign issues
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const issueBody = issue.body.toLowerCase();
+            const issueTitle = issue.title.toLowerCase();
+            
+            let labels = [];
+            let assignees = [];
+            
+            // Auto-label based on content
+            if (issueBody.includes('bug') || issueTitle.includes('bug')) {
+              labels.push('bug');
+            }
+            
+            if (issueBody.includes('feature') || issueTitle.includes('feature')) {
+              labels.push('enhancement');
+            }
+            
+            if (issueBody.includes('documentation') || issueTitle.includes('docs')) {
+              labels.push('documentation');
+            }
+            
+            if (issueBody.includes('character') || issueTitle.includes('character')) {
+              labels.push('character-import');
+            }
+            
+            if (issueBody.includes('spell') || issueTitle.includes('spell')) {
+              labels.push('spell-import');
+            }
+            
+            if (issueBody.includes('monster') || issueTitle.includes('monster')) {
+              labels.push('monster-import');
+            }
+            
+            if (issueBody.includes('authentication') || issueTitle.includes('auth')) {
+              labels.push('authentication');
+            }
+            
+            // Check FoundryVTT version
+            if (issueBody.includes('v11') || issueBody.includes('foundry v11')) {
+              labels.push('foundry-v11');
+            }
+            
+            if (issueBody.includes('v12') || issueBody.includes('foundry v12')) {
+              labels.push('foundry-v12');
+            }
+            
+            // Priority labeling
+            if (issueBody.includes('crash') || issueBody.includes('critical') || issueTitle.includes('critical')) {
+              labels.push('priority:high');
+            }
+            
+            // Add needs-triage for all new issues
+            labels.push('needs-triage');
+            
+            // Apply labels
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+            }
+
+      - name: Auto-assign PRs
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const prBody = pr.body ? pr.body.toLowerCase() : '';
+            const prTitle = pr.title.toLowerCase();
+            
+            let labels = [];
+            
+            // Auto-label based on PR content
+            if (prBody.includes('fix') || prTitle.includes('fix')) {
+              labels.push('bug-fix');
+            }
+            
+            if (prBody.includes('feature') || prTitle.includes('feature')) {
+              labels.push('enhancement');
+            }
+            
+            if (prBody.includes('docs') || prTitle.includes('docs')) {
+              labels.push('documentation');
+            }
+            
+            if (prBody.includes('refactor') || prTitle.includes('refactor')) {
+              labels.push('refactoring');
+            }
+            
+            if (prBody.includes('performance') || prTitle.includes('performance')) {
+              labels.push('performance');
+            }
+            
+            // Check if it's a dependency update
+            if (prTitle.includes('bump') || prTitle.includes('update') && prTitle.includes('dependencies')) {
+              labels.push('dependencies');
+            }
+            
+            // Add needs-review for all new PRs
+            labels.push('needs-review');
+            
+            // Apply labels
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: labels
+              });
+            }
+
+      - name: Welcome new contributors
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const isFirstTime = async (username) => {
+              const { data: events } = await github.rest.issues.listEventsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100
+              });
+              
+              return !events.some(event => 
+                event.actor && event.actor.login === username && 
+                (event.event === 'closed' || event.event === 'merged')
+              );
+            };
+            
+            const author = context.payload.sender.login;
+            
+            if (await isFirstTime(author)) {
+              const welcomeMessage = `
+              👋 Welcome to Beyond Foundry, @${author}! 
+              
+              Thank you for your contribution! Here are some helpful resources:
+              
+              - 📖 [Development Documentation](https://github.com/${context.repo.owner}/${context.repo.repo}/wiki)
+              - 🏗️ [Architecture Guide](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/architecture.md)
+              - 🔧 [Setup Instructions](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/docs/setup.md)
+              - 💬 [Discussions](https://github.com/${context.repo.owner}/${context.repo.repo}/discussions)
+              
+              A maintainer will review your contribution soon. Feel free to ask questions in the discussions if you need help!
+              `;
+              
+              if (context.payload.issue) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.issue.number,
+                  body: welcomeMessage
+                });
+              } else if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  body: welcomeMessage
+                });
+              }
+            }
