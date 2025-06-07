@@ -5,7 +5,7 @@
 ### Character 147552172 (Korterrend) Analysis Complete
 - **Type**: Level 20 Lizardfolk Sorcerer
 - **Content**: 6 spells, 10 equipment items
-- **Data**: Fresh pull successful, saved to character-analysis/
+- **Data**: Fresh pull successful, saved to analysis/character-analysis/
 
 ---
 
