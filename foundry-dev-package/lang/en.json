@@ -1,0 +1,57 @@
+{
+  "beyond-foundry": {
+    "settings": {
+      "proxyUrl": {
+        "name": "Proxy URL",
+        "hint": "URL of the ddb-proxy server (e.g., http://localhost:3100)"
+      },
+      "useDockerProxy": {
+        "name": "Use Docker Proxy",
+        "hint": "Enable if using ddb-proxy in Docker environment (sets URL to http://ddb-proxy:3000)"
+      },
+      "apiEndpoint": {
+        "name": "API Endpoint", 
+        "hint": "Custom API endpoint (leave blank to use proxy)"
+      },
+      "debugMode": {
+        "name": "Debug Mode",
+        "hint": "Enable debug logging and test commands"
+      },
+      "autoImportItems": {
+        "name": "Auto Import Items",
+        "hint": "Automatically import character equipment and spells"
+      },
+      "importPolicy": {
+        "name": "Import Policy",
+        "hint": "How to handle existing characters during import",
+        "ask": "Ask before importing",
+        "update": "Update existing characters",
+        "replace": "Replace existing characters", 
+        "skip": "Skip existing characters"
+      }
+    },
+    "notifications": {
+      "proxyConnected": "Connected to ddb-proxy successfully",
+      "proxyConnectionFailed": "Failed to connect to ddb-proxy",
+      "authenticationSuccess": "Authenticated with D&D Beyond",
+      "authenticationFailed": "Failed to authenticate with D&D Beyond",
+      "characterImportSuccess": "Character imported successfully",
+      "characterImportFailed": "Failed to import character"
+    },
+    "buttons": {
+      "import": "Import from D&D Beyond",
+      "test": "Test Connection"
+    },
+    "dialogs": {
+      "import": {
+        "title": "Import from D&D Beyond",
+        "selectCharacter": "Select Character",
+        "importOptions": "Import Options",
+        "importItems": "Import Equipment",
+        "importSpells": "Import Spells",
+        "updateExisting": "Update Existing",
+        "createCompendium": "Create Compendium Items"
+      }
+    }
+  }
+}

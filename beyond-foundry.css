@@ -1,0 +1,152 @@
+/**
+ * Beyond Foundry - CSS Styles
+ * Custom styling for D&D Beyond integration dialogs and UI components
+ */
+
+/* Character Import Dialog */
+.beyond-foundry-dialog {
+  min-width: 600px;
+  min-height: 400px;
+}
+
+.beyond-foundry-dialog .dialog-content {
+  padding: 10px;
+}
+
+.beyond-foundry-dialog .form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.beyond-foundry-dialog .form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.beyond-foundry-dialog .form-group input,
+.beyond-foundry-dialog .form-group select,
+.beyond-foundry-dialog .form-group textarea {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+/* Authentication Dialog */
+.beyond-foundry-auth {
+  min-width: 500px;
+}
+
+.beyond-foundry-auth .help-text {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Progress indicators */
+.beyond-foundry-progress {
+  margin: 10px 0;
+}
+
+.beyond-foundry-progress .progress-bar {
+  width: 100%;
+  height: 20px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.beyond-foundry-progress .progress-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+/* Status messages */
+.beyond-foundry-status {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+}
+
+.beyond-foundry-status.success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.beyond-foundry-status.error {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.beyond-foundry-status.warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+}
+
+/* Button styling */
+.beyond-foundry-dialog button {
+  margin: 5px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.beyond-foundry-dialog button.primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.beyond-foundry-dialog button.primary:hover {
+  background-color: #0056b3;
+}
+
+.beyond-foundry-dialog button.secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.beyond-foundry-dialog button.secondary:hover {
+  background-color: #545b62;
+}
+
+/* Character selection list */
+.beyond-foundry-character-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+.beyond-foundry-character-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.beyond-foundry-character-item:hover {
+  background-color: #f8f9fa;
+}
+
+.beyond-foundry-character-item.selected {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.beyond-foundry-character-name {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.beyond-foundry-character-details {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 5px;
+}
