@@ -601,17 +601,6 @@ export interface FoundrySpell {
   };
 }
 
-// FoundryVTT Actor interface for proper typing
-declare global {
-  interface Actor {
-    items: any; // Collection of items
-    createEmbeddedDocuments(type: string, data: any[]): Promise<any[]>;
-    update(data: any): Promise<any>;
-    getFlag(scope: string, key: string): any;
-    name: string;
-  }
-}
-
 export interface SpellParsingOptions {
   preparationMode?: 'prepared' | 'pact' | 'always' | 'atwill' | 'innate';
   includeUnprepared?: boolean;

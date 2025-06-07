@@ -270,10 +270,10 @@ export class BeyondFoundryAPI {
             Logger.info(`Importing ${totalSpells} spells for character: ${actor.name}`);
             
             const spellResults = await this.importCharacterSpells(actor, ddbCharacter, importOptions);
-            if (spellResults.warnings?.length > 0) {
+            if (spellResults.warnings && spellResults.warnings.length > 0) {
               warnings.push(...spellResults.warnings);
             }
-            if (spellResults.errors?.length > 0) {
+            if (spellResults.errors && spellResults.errors.length > 0) {
               warnings.push(`Some spells failed to import: ${spellResults.errors.join(', ')}`);
             }
           }
@@ -342,7 +342,7 @@ export class BeyondFoundryAPI {
       for (const spellData of allSpells) {
         try {
           // Check if spell already exists
-          const existingSpell = actor.items.find(item => 
+          const existingSpell = actor.items.find((item: any) => 
             item.type === 'spell' && 
             item.name === spellData.name &&
             item.getFlag('beyond-foundry', 'ddbId') === spellData.flags?.['beyond-foundry']?.ddbId
@@ -368,11 +368,12 @@ export class BeyondFoundryAPI {
 
       Logger.info(`Successfully imported ${createdSpells.length} spells for character: ${actor.name}`);
       
-      return {
+      const result: { success: boolean; warnings?: string[]; errors?: string[] } = {
         success: true,
-        warnings: warnings.length > 0 ? warnings : undefined,
-        errors: errors.length > 0 ? errors : undefined
+        ...(warnings.length > 0 && { warnings }),
+        ...(errors.length > 0 && { errors })
       };
+      return result;
 
     } catch (error) {
       Logger.error(`Character spell import error: ${getErrorMessage(error)}`);
@@ -408,7 +409,7 @@ export class BeyondFoundryAPI {
         Logger.info('To test authentication, configure your cobalt token in module settings');
       }
     } catch (error) {
-      ui.notifications.error(`Authentication test failed: ${error.message}`);
+      ui.notifications.error(`Authentication test failed: ${getErrorMessage(error)}`);
     }
     
     // Explain character testing
@@ -469,7 +470,7 @@ export class BeyondFoundryAPI {
         Logger.info('4. Run: game.modules.get("beyond-foundry").api.quickTest("your-cobalt-token", "character-id")');
       }
     } catch (error) {
-      ui.notifications.error(`Quick test failed: ${error.message}`);
+      ui.notifications.error(`Quick test failed: ${getErrorMessage(error)}`);
       Logger.error(`Quick test error: ${getErrorMessage(error)}`);
     }
   }

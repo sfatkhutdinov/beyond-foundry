@@ -2,25 +2,41 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ES2022",
-    "moduleResolution": "node",
-    "lib": ["ES2022", "DOM"],
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "declaration": true,
+    "declarationMap": true,
     "outDir": "./build",
     "rootDir": "./src",
-    "strict": false,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true,
-    "sourceMap": true
+    "isolatedModules": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "removeComments": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./build/tsconfig.tsbuildinfo",
+    "types": ["@league-of-foundry-developers/foundry-vtt-types"]
   },
   "include": [
     "src/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "reference"
+    "build",
+    "reference",
+    "analysis",
+    "debug",
+    "tests/**/*.js",
+    "scripts/**/*.js"
   ]
 }

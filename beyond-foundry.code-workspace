@@ -1,0 +1,127 @@
+{
+  "folders": [
+    {
+      "name": "Beyond Foundry",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.suggest.autoImports": true,
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "eslint.workingDirectories": ["."],
+    "eslint.validate": ["typescript"],
+    "files.exclude": {
+      "**/node_modules": true,
+      "**/build": true,
+      "**/.git": true,
+      "**/analysis": true,
+      "**/debug": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/build": true,
+      "**/reference": true,
+      "**/analysis": true,
+      "**/debug": true
+    },
+    "typescript.preferences.includePackageJsonAutoImports": "off"
+  },
+  "extensions": {
+    "recommendations": [
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "ms-vscode.vscode-typescript-next",
+      "bradlc.vscode-tailwindcss",
+      "vitest.explorer"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Build",
+        "type": "npm",
+        "script": "build",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "silent",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": ["$tsc"]
+      },
+      {
+        "label": "Build Watch",
+        "type": "npm",
+        "script": "build:watch",
+        "group": "build",
+        "isBackground": true,
+        "presentation": {
+          "echo": true,
+          "reveal": "silent",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": {
+          "owner": "typescript",
+          "fileLocation": "relative",
+          "pattern": {
+            "regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+            "file": 1,
+            "location": 2,
+            "severity": 3,
+            "code": 4,
+            "message": 5
+          },
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": "^\\s*\\d+:\\d+:\\d+(\\s+[AP]M)?\\s+-\\s+File change detected\\. Starting incremental compilation\\.\\.\\.",
+            "endsPattern": "^\\s*\\d+:\\d+:\\d+(\\s+[AP]M)?\\s+-\\s+Compilation complete\\."
+          }
+        }
+      },
+      {
+        "label": "Lint",
+        "type": "npm",
+        "script": "lint",
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "silent",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Format",
+        "type": "npm",
+        "script": "format",
+        "group": "build",
+        "presentation": {
+          "echo": true,
+          "reveal": "silent",
+          "focus": false,
+          "panel": "shared"
+        }
+      },
+      {
+        "label": "Test",
+        "type": "npm",
+        "script": "test",
+        "group": "test",
+        "presentation": {
+          "echo": true,
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        }
+      }
+    ]
+  }
+}

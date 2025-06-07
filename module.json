@@ -4,7 +4,7 @@
   "description": "Import your purchased D&D Beyond content into FoundryVTT with ease. Features character import, spell/item sync, and seamless integration with the D&D 5e system.",
   "version": "1.0.0",
   "compatibility": {
-    "minimum": "13",
+    "minimum": "12",
     "verified": "13",
     "maximum": "13"
   },
