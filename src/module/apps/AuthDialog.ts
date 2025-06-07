@@ -1,5 +1,5 @@
 import { MODULE_ID } from '../constants.js';
-import { Logger } from '../utils/logger.js';
+import { Logger, getErrorMessage } from '../utils/logger.js';
 import { BeyondFoundryAPI } from '../api/BeyondFoundryAPI.js';
 
 /**
@@ -7,7 +7,7 @@ import { BeyondFoundryAPI } from '../api/BeyondFoundryAPI.js';
  * Handles Cobalt token input and validation
  */
 export class AuthDialog extends Application {
-  static get defaultOptions(): ApplicationOptions {
+  static override get defaultOptions(): ApplicationOptions {
     return mergeObject(super.defaultOptions, {
       id: `${MODULE_ID}-auth-dialog`,
       title: 'D&D Beyond Authentication',
@@ -26,7 +26,7 @@ export class AuthDialog extends Application {
   /**
    * Activate event listeners
    */
-  activateListeners(html: JQuery): void {
+  override activateListeners(html: JQuery): void {
     super.activateListeners(html);
 
     // Handle form submission
@@ -82,8 +82,8 @@ export class AuthDialog extends Application {
       submitButton.disabled = false;
       
     } catch (error) {
-      Logger.error(`Authentication error: ${error.message}`);
-      ui.notifications.error(`Authentication error: ${error.message}`);
+      Logger.error(`Authentication error: ${getErrorMessage(error)}`);
+      ui.notifications.error(`Authentication error: ${getErrorMessage(error)}`);
     }
   }
 
@@ -103,8 +103,8 @@ export class AuthDialog extends Application {
         ui.notifications.error('Proxy connection failed. Check your ddb-proxy setup.');
       }
     } catch (error) {
-      Logger.error(`Connection test error: ${error.message}`);
-      ui.notifications.error(`Connection test failed: ${error.message}`);
+      Logger.error(`Connection test error: ${getErrorMessage(error)}`);
+      ui.notifications.error(`Connection test failed: ${getErrorMessage(error)}`);
     }
   }
 
@@ -143,7 +143,7 @@ export class AuthDialog extends Application {
   /**
    * Get template data
    */
-  getData(): any {
+  override getData(): any {
     return {
       isConnected: false, // TODO: Check if already authenticated
       proxyUrl: game.settings.get(MODULE_ID, 'proxyUrl')

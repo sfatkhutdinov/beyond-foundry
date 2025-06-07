@@ -36,8 +36,10 @@ declare global {
   class Actor {
     static create(data: any): Promise<Actor>;
     name: string;
+    items: any; // Collection of items
     update(data: any): Promise<Actor>;
     getFlag(module: string, key: string): any;
+    createEmbeddedDocuments(type: string, data: any[]): Promise<any[]>;
   }
 
   class Application {

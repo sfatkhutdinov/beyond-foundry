@@ -1,0 +1,10 @@
+# Prettier ignore file
+build/
+node_modules/
+reference/
+analysis/
+debug/
+*.min.js
+*.bundle.js
+CHANGELOG.md
+LICENSE

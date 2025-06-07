@@ -1,5 +1,5 @@
 import { MODULE_ID } from '../constants.js';
-import { Logger } from '../utils/logger.js';
+import { Logger, getErrorMessage } from '../utils/logger.js';
 import { BeyondFoundryAPI } from '../api/BeyondFoundryAPI.js';
 import { AuthDialog } from './AuthDialog.js';
 import type { DDBCharacter, ImportOptions } from '../../types/index.js';
@@ -19,7 +19,7 @@ export class CharacterImportDialog extends Application {
   private pendingCharacters: Map<string, PendingCharacter> = new Map();
   private loading: boolean = false;
 
-  static get defaultOptions(): ApplicationOptions {
+  static override get defaultOptions(): ApplicationOptions {
     return mergeObject(super.defaultOptions, {
       id: `${MODULE_ID}-character-import-dialog`,
       title: 'Import D&D Beyond Characters',
@@ -38,7 +38,7 @@ export class CharacterImportDialog extends Application {
   /**
    * Activate event listeners
    */
-  activateListeners(html: JQuery): void {
+  override activateListeners(html: JQuery): void {
     super.activateListeners(html);
 
     // Authentication button
@@ -207,22 +207,20 @@ export class CharacterImportDialog extends Application {
     const api = BeyondFoundryAPI.getInstance();
     
     // Load characters in parallel
-    const promises = unloadedCharacters.map(async (char) => {
-      try {
-        const result = await api.getCharacter(char.id);
-        
-        if (result.success && result.character) {
-          char.character = result.character;
-          char.loaded = true;
-          char.error = undefined;
-        } else {
-          char.error = result.error || 'Failed to load character';
+    const promises = unloadedCharacters.map(async (char) => {        try {
+          const result = await api.getCharacter(char.id);
+          if (result && result.success && result.character) {
+            char.character = result.character;
+            char.loaded = true;
+            delete char.error;
+          } else {
+            char.error = result?.error || 'Failed to load character';
+            char.loaded = false;
+          }
+        } catch (error) {
+          char.error = getErrorMessage(error);
           char.loaded = false;
-        }
-      } catch (error) {
-        char.error = error.message || 'Unknown error';
-        char.loaded = false;
-      } finally {
+        }finally {
         char.loading = false;
       }
     });
@@ -343,7 +341,7 @@ export class CharacterImportDialog extends Application {
 
       // Show spell import warnings if any
       results.forEach(r => {
-        if (r.result.warnings?.length > 0) {
+        if (r.result.warnings && r.result.warnings.length > 0) {
           Logger.warn(`Warnings for ${r.characterName}: ${r.result.warnings.join(', ')}`);
         }
       });
@@ -354,8 +352,8 @@ export class CharacterImportDialog extends Application {
       }
 
     } catch (error) {
-      Logger.error(`Import error: ${error.message}`);
-      ui.notifications.error(`Import failed: ${error.message}`);
+      Logger.error(`Import error: ${getErrorMessage(error)}`);
+      ui.notifications.error(`Import failed: ${getErrorMessage(error)}`);
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -373,7 +371,7 @@ export class CharacterImportDialog extends Application {
   /**
    * Get template data
    */
-  getData(): any {
+  override getData(): any {
     const pendingCharactersList = Array.from(this.pendingCharacters.values());
     const readyToImport = pendingCharactersList.filter(char => char.loaded && char.character);
     
