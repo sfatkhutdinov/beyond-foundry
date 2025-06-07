@@ -34,7 +34,7 @@
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^9.15.0",
-    "@league-of-foundry-developers/foundry-vtt-types": "^12.331.5",
+    "@league-of-foundry-developers/foundry-vtt-types": "^13.340.1",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^22.15.30",
