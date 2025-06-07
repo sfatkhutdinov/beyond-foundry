@@ -18,7 +18,7 @@ jobs:
     - name: Add to project board
       uses: actions/add-to-project@v1.0.2
       with:
-        project-url: https://github.com/users/your-username/projects/1
+        project-url: https://github.com/users/sfatkhutdinov/projects/1
         github-token: ${{ secrets.PROJECT_TOKEN }}
 
     - name: Update project status
