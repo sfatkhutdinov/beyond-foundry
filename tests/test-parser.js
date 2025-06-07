@@ -33,7 +33,7 @@ global.Logger = Logger;
 async function importCharacterParser() {
   try {
     // Try to import the compiled version first
-    const module = await import('./beyond-foundry.js');
+    const module = await import('./character-parser-wrapper.js');
     
     // Check if CharacterParser is directly available
     if (module.CharacterParser) {
