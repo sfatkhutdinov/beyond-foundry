@@ -59,5 +59,7 @@
     "url": "https://github.com/sfatkhutdinov/beyond-foundry/issues"
   },
   "homepage": "https://github.com/sfatkhutdinov/beyond-foundry#readme",
-  "dependencies": {}
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
 }
