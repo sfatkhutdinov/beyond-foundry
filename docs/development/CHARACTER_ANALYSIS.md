@@ -34,7 +34,7 @@ node analyze-character.js "YOUR_COBALT_TOKEN_HERE" "147239148"
 
 ## Step 3: Review the Analysis Results
 
-The script will create a `character-analysis/` directory with detailed files:
+The script will create an `analysis/character-analysis/` directory with detailed files:
 
 ### Files Created:
 

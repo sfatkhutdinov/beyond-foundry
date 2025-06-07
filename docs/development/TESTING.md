@@ -56,7 +56,7 @@ node analyze-character.js "your-cobalt-token"
 node analyze-character.js "your-cobalt-token" "your-character-id"
 ```
 
-This creates detailed analysis files in `character-analysis/` directory with:
+This creates detailed analysis files in `analysis/character-analysis/` directory with:
 - Raw D&D Beyond JSON data
 - Extracted character insights
 - Complete data structure breakdown
