@@ -142,7 +142,7 @@ async function testCharacterFetch(characterId, cobaltToken) {
 async function testCharacterParsing() {
   console.log('\n🔧 Testing character parsing...');
   
-  const debugPath = path.join(process.cwd(), 'debug', 'debug-character-147239148.json');
+  const debugPath = path.join(process.cwd(), 'debug', 'debug-character-147552172.json');
   
   if (!fs.existsSync(debugPath)) {
     console.log('⚠️  Debug character data not found - using mock data');

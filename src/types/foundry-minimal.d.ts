@@ -11,12 +11,20 @@ declare global {
     };
     system: {
       id: string;
+      version?: string;
     };
     modules: {
       get(_id: string): any;
     };
     actors?: {
       find(_predicate: (_actor: any) => boolean): any;
+    };
+    version?: string;
+    world?: {
+      id: string;
+    };
+    user?: {
+      name?: string;
     };
   };
 
