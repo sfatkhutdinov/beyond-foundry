@@ -3,14 +3,19 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Import your purchased D&D Beyond content into FoundryVTT with ease",
-  "main": "beyond-foundry.js",
+  "main": "build/beyond-foundry.js",
   "scripts": {
-    "build": "rollup -c",
-    "build:watch": "rollup -c -w",
+    "build": "rollup -c tools/rollup.config.js",
+    "build:watch": "rollup -c tools/rollup.config.js -w",
     "dev": "npm run build:watch",
+    "clean": "rm -rf build/*",
+    "rebuild": "npm run clean && npm run build",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "echo 'Run specific tests from tests/ directory'",
+    "test:api": "node tests/test-api.js",
+    "test:parser": "node tests/test-parser.js"
   },
   "keywords": [
     "foundry",

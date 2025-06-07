@@ -9,6 +9,18 @@ dist/
 build/
 *.tsbuildinfo
 
+# Debug and temporary files
+debug/
+temp/
+*.tmp
+
+# Analysis results (optional - comment out if you want to track these)
+# analysis/
+
+# Test outputs
+test-results/
+coverage/
+
 # Environment files
 .env
 .env.local
