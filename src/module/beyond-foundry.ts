@@ -94,3 +94,4 @@ Hooks.once('ready', () => {
 });
 
 Logger.info(`${MODULE_NAME} module loaded`);
+export { CharacterParser } from '../parsers/character/CharacterParser';
