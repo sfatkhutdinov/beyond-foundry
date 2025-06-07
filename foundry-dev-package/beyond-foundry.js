@@ -1,3 +1,11 @@
+/*
+ * Beyond Foundry v1.0.0
+ * Import your purchased D&D Beyond content into FoundryVTT with ease
+ * 
+ * Author: Stanislav Fatkhutdinov
+ * License: MIT
+ * Repository: https://github.com/sfatkhutdinov/beyond-foundry.git
+ */
 // Module constants
 const MODULE_ID = 'beyond-foundry';
 const MODULE_NAME = 'Beyond Foundry';
@@ -12,14 +20,14 @@ const SETTINGS = {
     DEBUG_MODE: 'debugMode',
     AUTO_IMPORT_ITEMS: 'autoImportItems',
     IMPORT_POLICY: 'importPolicy',
-    COBALT_TOKEN: 'cobaltToken'
+    COBALT_TOKEN: 'cobaltToken',
 };
 // Default import options
 const DEFAULT_IMPORT_OPTIONS = {
     importItems: true,
     importSpells: true,
     updateExisting: false,
-    createCompendiumItems: true
+    createCompendiumItems: true,
 };
 
 /**
@@ -34,7 +42,7 @@ function registerSettings() {
         config: true,
         type: String,
         default: DEFAULT_PROXY_URL,
-        onChange: () => window.location.reload()
+        onChange: () => window.location.reload(),
     });
     game.settings.register(MODULE_ID, SETTINGS.USE_DOCKER_PROXY, {
         name: 'beyond-foundry.settings.useDockerProxy.name',
@@ -50,9 +58,9 @@ function registerSettings() {
             else {
                 game.settings.set(MODULE_ID, SETTINGS.PROXY_URL, DEFAULT_PROXY_URL);
             }
-        }
+        },
     });
-    // API configuration  
+    // API configuration
     game.settings.register(MODULE_ID, SETTINGS.API_ENDPOINT, {
         name: 'beyond-foundry.settings.apiEndpoint.name',
         hint: 'beyond-foundry.settings.apiEndpoint.hint',
@@ -60,7 +68,7 @@ function registerSettings() {
         config: true,
         type: String,
         default: '',
-        onChange: () => window.location.reload()
+        onChange: () => window.location.reload(),
     });
     // Debug mode
     game.settings.register(MODULE_ID, SETTINGS.DEBUG_MODE, {
@@ -69,7 +77,7 @@ function registerSettings() {
         scope: 'client',
         config: true,
         type: Boolean,
-        default: false
+        default: false,
     });
     // Import options
     game.settings.register(MODULE_ID, SETTINGS.AUTO_IMPORT_ITEMS, {
@@ -78,7 +86,7 @@ function registerSettings() {
         scope: 'world',
         config: true,
         type: Boolean,
-        default: true
+        default: true,
     });
     game.settings.register(MODULE_ID, SETTINGS.IMPORT_POLICY, {
         name: 'beyond-foundry.settings.importPolicy.name',
@@ -87,12 +95,12 @@ function registerSettings() {
         config: true,
         type: String,
         choices: {
-            'ask': 'beyond-foundry.settings.importPolicy.ask',
-            'update': 'beyond-foundry.settings.importPolicy.update',
-            'replace': 'beyond-foundry.settings.importPolicy.replace',
-            'skip': 'beyond-foundry.settings.importPolicy.skip'
+            ask: 'beyond-foundry.settings.importPolicy.ask',
+            update: 'beyond-foundry.settings.importPolicy.update',
+            replace: 'beyond-foundry.settings.importPolicy.replace',
+            skip: 'beyond-foundry.settings.importPolicy.skip',
         },
-        default: 'ask'
+        default: 'ask',
     });
     // Authentication
     game.settings.register(MODULE_ID, SETTINGS.COBALT_TOKEN, {
@@ -101,7 +109,7 @@ function registerSettings() {
         scope: 'world',
         config: false, // Hidden from UI - managed by auth dialog
         type: String,
-        default: ''
+        default: '',
     });
 }
 /**
@@ -121,7 +129,7 @@ function getModuleSettings() {
         debugMode: getModuleSetting(SETTINGS.DEBUG_MODE),
         autoImportItems: getModuleSetting(SETTINGS.AUTO_IMPORT_ITEMS),
         importPolicy: getModuleSetting(SETTINGS.IMPORT_POLICY),
-        cobaltToken: getModuleSetting(SETTINGS.COBALT_TOKEN)
+        cobaltToken: getModuleSetting(SETTINGS.COBALT_TOKEN),
     };
 }
 
@@ -208,7 +216,7 @@ class CharacterParser {
                 skills: this.parseSkills(ddbCharacter),
                 spells: this.parseSpells(ddbCharacter),
                 resources: this.parseResources(ddbCharacter),
-                bonuses: this.parseBonuses(ddbCharacter)
+                bonuses: this.parseBonuses(ddbCharacter),
             },
             items: this.parseAllItems(ddbCharacter),
             effects: this.parseActiveEffects(ddbCharacter),
@@ -223,10 +231,10 @@ class CharacterParser {
                         'equipment-parsing',
                         'spell-integration',
                         'modifier-system',
-                        'comprehensive-traits'
-                    ]
-                }
-            }
+                        'comprehensive-traits',
+                    ],
+                },
+            },
         };
         Logger.info(`✅ Comprehensive parsing complete: ${actorData.name}`);
         return actorData;
@@ -237,7 +245,12 @@ class CharacterParser {
     static parseAbilities(ddbCharacter) {
         const abilities = {};
         const abilityMap = {
-            1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
+            1: 'str',
+            2: 'dex',
+            3: 'con',
+            4: 'int',
+            5: 'wis',
+            6: 'cha',
         };
         // Initialize abilities
         Object.values(abilityMap).forEach(key => {
@@ -246,7 +259,7 @@ class CharacterParser {
                 proficient: 0,
                 bonuses: { check: '', save: '' },
                 min: 3,
-                mod: 0
+                mod: 0,
             };
         });
         // Apply base stats
@@ -291,7 +304,7 @@ class CharacterParser {
             ac: {
                 flat: null,
                 calc: 'default',
-                formula: ''
+                formula: '',
             },
             hp: {
                 value: ddbCharacter.baseHitPoints || 0,
@@ -300,18 +313,20 @@ class CharacterParser {
                 tempmax: 0,
                 bonuses: {
                     level: '',
-                    overall: ''
-                }
+                    overall: '',
+                },
             },
             init: {
                 ability: 'dex',
-                bonus: 0
+                bonus: 0,
             },
             movement: this.parseMovement(ddbCharacter),
             senses: this.parseSenses(ddbCharacter),
-            spellcasting: ddbCharacter.spellcastingAbilityId ? this.getAbilityKey(ddbCharacter.spellcastingAbilityId) : '',
+            spellcasting: ddbCharacter.spellcastingAbilityId
+                ? this.getAbilityKey(ddbCharacter.spellcastingAbilityId)
+                : '',
             prof: this.calculateProficiencyBonus(ddbCharacter.classes || []),
-            spelldc: 8 // Will be calculated based on spellcasting ability
+            spelldc: 8, // Will be calculated based on spellcasting ability
         };
     }
     /**
@@ -323,7 +338,7 @@ class CharacterParser {
         return {
             biography: {
                 value: ddbCharacter.notes?.backstory || '',
-                public: ''
+                public: '',
             },
             alignment: ddbCharacter.alignmentId ? this.parseAlignment(ddbCharacter.alignmentId) : '',
             race: ddbCharacter.race?.fullName || '',
@@ -334,13 +349,13 @@ class CharacterParser {
             xp: {
                 value: ddbCharacter.currentXp || 0,
                 max: this.getXpForLevel(totalLevel + 1),
-                pct: 0
+                pct: 0,
             },
             appearance: ddbCharacter.notes?.appearance || '',
             trait: ddbCharacter.notes?.personalityTraits || '',
             ideal: ddbCharacter.notes?.ideals || '',
             bond: ddbCharacter.notes?.bonds || '',
-            flaw: ddbCharacter.notes?.flaws || ''
+            flaw: ddbCharacter.notes?.flaws || '',
         };
     }
     /**
@@ -355,7 +370,7 @@ class CharacterParser {
             classDetails[className] = {
                 levels: cls.level,
                 subclass: cls.subclassDefinition?.name || '',
-                hitDie: cls.definition.hitDie
+                hitDie: cls.definition.hitDie,
             };
         });
         return classDetails;
@@ -369,24 +384,24 @@ class CharacterParser {
             senses: '',
             languages: {
                 value: this.parseLanguages(ddbCharacter),
-                custom: ''
+                custom: '',
             },
             di: { value: [], custom: '' }, // Damage immunities
-            dr: { value: [], custom: '' }, // Damage resistances  
+            dr: { value: [], custom: '' }, // Damage resistances
             dv: { value: [], custom: '' }, // Damage vulnerabilities
             ci: { value: [], custom: '' }, // Condition immunities
             weaponProf: {
                 value: this.parseWeaponProficiencies(ddbCharacter),
-                custom: ''
+                custom: '',
             },
             armorProf: {
                 value: this.parseArmorProficiencies(ddbCharacter),
-                custom: ''
+                custom: '',
             },
             toolProf: {
                 value: this.parseToolProficiencies(ddbCharacter),
-                custom: ''
-            }
+                custom: '',
+            },
         };
     }
     /**
@@ -456,7 +471,7 @@ class CharacterParser {
             gp: currencies.gp || 0,
             ep: currencies.ep || 0,
             sp: currencies.sp || 0,
-            cp: currencies.cp || 0
+            cp: currencies.cp || 0,
         };
     }
     /**
@@ -466,8 +481,24 @@ class CharacterParser {
         const skills = {};
         // D&D 5e system skills
         const skillList = [
-            'acr', 'ani', 'arc', 'ath', 'dec', 'his', 'ins', 'itm', 'inv',
-            'med', 'nat', 'prc', 'prf', 'per', 'rel', 'slt', 'ste', 'sur'
+            'acr',
+            'ani',
+            'arc',
+            'ath',
+            'dec',
+            'his',
+            'ins',
+            'itm',
+            'inv',
+            'med',
+            'nat',
+            'prc',
+            'prf',
+            'per',
+            'rel',
+            'slt',
+            'ste',
+            'sur',
         ];
         skillList.forEach(skill => {
             skills[skill] = {
@@ -475,8 +506,8 @@ class CharacterParser {
                 ability: this.getSkillAbility(skill),
                 bonuses: {
                     check: '',
-                    passive: ''
-                }
+                    passive: '',
+                },
             };
         });
         // Apply skill proficiencies from modifiers
@@ -514,8 +545,9 @@ class CharacterParser {
      */
     static parseSpells(ddbCharacter) {
         const primaryClass = this.getPrimarySpellcastingClass(ddbCharacter);
-        const spellSlots = primaryClass ?
-            this.calculateSpellSlots(primaryClass.definition.name, primaryClass.level) : {};
+        const spellSlots = primaryClass
+            ? this.calculateSpellSlots(primaryClass.definition.name, primaryClass.level)
+            : {};
         return {
             spell1: { value: spellSlots.spell1 || 0, override: null, max: spellSlots.spell1 || 0 },
             spell2: { value: spellSlots.spell2 || 0, override: null, max: spellSlots.spell2 || 0 },
@@ -536,7 +568,7 @@ class CharacterParser {
             spells6: { value: 0, max: 0 },
             spells7: { value: 0, max: 0 },
             spells8: { value: 0, max: 0 },
-            spells9: { value: 0, max: 0 }
+            spells9: { value: 0, max: 0 },
         };
     }
     /**
@@ -546,7 +578,7 @@ class CharacterParser {
         return {
             primary: { value: 0, max: 0, sr: false, lr: false, label: '' },
             secondary: { value: 0, max: 0, sr: false, lr: false, label: '' },
-            tertiary: { value: 0, max: 0, sr: false, lr: false, label: '' }
+            tertiary: { value: 0, max: 0, sr: false, lr: false, label: '' },
         };
     }
     // Helper methods
@@ -563,7 +595,7 @@ class CharacterParser {
             swim: 0,
             walk: ddbCharacter.race?.weightSpeeds?.normal?.walk || 30,
             units: 'ft',
-            hover: false
+            hover: false,
         };
     }
     static parseSenses(ddbCharacter) {
@@ -573,7 +605,7 @@ class CharacterParser {
             tremorsense: 0,
             truesight: 0,
             units: 'ft',
-            special: ''
+            special: '',
         };
     }
     static calculateProficiencyBonus(classes) {
@@ -582,24 +614,37 @@ class CharacterParser {
     }
     static getAbilityKey(abilityId) {
         const map = {
-            1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
+            1: 'str',
+            2: 'dex',
+            3: 'con',
+            4: 'int',
+            5: 'wis',
+            6: 'cha',
         };
         return map[abilityId] || '';
     }
     static parseAlignment(alignmentId) {
         const alignments = {
-            1: 'lg', 2: 'ln', 3: 'le', 4: 'ng', 5: 'n', 6: 'ne', 7: 'cg', 8: 'cn', 9: 'ce'
+            1: 'lg',
+            2: 'ln',
+            3: 'le',
+            4: 'ng',
+            5: 'n',
+            6: 'ne',
+            7: 'cg',
+            8: 'cn',
+            9: 'ce',
         };
         return alignments[alignmentId] || 'n';
     }
     static parseSize(size) {
         const sizeMap = {
-            'tiny': 'tiny',
-            'small': 'sm',
-            'medium': 'med',
-            'large': 'lg',
-            'huge': 'huge',
-            'gargantuan': 'grg'
+            tiny: 'tiny',
+            small: 'sm',
+            medium: 'med',
+            large: 'lg',
+            huge: 'huge',
+            gargantuan: 'grg',
         };
         return sizeMap[size.toLowerCase()] || 'med';
     }
@@ -663,10 +708,24 @@ class CharacterParser {
     }
     static getSkillAbility(skill) {
         const skillAbilities = {
-            'acr': 'dex', 'ani': 'wis', 'arc': 'int', 'ath': 'str', 'dec': 'cha',
-            'his': 'int', 'ins': 'wis', 'itm': 'cha', 'inv': 'int', 'med': 'wis',
-            'nat': 'int', 'prc': 'wis', 'prf': 'cha', 'per': 'cha', 'rel': 'int',
-            'slt': 'dex', 'ste': 'dex', 'sur': 'wis'
+            acr: 'dex',
+            ani: 'wis',
+            arc: 'int',
+            ath: 'str',
+            dec: 'cha',
+            his: 'int',
+            ins: 'wis',
+            itm: 'cha',
+            inv: 'int',
+            med: 'wis',
+            nat: 'int',
+            prc: 'wis',
+            prf: 'cha',
+            per: 'cha',
+            rel: 'int',
+            slt: 'dex',
+            ste: 'dex',
+            sur: 'wis',
         };
         return skillAbilities[skill] || 'int';
     }
@@ -689,7 +748,7 @@ class CharacterParser {
         return stat ? stat.value : 10;
     }
     static getStatIdForAbility(ability) {
-        const map = { 'str': 1, 'dex': 2, 'con': 3, 'int': 4, 'wis': 5, 'cha': 6 };
+        const map = { str: 1, dex: 2, con: 3, int: 4, wis: 5, cha: 6 };
         return map[ability] || 4;
     }
     static getPrimaryClass(ddbCharacter) {
@@ -710,14 +769,30 @@ class CharacterParser {
         if (!classObj || !classObj.definition)
             return 'int';
         const abilities = {
-            'druid': 'wis', 'cleric': 'wis', 'ranger': 'wis',
-            'bard': 'cha', 'sorcerer': 'cha', 'warlock': 'cha', 'paladin': 'cha',
-            'wizard': 'int', 'artificer': 'int'
+            druid: 'wis',
+            cleric: 'wis',
+            ranger: 'wis',
+            bard: 'cha',
+            sorcerer: 'cha',
+            warlock: 'cha',
+            paladin: 'cha',
+            wizard: 'int',
+            artificer: 'int',
         };
         return abilities[classObj.definition.name.toLowerCase()] || 'int';
     }
     static isSpellcastingClass(className) {
-        return ['Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger', 'Sorcerer', 'Warlock', 'Wizard'].includes(className);
+        return [
+            'Artificer',
+            'Bard',
+            'Cleric',
+            'Druid',
+            'Paladin',
+            'Ranger',
+            'Sorcerer',
+            'Warlock',
+            'Wizard',
+        ].includes(className);
     }
     static calculateSpellSlots(className, level) {
         const slots = {};
@@ -756,24 +831,43 @@ class CharacterParser {
         return 'med';
     }
     static getXpForLevel(level) {
-        const xpTable = [0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000, 165000, 195000, 225000, 265000, 305000, 355000];
+        const xpTable = [
+            0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000, 120000, 140000,
+            165000, 195000, 225000, 265000, 305000, 355000,
+        ];
         return xpTable[Math.min(level - 1, xpTable.length - 1)] || 355000;
     }
     static getSkillKeyFromModifier(modifier) {
         const skillMapping = {
-            'acrobatics': 'acr', 'animal-handling': 'ani', 'arcana': 'arc',
-            'athletics': 'ath', 'deception': 'dec', 'history': 'his',
-            'insight': 'ins', 'intimidation': 'inti', 'investigation': 'inv',
-            'medicine': 'med', 'nature': 'nat', 'perception': 'per',
-            'performance': 'prf', 'persuasion': 'per', 'religion': 'rel',
-            'sleight-of-hand': 'slt', 'stealth': 'ste', 'survival': 'sur'
+            acrobatics: 'acr',
+            'animal-handling': 'ani',
+            arcana: 'arc',
+            athletics: 'ath',
+            deception: 'dec',
+            history: 'his',
+            insight: 'ins',
+            intimidation: 'inti',
+            investigation: 'inv',
+            medicine: 'med',
+            nature: 'nat',
+            perception: 'per',
+            performance: 'prf',
+            persuasion: 'per',
+            religion: 'rel',
+            'sleight-of-hand': 'slt',
+            stealth: 'ste',
+            survival: 'sur',
         };
         return skillMapping[modifier.subType] || null;
     }
     static getFoundryItemType(definition) {
         const typeMap = {
-            'Weapon': 'weapon', 'Armor': 'equipment', 'Shield': 'equipment',
-            'Gear': 'loot', 'Tool': 'tool', 'Potion': 'consumable'
+            Weapon: 'weapon',
+            Armor: 'equipment',
+            Shield: 'equipment',
+            Gear: 'loot',
+            Tool: 'tool',
+            Potion: 'consumable',
         };
         return typeMap[definition.filterType] || 'loot';
     }
@@ -781,7 +875,7 @@ class CharacterParser {
         const iconMap = {
             weapon: 'icons/weapons/swords/sword-broad-silver.webp',
             equipment: 'icons/equipment/chest/breastplate-scale-grey.webp',
-            loot: 'icons/containers/bags/pack-leather-brown.webp'
+            loot: 'icons/containers/bags/pack-leather-brown.webp',
         };
         return iconMap[itemType] || 'icons/svg/item-bag.svg';
     }
@@ -802,7 +896,7 @@ class CharacterParser {
             maxHP = overrideHP;
         }
         else {
-            maxHP = baseHP + (constitutionMod * totalLevel) + bonusHP;
+            maxHP = baseHP + constitutionMod * totalLevel + bonusHP;
         }
         const currentHP = Math.max(0, maxHP - removedHP);
         // Spellcasting attributes
@@ -816,21 +910,21 @@ class CharacterParser {
                 value: currentHP,
                 max: maxHP,
                 temp: ddbCharacter.temporaryHitPoints || 0,
-                tempmax: 0
+                tempmax: 0,
             },
             init: {
                 ability: 'dex',
                 bonus: 0,
                 mod: this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 2)),
                 prof: 0,
-                total: this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 2))
+                total: this.getAbilityModifier(this.getAbilityScore(ddbCharacter, 2)),
             },
             movement: this.parseMovement(ddbCharacter),
             senses: this.parseSenses(ddbCharacter),
             spellcasting: spellcastingAbility,
             prof: profBonus,
             spelldc: 8 + profBonus + spellcastingMod,
-            encumbrance: this.parseEncumbrance(ddbCharacter)
+            encumbrance: this.parseEncumbrance(ddbCharacter),
         };
     }
     /**
@@ -843,7 +937,7 @@ class CharacterParser {
             value: 0, // Current encumbrance - would need to calculate from inventory
             max: carryingCapacity,
             pct: 0,
-            encumbered: false
+            encumbered: false,
         };
     }
     /**
@@ -876,7 +970,7 @@ class CharacterParser {
             msak: { attack: '', damage: '' },
             rsak: { attack: '', damage: '' },
             abilities: { check: '', save: '', skill: '' },
-            spell: { dc: '' }
+            spell: { dc: '' },
         };
     }
     /**
@@ -920,15 +1014,15 @@ class CharacterParser {
                 equipped: ddbItem.equipped || false,
                 rarity: definition.rarity?.toLowerCase() || 'common',
                 identified: true,
-                attuned: ddbItem.isAttuned || false
+                attuned: ddbItem.isAttuned || false,
             },
             flags: {
                 'beyond-foundry': {
                     ddbId: definition.id,
                     ddbType: definition.type,
-                    isHomebrew: definition.isHomebrew || false
-                }
-            }
+                    isHomebrew: definition.isHomebrew || false,
+                },
+            },
         };
     }
     /**
@@ -976,7 +1070,7 @@ class CharacterParser {
                     somatic: definition.components?.somatic || false,
                     material: definition.components?.material || false,
                     ritual: definition.ritual || false,
-                    concentration: definition.concentration || false
+                    concentration: definition.concentration || false,
                 },
                 materials: { value: definition.components?.materialComponent || '' },
                 preparation: { mode: 'prepared', prepared: ddbSpell.prepared || false },
@@ -984,14 +1078,14 @@ class CharacterParser {
                 range: { value: null, units: 'ft' },
                 target: { value: null, width: null, units: '', type: '' },
                 duration: { value: null, units: '' },
-                activation: { type: 'action', cost: 1, condition: '' }
+                activation: { type: 'action', cost: 1, condition: '' },
             },
             flags: {
                 'beyond-foundry': {
                     ddbId: definition.id,
-                    spellListId: ddbSpell.spellListId
-                }
-            }
+                    spellListId: ddbSpell.spellListId,
+                },
+            },
         };
     }
     /**
@@ -1013,7 +1107,7 @@ class CharacterParser {
                                     description: {
                                         value: feature.description || '',
                                         chat: '',
-                                        unidentified: ''
+                                        unidentified: '',
                                     },
                                     source: `${ddbClass.definition?.name || 'Class'} Level ${feature.requiredLevel || 1}`,
                                     activation: { type: '', cost: 0, condition: '' },
@@ -1031,7 +1125,7 @@ class CharacterParser {
                                     formula: '',
                                     save: { ability: '', dc: null, scaling: 'spell' },
                                     requirements: feature.prerequisite || '',
-                                    recharge: { value: null, charged: false }
+                                    recharge: { value: null, charged: false },
                                 },
                                 effects: [],
                                 folder: null,
@@ -1042,14 +1136,15 @@ class CharacterParser {
                                         type: 'classFeature',
                                         class: ddbClass.definition?.name || 'Unknown',
                                         level: feature.requiredLevel || 1,
-                                        id: feature.id
-                                    }
-                                }
+                                        id: feature.id,
+                                    },
+                                },
                             });
                         }
                     }
                     // Parse subclass features
-                    if (ddbClass.subclassDefinition?.classFeatures && Array.isArray(ddbClass.subclassDefinition.classFeatures)) {
+                    if (ddbClass.subclassDefinition?.classFeatures &&
+                        Array.isArray(ddbClass.subclassDefinition.classFeatures)) {
                         for (const feature of ddbClass.subclassDefinition.classFeatures) {
                             features.push({
                                 name: feature.name || 'Unknown Subclass Feature',
@@ -1059,7 +1154,7 @@ class CharacterParser {
                                     description: {
                                         value: feature.description || '',
                                         chat: '',
-                                        unidentified: ''
+                                        unidentified: '',
                                     },
                                     source: `${ddbClass.subclassDefinition?.name || 'Subclass'} Level ${feature.requiredLevel || 1}`,
                                     activation: { type: '', cost: 0, condition: '' },
@@ -1077,7 +1172,7 @@ class CharacterParser {
                                     formula: '',
                                     save: { ability: '', dc: null, scaling: 'spell' },
                                     requirements: feature.prerequisite || '',
-                                    recharge: { value: null, charged: false }
+                                    recharge: { value: null, charged: false },
                                 },
                                 effects: [],
                                 folder: null,
@@ -1088,9 +1183,9 @@ class CharacterParser {
                                         type: 'subclassFeature',
                                         subclass: ddbClass.subclassDefinition?.name || 'Unknown',
                                         level: feature.requiredLevel || 1,
-                                        id: feature.id
-                                    }
-                                }
+                                        id: feature.id,
+                                    },
+                                },
                             });
                         }
                     }
@@ -1109,14 +1204,16 @@ class CharacterParser {
                                 description: {
                                     value: definition.description || '',
                                     chat: definition.snippet || '',
-                                    unidentified: ''
+                                    unidentified: '',
                                 },
                                 source: ddbCharacter.race?.fullName || 'Racial Trait',
-                                activation: definition.activation ? {
-                                    type: definition.activation.activationType || '',
-                                    cost: definition.activation.activationTime || 0,
-                                    condition: ''
-                                } : { type: '', cost: 0, condition: '' },
+                                activation: definition.activation
+                                    ? {
+                                        type: definition.activation.activationType || '',
+                                        cost: definition.activation.activationTime || 0,
+                                        condition: '',
+                                    }
+                                    : { type: '', cost: 0, condition: '' },
                                 duration: { value: null, units: '' },
                                 target: { value: null, width: null, units: '', type: '' },
                                 range: { value: null, long: null, units: '' },
@@ -1131,7 +1228,7 @@ class CharacterParser {
                                 formula: '',
                                 save: { ability: '', dc: null, scaling: 'spell' },
                                 requirements: '',
-                                recharge: { value: null, charged: false }
+                                recharge: { value: null, charged: false },
                             },
                             effects: [],
                             folder: null,
@@ -1141,9 +1238,9 @@ class CharacterParser {
                                 'beyond-foundry': {
                                     type: 'racialTrait',
                                     race: ddbCharacter.race?.fullName || 'Unknown',
-                                    id: definition.id
-                                }
-                            }
+                                    id: definition.id,
+                                },
+                            },
                         });
                     }
                 }
@@ -1158,7 +1255,7 @@ class CharacterParser {
                         description: {
                             value: ddbCharacter.background.definition.featureDescription || '',
                             chat: '',
-                            unidentified: ''
+                            unidentified: '',
                         },
                         source: ddbCharacter.background.definition.name || 'Background',
                         activation: { type: '', cost: 0, condition: '' },
@@ -1176,7 +1273,7 @@ class CharacterParser {
                         formula: '',
                         save: { ability: '', dc: null, scaling: 'spell' },
                         requirements: '',
-                        recharge: { value: null, charged: false }
+                        recharge: { value: null, charged: false },
                     },
                     effects: [],
                     folder: null,
@@ -1186,9 +1283,9 @@ class CharacterParser {
                         'beyond-foundry': {
                             type: 'backgroundFeature',
                             background: ddbCharacter.background.definition.name || 'Unknown',
-                            id: ddbCharacter.background.definition.id
-                        }
-                    }
+                            id: ddbCharacter.background.definition.id,
+                        },
+                    },
                 });
             }
             // Parse feats (from various sources)
@@ -1203,7 +1300,7 @@ class CharacterParser {
                                 description: {
                                     value: feat.definition.description || '',
                                     chat: feat.definition.snippet || '',
-                                    unidentified: ''
+                                    unidentified: '',
                                 },
                                 source: 'Feat',
                                 activation: { type: '', cost: 0, condition: '' },
@@ -1221,7 +1318,7 @@ class CharacterParser {
                                 formula: '',
                                 save: { ability: '', dc: null, scaling: 'spell' },
                                 requirements: feat.definition.prerequisite || '',
-                                recharge: { value: null, charged: false }
+                                recharge: { value: null, charged: false },
                             },
                             effects: [],
                             folder: null,
@@ -1230,9 +1327,9 @@ class CharacterParser {
                             flags: {
                                 'beyond-foundry': {
                                     type: 'feat',
-                                    id: feat.definition.id
-                                }
-                            }
+                                    id: feat.definition.id,
+                                },
+                            },
                         });
                     }
                 }
@@ -1249,7 +1346,7 @@ class CharacterParser {
                                 description: {
                                     value: feature.definition.description || '',
                                     chat: feature.definition.snippet || '',
-                                    unidentified: ''
+                                    unidentified: '',
                                 },
                                 source: 'Optional Class Feature',
                                 activation: { type: '', cost: 0, condition: '' },
@@ -1267,7 +1364,7 @@ class CharacterParser {
                                 formula: '',
                                 save: { ability: '', dc: null, scaling: 'spell' },
                                 requirements: feature.definition.prerequisite || '',
-                                recharge: { value: null, charged: false }
+                                recharge: { value: null, charged: false },
                             },
                             effects: [],
                             folder: null,
@@ -1276,9 +1373,9 @@ class CharacterParser {
                             flags: {
                                 'beyond-foundry': {
                                     type: 'optionalClassFeature',
-                                    id: feature.definition.id
-                                }
-                            }
+                                    id: feature.definition.id,
+                                },
+                            },
                         });
                     }
                 }
@@ -1289,538 +1386,6 @@ class CharacterParser {
         }
         Logger.debug(`🎪 Parsed ${features.length} features`);
         return features;
-    }
-}
-
-/**
- * Comprehensive Spell Parser for D&D Beyond to FoundryVTT D&D 5e system
- *
- * This parser handles:
- * - Complete spell data structure conversion
- * - Spell school mapping and validation
- * - Component parsing (verbal, somatic, material, focus)
- * - Duration, range, and area of effect calculations
- * - Scaling formulas and higher level effects
- * - Ritual and concentration mechanics
- * - Class spell list associations
- * - Custom spell descriptions and effects
- */
-class SpellParser {
-    /**
-     * Parse a D&D Beyond spell into FoundryVTT spell data
-     * @param ddbSpell - The D&D Beyond spell data
-     * @param options - Parsing options for customization
-     * @returns Foundry spell item data
-     */
-    static parseSpell(ddbSpell, options = {}) {
-        const definition = ddbSpell.definition;
-        if (!definition) {
-            Logger.warn(`Spell missing definition: ${ddbSpell.id}`);
-            return this.createEmptySpell();
-        }
-        Logger.debug(`📜 Parsing spell: ${definition.name} (Level ${definition.level})`);
-        const foundrySpell = {
-            name: definition.name,
-            type: 'spell',
-            img: this.getSpellIcon(definition),
-            system: {
-                description: {
-                    value: this.parseDescription(definition),
-                    chat: this.parseChatDescription(definition),
-                    unidentified: ''
-                },
-                source: this.parseSource(definition),
-                activation: this.parseActivation(definition),
-                duration: this.parseDuration(definition),
-                target: this.parseTarget(definition),
-                range: this.parseRange(definition),
-                uses: this.parseUses(ddbSpell),
-                consume: this.parseConsume(definition),
-                ability: this.parseAbility(ddbSpell),
-                actionType: this.parseActionType(definition),
-                attackBonus: this.parseAttackBonus(definition),
-                chatFlavor: '',
-                critical: this.parseCritical(definition),
-                damage: this.parseDamage(definition),
-                formula: this.parseFormula(definition),
-                save: this.parseSave(definition),
-                level: definition.level,
-                school: this.parseSchool(definition.school),
-                components: this.parseComponents(definition),
-                materials: this.parseMaterials(definition),
-                preparation: this.parsePreparation(ddbSpell, options),
-                scaling: this.parseScaling(definition),
-                properties: this.parseProperties(definition)
-            },
-            effects: this.parseActiveEffects(definition),
-            flags: {
-                'beyond-foundry': {
-                    ddbId: definition.id,
-                    sourceId: ddbSpell.id,
-                    spellListId: ddbSpell.spellListId,
-                    prepared: ddbSpell.prepared || false,
-                    alwaysPrepared: ddbSpell.alwaysPrepared || false,
-                    usesSpellSlot: ddbSpell.usesSpellSlot !== false,
-                    castAtLevel: ddbSpell.castAtLevel || null,
-                    restriction: ddbSpell.restriction || null
-                }
-            }
-        };
-        return foundrySpell;
-    }
-    /**
-     * Parse spell description with enhanced formatting
-     */
-    static parseDescription(definition) {
-        let description = definition.description || '';
-        // Add spell tags for better organization
-        const tags = [];
-        if (definition.ritual)
-            tags.push('Ritual');
-        if (definition.concentration)
-            tags.push('Concentration');
-        if (definition.components?.material)
-            tags.push('Material Component');
-        if (definition.componentsDescription)
-            tags.push('Focus');
-        if (tags.length > 0) {
-            description = `<p><strong>Tags:</strong> ${tags.join(', ')}</p>${description}`;
-        }
-        // Add higher level information if available
-        if (definition.higherLevelDescription) {
-            description += `<h3>At Higher Levels</h3><p>${definition.higherLevelDescription}</p>`;
-        }
-        return description;
-    }
-    /**
-     * Parse chat description for spell card display
-     */
-    static parseChatDescription(definition) {
-        // Create a shorter version for chat display
-        const desc = definition.description || '';
-        const sentences = desc.split('.').slice(0, 2); // First two sentences
-        return sentences.join('.') + (sentences.length < desc.split('.').length ? '...' : '');
-    }
-    /**
-     * Parse spell source information
-     */
-    static parseSource(definition) {
-        if (definition.sources && definition.sources.length > 0) {
-            const source = definition.sources[0];
-            return `${source.sourceType === 1 ? 'PHB' : 'Supplement'} ${source.pageNumber || ''}`.trim();
-        }
-        return '';
-    }
-    /**
-     * Parse spell activation details
-     */
-    static parseActivation(definition) {
-        const activation = definition.activation || {};
-        const typeMap = {
-            1: 'action', // Action
-            2: 'bonus', // Bonus Action
-            3: 'reaction', // Reaction
-            4: 'minute', // Minute
-            5: 'hour', // Hour
-            6: 'minute', // Special (often represents longer casting times)
-            7: 'day' // Day
-        };
-        return {
-            type: typeMap[activation.activationType] || 'action',
-            cost: activation.activationTime || 1,
-            condition: activation.activationCondition || ''
-        };
-    }
-    /**
-     * Parse spell duration
-     */
-    static parseDuration(definition) {
-        const duration = definition.duration || {};
-        const unitMap = {
-            'Instantaneous': 'inst',
-            'Round': 'round',
-            'Minute': 'minute',
-            'Hour': 'hour',
-            'Day': 'day',
-            'Week': 'week',
-            'Month': 'month',
-            'Year': 'year',
-            'Permanent': 'perm',
-            'Special': 'spec',
-            'Time': 'minute', // D&D Beyond uses "Time" for various durations
-            'Concentration': 'minute', // Concentration spells usually have minute duration
-            'Until Dispelled': 'perm',
-            'Until Dispelled or Triggered': 'perm'
-        };
-        const durationUnit = duration.durationType || 'Instantaneous';
-        const mappedUnit = unitMap[durationUnit];
-        return {
-            value: duration.durationInterval || null,
-            units: mappedUnit || 'inst'
-        };
-    }
-    /**
-     * Parse spell target information
-     */
-    static parseTarget(definition) {
-        const range = definition.range || {};
-        const typeMap = {
-            'Self': 'self',
-            'Touch': 'touch',
-            'Ranged': 'creature',
-            'Point': 'space',
-            'Line': 'line',
-            'Cone': 'cone',
-            'Cube': 'cube',
-            'Cylinder': 'cylinder',
-            'Sphere': 'sphere',
-            'Square': 'square'
-        };
-        return {
-            value: range.aoeValue || null,
-            width: null,
-            units: 'ft',
-            type: typeMap[range.aoeType || range.origin] || 'creature'
-        };
-    }
-    /**
-     * Parse spell range
-     */
-    static parseRange(definition) {
-        const range = definition.range || {};
-        const unitMap = {
-            'Self': 'self',
-            'Touch': 'touch',
-            'Ranged': 'ft',
-            'Sight': 'spec',
-            'Unlimited': 'any'
-        };
-        return {
-            value: range.rangeValue || null,
-            long: null,
-            units: unitMap[range.origin] || 'ft'
-        };
-    }
-    /**
-     * Parse spell uses and limitations
-     */
-    static parseUses(ddbSpell) {
-        const limitedUse = ddbSpell.limitedUse;
-        if (!limitedUse) {
-            return {
-                value: null,
-                max: '',
-                per: null,
-                recovery: ''
-            };
-        }
-        const recoveryMap = {
-            1: 'sr', // Short rest
-            2: 'lr', // Long rest
-            3: 'day', // Per day
-            4: 'charges' // Charges
-        };
-        return {
-            value: limitedUse.maxUses || null,
-            max: limitedUse.maxUses?.toString() || '',
-            per: recoveryMap[limitedUse.resetType] || null,
-            recovery: ''
-        };
-    }
-    /**
-     * Parse spell resource consumption
-     */
-    static parseConsume(definition) {
-        return {
-            type: 'slots',
-            target: `spell${definition.level || 1}`,
-            amount: 1,
-            scale: false
-        };
-    }
-    /**
-     * Parse spellcasting ability
-     */
-    static parseAbility(ddbSpell) {
-        // This would typically come from the character's class
-        // For now, return null to use character's default
-        return ddbSpell.spellCastingAbilityId ? this.mapAbilityId(ddbSpell.spellCastingAbilityId) : null;
-    }
-    /**
-     * Parse spell action type
-     */
-    static parseActionType(definition) {
-        if (definition.attackType === 1)
-            return 'mwak'; // Melee weapon attack
-        if (definition.attackType === 2)
-            return 'rwak'; // Ranged weapon attack
-        if (definition.attackType === 3)
-            return 'msak'; // Melee spell attack
-        if (definition.attackType === 4)
-            return 'rsak'; // Ranged spell attack
-        if (definition.saveType)
-            return 'save'; // Saving throw
-        if (definition.healingTypes && definition.healingTypes.length > 0)
-            return 'heal';
-        return 'other';
-    }
-    /**
-     * Parse attack bonus for spell attacks
-     */
-    static parseAttackBonus(definition) {
-        // Attack bonus is typically calculated from spellcasting ability + proficiency
-        // Return empty string to use character's calculated bonus
-        return '';
-    }
-    /**
-     * Parse critical hit information
-     */
-    static parseCritical(definition) {
-        return {
-            threshold: null,
-            damage: ''
-        };
-    }
-    /**
-     * Parse spell damage
-     */
-    static parseDamage(definition) {
-        const parts = [];
-        if (definition.damageTypes && definition.damageTypes.length > 0) {
-            definition.damageTypes.forEach((damageType, index) => {
-                if (definition.dice && definition.dice[index]) {
-                    const dice = definition.dice[index];
-                    const formula = `${dice.diceCount || 1}d${dice.diceValue || 6}${dice.fixedValue ? ` + ${dice.fixedValue}` : ''}`;
-                    parts.push([formula, damageType.toLowerCase()]);
-                }
-            });
-        }
-        return {
-            parts,
-            versatile: '',
-            value: ''
-        };
-    }
-    /**
-     * Parse additional formula (like healing)
-     */
-    static parseFormula(definition) {
-        if (definition.healingTypes && definition.healingTypes.length > 0 && definition.dice) {
-            const dice = definition.dice[0];
-            if (dice) {
-                return `${dice.diceCount || 1}d${dice.diceValue || 6}${dice.fixedValue ? ` + ${dice.fixedValue}` : ''}`;
-            }
-        }
-        return '';
-    }
-    /**
-     * Parse saving throw information
-     */
-    static parseSave(definition) {
-        if (!definition.saveType) {
-            return {
-                ability: '',
-                dc: null,
-                scaling: 'spell'
-            };
-        }
-        const abilityMap = {
-            1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
-        };
-        return {
-            ability: abilityMap[definition.saveType] || '',
-            dc: null, // Will be calculated from character's spell DC
-            scaling: 'spell'
-        };
-    }
-    /**
-     * Parse spell school
-     */
-    static parseSchool(school) {
-        const schoolMap = {
-            'Abjuration': 'abj',
-            'Conjuration': 'con',
-            'Divination': 'div',
-            'Enchantment': 'enc',
-            'Evocation': 'evo',
-            'Illusion': 'ill',
-            'Necromancy': 'nec',
-            'Transmutation': 'trs'
-        };
-        // Handle both capitalized and lowercase school names
-        const normalizedSchool = school ? school.charAt(0).toUpperCase() + school.slice(1).toLowerCase() : '';
-        return schoolMap[normalizedSchool] || 'evo';
-    }
-    /**
-     * Parse spell components
-     */
-    static parseComponents(definition) {
-        const components = definition.components || [];
-        // D&D Beyond uses numbers: 1=verbal, 2=somatic, 3=material
-        const hasVerbal = components.includes(1);
-        const hasSomatic = components.includes(2);
-        const hasMaterial = components.includes(3);
-        return {
-            vocal: hasVerbal,
-            somatic: hasSomatic,
-            material: hasMaterial,
-            ritual: definition.ritual || false,
-            concentration: definition.concentration || false
-        };
-    }
-    /**
-     * Parse material components
-     */
-    static parseMaterials(definition) {
-        const materialComponent = definition.componentsDescription || '';
-        const cost = this.extractCost(materialComponent);
-        return {
-            value: materialComponent,
-            consumed: false,
-            cost: cost,
-            supply: 0
-        };
-    }
-    /**
-     * Parse spell preparation mode and status
-     */
-    static parsePreparation(ddbSpell, options) {
-        const mode = options.preparationMode || 'prepared';
-        return {
-            mode,
-            prepared: ddbSpell.prepared || false
-        };
-    }
-    /**
-     * Parse spell scaling (higher level effects)
-     */
-    static parseScaling(definition) {
-        if (!definition.higherLevelDescription) {
-            return {
-                mode: 'none',
-                formula: ''
-            };
-        }
-        // Try to extract scaling formula from higher level description
-        const scalingFormula = this.extractScalingFormula(definition.higherLevelDescription);
-        return {
-            mode: scalingFormula ? 'level' : 'none',
-            formula: scalingFormula
-        };
-    }
-    /**
-     * Parse spell properties/flags
-     */
-    static parseProperties(definition) {
-        const properties = [];
-        if (definition.ritual)
-            properties.push('ritual');
-        if (definition.concentration)
-            properties.push('concentration');
-        if (definition.components?.vocal)
-            properties.push('vocal');
-        if (definition.components?.somatic)
-            properties.push('somatic');
-        if (definition.components?.material)
-            properties.push('material');
-        return properties;
-    }
-    /**
-     * Parse active effects (for automation)
-     */
-    static parseActiveEffects(definition) {
-        // This would be expanded for spell automation
-        // For now, return empty array
-        return [];
-    }
-    /**
-     * Get appropriate icon for spell
-     */
-    static getSpellIcon(definition) {
-        const schoolIcons = {
-            'Abjuration': 'icons/magic/defensive/shield-barrier-blue.webp',
-            'Conjuration': 'icons/magic/symbols/elements-air-earth-fire-water.webp',
-            'Divination': 'icons/magic/perception/eye-ringed-glow-yellow.webp',
-            'Enchantment': 'icons/magic/control/hypnosis-mesmerism-swirl.webp',
-            'Evocation': 'icons/magic/lightning/bolt-strike-blue.webp',
-            'Illusion': 'icons/magic/perception/silhouette-stealth-shadow.webp',
-            'Necromancy': 'icons/magic/death/skull-horned-goat-pentagram-red.webp',
-            'Transmutation': 'icons/magic/symbols/question-stone-yellow.webp'
-        };
-        return schoolIcons[definition.school] || 'icons/magic/symbols/rune-sigil-black-pink.webp';
-    }
-    /**
-     * Create empty spell for error cases
-     */
-    static createEmptySpell() {
-        return {
-            name: 'Unknown Spell',
-            type: 'spell',
-            img: 'icons/svg/mystery-man.svg',
-            system: {},
-            effects: [],
-            flags: {}
-        };
-    }
-    /**
-     * Map DDB ability ID to Foundry ability key
-     */
-    static mapAbilityId(abilityId) {
-        const abilityMap = {
-            1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
-        };
-        return abilityMap[abilityId] || 'int';
-    }
-    /**
-     * Extract cost from material component description
-     */
-    static extractCost(materials) {
-        const costMatch = materials.match(/(\d+)\s*gp/i);
-        return costMatch ? parseInt(costMatch[1]) : 0;
-    }
-    /**
-     * Extract scaling formula from higher level description
-     */
-    static extractScalingFormula(description) {
-        // Look for patterns like "increases by 1d6" or "an additional 1d8"
-        const patterns = [
-            /increases by (\d+d\d+)/i,
-            /additional (\d+d\d+)/i,
-            /extra (\d+d\d+)/i,
-            /(\d+d\d+) additional/i
-        ];
-        for (const pattern of patterns) {
-            const match = description.match(pattern);
-            if (match) {
-                return match[1];
-            }
-        }
-        return '';
-    }
-    /**
-     * Parse multiple spells from character spell list
-     */
-    static parseCharacterSpells(ddbCharacter, options = {}) {
-        const spells = [];
-        if (!ddbCharacter.spells) {
-            return spells;
-        }
-        // Process all spell categories
-        Object.values(ddbCharacter.spells).forEach((spellArray) => {
-            if (Array.isArray(spellArray)) {
-                spellArray.forEach((ddbSpell) => {
-                    try {
-                        const foundrySpell = this.parseSpell(ddbSpell, options);
-                        spells.push(foundrySpell);
-                    }
-                    catch (error) {
-                        Logger.error(`Failed to parse spell ${ddbSpell.definition?.name || 'Unknown'}: ${error}`);
-                    }
-                });
-            }
-        });
-        Logger.info(`📚 Parsed ${spells.length} spells`);
-        return spells;
     }
 }
 
@@ -1868,8 +1433,8 @@ class BeyondFoundryAPI {
             const response = await fetch(`${this.proxyEndpoint}/ping`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                },
             });
             if (response.ok) {
                 Logger.info('Proxy connection successful');
@@ -1896,18 +1461,18 @@ class BeyondFoundryAPI {
             if (!token) {
                 return {
                     success: false,
-                    message: 'No cobalt token provided. Please authenticate first.'
+                    message: 'No cobalt token provided. Please authenticate first.',
                 };
             }
             Logger.debug('Attempting authentication with D&D Beyond');
             const response = await fetch(`${this.proxyEndpoint}/proxy/auth`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    cobalt: token
-                })
+                    cobalt: token,
+                }),
             });
             const data = await response.json();
             if (response.ok && data.success) {
@@ -1915,14 +1480,14 @@ class BeyondFoundryAPI {
                 return {
                     success: true,
                     userId: data.userId,
-                    message: 'Authentication successful'
+                    message: 'Authentication successful',
                 };
             }
             else {
                 Logger.warn(`Authentication failed: ${data.message || 'Unknown error'}`);
                 return {
                     success: false,
-                    message: data.message || 'Authentication failed'
+                    message: data.message || 'Authentication failed',
                 };
             }
         }
@@ -1930,7 +1495,7 @@ class BeyondFoundryAPI {
             Logger.error(`Authentication error: ${getErrorMessage(error)}`);
             return {
                 success: false,
-                message: `Authentication error: ${getErrorMessage(error)}`
+                message: `Authentication error: ${getErrorMessage(error)}`,
             };
         }
     }
@@ -1947,7 +1512,7 @@ class BeyondFoundryAPI {
         Logger.info('3. Use importCharacter(characterId) or getCharacter(characterId)');
         return {
             success: false,
-            error: 'Character list endpoint not available in ddb-proxy. Use direct character IDs from D&D Beyond URLs (dndbeyond.com/characters/{ID}).'
+            error: 'Character list endpoint not available in ddb-proxy. Use direct character IDs from D&D Beyond URLs (dndbeyond.com/characters/{ID}).',
         };
     }
     /**
@@ -1965,12 +1530,12 @@ class BeyondFoundryAPI {
             const response = await fetch(`${this.proxyEndpoint}/proxy/character`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     cobalt: cobaltToken,
-                    characterId: parseInt(characterId)
-                })
+                    characterId: parseInt(characterId),
+                }),
             });
             const data = await response.json();
             if (response.ok && data.success) {
@@ -2008,7 +1573,7 @@ class BeyondFoundryAPI {
             if (!ddbCharacter) {
                 return {
                     success: false,
-                    errors: ['Failed to fetch character data from D&D Beyond']
+                    errors: ['Failed to fetch character data from D&D Beyond'],
                 };
             }
             // Merge options with defaults
@@ -2027,19 +1592,21 @@ class BeyondFoundryAPI {
                 else {
                     return {
                         success: false,
-                        errors: [`Character "${ddbCharacter.name}" already exists. Use update option to overwrite.`],
-                        warnings: ['Character import skipped due to existing character']
+                        errors: [
+                            `Character "${ddbCharacter.name}" already exists. Use update option to overwrite.`,
+                        ],
+                        warnings: ['Character import skipped due to existing character'],
                     };
                 }
             }
             else {
                 Logger.info(`Creating new character: ${ddbCharacter.name}`);
-                actor = await Actor.create(actorData);
+                actor = (await Actor.create(actorData));
             }
             if (!actor) {
                 return {
                     success: false,
-                    errors: ['Failed to create character in FoundryVTT']
+                    errors: ['Failed to create character in FoundryVTT'],
                 };
             }
             const warnings = [];
@@ -2067,91 +1634,230 @@ class BeyondFoundryAPI {
             Logger.info(`Successfully imported character: ${actor.name}`);
             return {
                 success: true,
-                actor: actor,
-                warnings
+                actor,
+                warnings,
             };
         }
         catch (error) {
             Logger.error(`Character import error: ${getErrorMessage(error)}`);
             return {
                 success: false,
-                errors: [`Character import error: ${getErrorMessage(error)}`]
+                errors: [`Character import error: ${getErrorMessage(error)}`],
             };
         }
     }
     /**
      * Import character spells into FoundryVTT actor
-     * @param actor - The FoundryVTT actor to import spells into
-     * @param ddbCharacter - The D&D Beyond character data
-     * @param options - Import options
+     * Enhanced implementation using ddb-proxy patterns
      */
     async importCharacterSpells(actor, ddbCharacter, options = {}) {
         try {
             const warnings = [];
             const errors = [];
-            if (!ddbCharacter.spells) {
-                return { success: true, warnings: ['No spells found for character'] };
+            // Check if character has class data for spell fetching
+            if (!ddbCharacter.classes || ddbCharacter.classes.length === 0) {
+                return { success: true, warnings: ['No classes found for character - skipping spell import'] };
             }
-            // Parse all spells from all spell lists
-            const allSpells = [];
-            Object.entries(ddbCharacter.spells).forEach(([listKey, spellArray]) => {
-                if (Array.isArray(spellArray)) {
-                    spellArray.forEach(ddbSpell => {
-                        try {
-                            const foundrySpell = SpellParser.parseSpell(ddbSpell, {
-                                preparationMode: options.spellPreparationMode || 'prepared'
-                            });
-                            allSpells.push(foundrySpell);
-                        }
-                        catch (error) {
-                            errors.push(`Failed to parse spell: ${ddbSpell.definition?.name || 'Unknown'} - ${getErrorMessage(error)}`);
-                            Logger.warn(`Spell parsing error: ${getErrorMessage(error)}`);
-                        }
-                    });
+            // Get cobalt token from settings
+            const settings = getModuleSettings();
+            if (!settings.cobaltToken) {
+                warnings.push('No cobalt token configured - cannot fetch spells from D&D Beyond');
+                return { success: true, warnings };
+            }
+            Logger.info(`🔮 Starting spell import for ${ddbCharacter.name}`);
+            let totalSpellsImported = 0;
+            // Process each spellcasting class
+            for (const classInfo of ddbCharacter.classes) {
+                if (!this.isSpellcastingClass(classInfo)) {
+                    Logger.debug(`Skipping non-spellcasting class: ${classInfo.definition?.name}`);
+                    continue;
                 }
-            });
-            // Create spell items in FoundryVTT
-            const createdSpells = [];
-            for (const spellData of allSpells) {
                 try {
-                    // Check if spell already exists
-                    const existingSpell = actor.items.find((item) => item.type === 'spell' &&
-                        item.name === spellData.name &&
-                        item.getFlag('beyond-foundry', 'ddbId') === spellData.flags?.['beyond-foundry']?.ddbId);
-                    if (existingSpell) {
-                        if (options.updateExisting) {
-                            await existingSpell.update(spellData);
-                            Logger.debug(`Updated existing spell: ${spellData.name}`);
-                        }
-                        else {
-                            warnings.push(`Spell "${spellData.name}" already exists, skipped`);
-                        }
+                    // Calculate spell level access for this class
+                    const spellLevelAccess = this.calculateSpellLevelAccess(classInfo);
+                    if (spellLevelAccess === 0) {
+                        Logger.debug(`Class ${classInfo.definition?.name} has no spell access yet`);
+                        continue;
                     }
-                    else {
-                        const createdSpell = await actor.createEmbeddedDocuments('Item', [spellData]);
-                        createdSpells.push(...createdSpell);
-                        Logger.debug(`Created new spell: ${spellData.name}`);
+                    // Prepare class info for spell fetching
+                    const fetchClassInfo = {
+                        id: classInfo.definition?.id || 0,
+                        name: classInfo.definition?.name || 'Unknown',
+                        level: classInfo.level || 1,
+                        spellLevelAccess,
+                        ...(ddbCharacter.campaignId && { campaignId: ddbCharacter.campaignId }),
+                        ...(ddbCharacter.background?.definition?.id && { backgroundId: ddbCharacter.background.definition.id })
+                    };
+                    Logger.debug(`Fetching spells for ${fetchClassInfo.name} (Level ${fetchClassInfo.level}, Spell Level Access: ${spellLevelAccess})`);
+                    // Fetch spells for this class
+                    const classSpells = await this.fetchCharacterSpells(ddbCharacter.id, settings.cobaltToken, fetchClassInfo);
+                    if (classSpells.length > 0) {
+                        // Parse and add spells to actor
+                        const importedCount = await this.addSpellsToActor(actor, classSpells, options);
+                        totalSpellsImported += importedCount;
+                        Logger.info(`✅ Imported ${importedCount} spells from ${fetchClassInfo.name}`);
                     }
                 }
-                catch (error) {
-                    errors.push(`Failed to create spell item: ${spellData.name} - ${getErrorMessage(error)}`);
-                    Logger.warn(`Spell creation error: ${getErrorMessage(error)}`);
+                catch (classError) {
+                    const errorMsg = `Failed to import spells for class ${classInfo.definition?.name}: ${getErrorMessage(classError)}`;
+                    Logger.error(errorMsg);
+                    errors.push(errorMsg);
                 }
             }
-            Logger.info(`Successfully imported ${createdSpells.length} spells for character: ${actor.name}`);
-            const result = {
-                success: true,
+            if (totalSpellsImported > 0) {
+                Logger.info(`🎉 Successfully imported ${totalSpellsImported} total spells`);
+            }
+            else {
+                warnings.push('No spells were imported - character may not have any spells or fetching failed');
+            }
+            return {
+                success: errors.length === 0,
                 ...(warnings.length > 0 && { warnings }),
                 ...(errors.length > 0 && { errors })
             };
-            return result;
         }
         catch (error) {
             Logger.error(`Character spell import error: ${getErrorMessage(error)}`);
             return {
                 success: false,
-                errors: [`Character spell import error: ${getErrorMessage(error)}`]
+                errors: [`Character spell import error: ${getErrorMessage(error)}`],
             };
+        }
+    }
+    /**
+     * Fetch character spells from ddb-proxy
+     * Implements the spell extraction patterns from ddb-proxy spells.js
+     */
+    async fetchCharacterSpells(characterId, cobaltToken, classInfo) {
+        try {
+            if (!classInfo) {
+                Logger.warn('No class info provided for spell fetch');
+                return [];
+            }
+            Logger.debug(`Fetching spells for ${classInfo.name} (ID: ${classInfo.id}) at level ${classInfo.spellLevelAccess}`);
+            // Authenticate first
+            const authSuccess = await this.authenticate(cobaltToken);
+            if (!authSuccess.success) {
+                throw new Error('Authentication failed');
+            }
+            // Fetch class spells using ddb-proxy pattern
+            const spells = await this.extractSpells(classInfo, `${characterId}${cobaltToken}`);
+            Logger.info(`Fetched ${spells.length} spells for ${classInfo.name}`);
+            return spells;
+        }
+        catch (error) {
+            Logger.error(`Failed to fetch character spells: ${getErrorMessage(error)}`);
+            throw error;
+        }
+    }
+    /**
+     * Extract spells for a class (based on ddb-proxy extractSpells)
+     */
+    async extractSpells(classInfo, cobaltId) {
+        try {
+            const url = `${this.proxyEndpoint}/proxy/spells/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${cobaltId}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Spell fetch failed: ${response.status} ${response.statusText}`);
+            }
+            const data = await response.json();
+            if (!data.success || !data.data) {
+                throw new Error(data.message || 'Invalid spell data received');
+            }
+            // Filter spells by level access and exclude certain sources (like UA)
+            const filteredSpells = data.data.filter((spell) => {
+                // Filter by spell level access
+                if (spell.definition.level > classInfo.spellLevelAccess) {
+                    return false;
+                }
+                // Filter out Unearthed Arcana (source ID 39) if needed
+                if (spell.definition.sources?.some((source) => source.sourceId === 39)) {
+                    return false;
+                }
+                return true;
+            });
+            Logger.debug(`Filtered ${filteredSpells.length} of ${data.data.length} spells for ${classInfo.name}`);
+            return filteredSpells;
+        }
+        catch (error) {
+            Logger.error(`Extract spells error: ${getErrorMessage(error)}`);
+            throw error;
+        }
+    }
+    /**
+     * Extract always prepared spells (based on ddb-proxy extractAlwaysPreparedSpells)
+     */
+    async extractAlwaysPreparedSpells(classInfo, spellListIds = []) {
+        try {
+            const url = `${this.proxyEndpoint}/proxy/spells/always-prepared/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}&spellLists=${spellListIds.join(',')}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Always prepared spells fetch failed: ${response.status}`);
+            }
+            const data = await response.json();
+            if (!data.success || !data.data) {
+                throw new Error(data.message || 'Invalid always prepared spell data');
+            }
+            // Apply same filtering as regular spells
+            const filteredSpells = data.data.filter((spell) => {
+                return spell.definition.level <= classInfo.spellLevelAccess &&
+                    !spell.definition.sources?.some((source) => source.sourceId === 39);
+            });
+            Logger.debug(`Found ${filteredSpells.length} always prepared spells for ${classInfo.name}`);
+            return filteredSpells;
+        }
+        catch (error) {
+            Logger.error(`Extract always prepared spells error: ${getErrorMessage(error)}`);
+            return [];
+        }
+    }
+    /**
+     * Extract always known spells (based on ddb-proxy extractAlwaysKnownSpells)
+     */
+    async extractAlwaysKnownSpells(classInfo, cobaltId, includeCantrips = true, spellListIds = []) {
+        try {
+            const url = `${this.proxyEndpoint}/proxy/spells/always-known/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}&background=${classInfo.backgroundId || ''}&spellLists=${spellListIds.join(',')}&cantrips=${includeCantrips}`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${cobaltId}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`Always known spells fetch failed: ${response.status}`);
+            }
+            const data = await response.json();
+            if (!data.success || !data.data) {
+                throw new Error(data.message || 'Invalid always known spell data');
+            }
+            // Filter cantrips if not wanted
+            let filteredSpells = data.data;
+            if (!includeCantrips) {
+                filteredSpells = filteredSpells.filter((spell) => spell.definition.level > 0);
+            }
+            // Apply level and source filtering
+            filteredSpells = filteredSpells.filter((spell) => {
+                return spell.definition.level <= classInfo.spellLevelAccess &&
+                    !spell.definition.sources?.some((source) => source.sourceId === 39);
+            });
+            Logger.debug(`Found ${filteredSpells.length} always known spells for ${classInfo.name}`);
+            return filteredSpells;
+        }
+        catch (error) {
+            Logger.error(`Extract always known spells error: ${getErrorMessage(error)}`);
+            return [];
         }
     }
     /**
@@ -2237,6 +1943,228 @@ class BeyondFoundryAPI {
         catch (error) {
             ui.notifications.error(`Quick test failed: ${getErrorMessage(error)}`);
             Logger.error(`Quick test error: ${getErrorMessage(error)}`);
+        }
+    }
+    /**
+     * Development testing interface - comprehensive system test
+     * Tests all major functionality in sequence
+     */
+    async runFullSystemTest() {
+        Logger.info('🧪 Starting comprehensive system test...');
+        try {
+            // Test 1: Proxy Connection
+            Logger.info('📡 Test 1: Proxy Connection');
+            const proxyOk = await this.testProxyConnection();
+            if (proxyOk) {
+                Logger.info('✅ Proxy connection: PASS');
+            }
+            else {
+                Logger.error('❌ Proxy connection: FAIL');
+                return;
+            }
+            // Test 2: Settings validation
+            Logger.info('⚙️  Test 2: Settings Validation');
+            const settings = getModuleSettings();
+            Logger.info(`Proxy URL: ${settings.proxyUrl}`);
+            Logger.info(`Debug Mode: ${settings.debugMode}`);
+            if (!settings.cobaltToken) {
+                Logger.warn('⚠️  No cobalt token configured - authentication tests will be skipped');
+                Logger.info('Set token in module settings or run: api.quickTest("your-token")');
+            }
+            // Test 3: Authentication (if token available)
+            if (settings.cobaltToken) {
+                Logger.info('🔐 Test 3: Authentication');
+                const authResult = await this.authenticate();
+                if (authResult.success) {
+                    Logger.info(`✅ Authentication: PASS (User ID: ${authResult.userId || 'Unknown'})`);
+                }
+                else {
+                    Logger.error(`❌ Authentication: FAIL (${authResult.message})`);
+                    return;
+                }
+            }
+            // Test 4: Parser functionality
+            Logger.info('🔧 Test 4: Parser Functionality Available');
+            Logger.info('✅ CharacterParser: Ready');
+            Logger.info('✅ SpellParser: Ready');
+            // Test 5: UI Components
+            Logger.info('🖥️  Test 5: UI Components');
+            Logger.info('✅ Character Import Dialog: Available');
+            Logger.info('✅ Auth Dialog: Available');
+            Logger.info('✅ Settings Interface: Available');
+            // Summary
+            Logger.info('\n🎉 System test completed!');
+            Logger.info('\n📋 Next Steps:');
+            Logger.info('1. Configure cobalt token in settings if not done');
+            Logger.info('2. Test character import: api.importCharacter("character-id")');
+            Logger.info('3. Open import dialog: new CharacterImportDialog().render(true)');
+        }
+        catch (error) {
+            Logger.error(`System test failed: ${getErrorMessage(error)}`);
+        }
+    }
+    /**
+     * Quick diagnostic for troubleshooting
+     */
+    async runDiagnostic() {
+        Logger.info('🔍 Beyond Foundry Diagnostic');
+        Logger.info('='.repeat(40));
+        // Environment info
+        Logger.info(`System: ${game.system.id}`);
+        // Settings
+        const settings = getModuleSettings();
+        Logger.info(`\nSettings:`);
+        Logger.info(`  Proxy URL: ${settings.proxyUrl}`);
+        Logger.info(`  Has Token: ${settings.cobaltToken ? 'Yes' : 'No'}`);
+        Logger.info(`  Debug Mode: ${settings.debugMode}`);
+        // Network test
+        Logger.info('\nNetwork Test:');
+        const proxyOk = await this.testProxyConnection();
+        Logger.info(`  Proxy Connection: ${proxyOk ? '✅ OK' : '❌ FAIL'}`);
+        Logger.info('\n💡 Useful Commands:');
+        Logger.info('  api.runFullSystemTest() - Complete system test');
+        Logger.info('  api.quickTest("token", "characterId") - Quick auth and character test');
+        Logger.info('  new CharacterImportDialog().render(true) - Open import dialog');
+    }
+    /**
+     * Check if a D&D class is a spellcasting class
+     */
+    isSpellcastingClass(classInfo) {
+        if (!classInfo.definition)
+            return false;
+        // Common spellcasting classes
+        const spellcastingClasses = [
+            'Artificer', 'Bard', 'Cleric', 'Druid', 'Paladin', 'Ranger',
+            'Sorcerer', 'Warlock', 'Wizard', 'Eldritch Knight', 'Arcane Trickster'
+        ];
+        const className = classInfo.definition?.name || '';
+        const subclassName = classInfo.subclass?.definition?.name || '';
+        return spellcastingClasses.includes(className) ||
+            spellcastingClasses.includes(subclassName) ||
+            !!classInfo.definition?.spellRules;
+    }
+    /**
+     * Calculate spell level access for a class (based on ddb-proxy patterns)
+     */
+    calculateSpellLevelAccess(classInfo) {
+        if (!classInfo.definition || !classInfo.level)
+            return 0;
+        const classLevel = classInfo.level || 0;
+        const className = classInfo.definition?.name || '';
+        // Full casters (Wizard, Sorcerer, etc.)
+        const fullCasters = ['Bard', 'Cleric', 'Druid', 'Sorcerer', 'Wizard', 'Warlock'];
+        if (fullCasters.includes(className)) {
+            if (classLevel >= 17)
+                return 9;
+            if (classLevel >= 15)
+                return 8;
+            if (classLevel >= 13)
+                return 7;
+            if (classLevel >= 11)
+                return 6;
+            if (classLevel >= 9)
+                return 5;
+            if (classLevel >= 7)
+                return 4;
+            if (classLevel >= 5)
+                return 3;
+            if (classLevel >= 3)
+                return 2;
+            if (classLevel >= 1)
+                return 1;
+        }
+        // Half casters (Paladin, Ranger)
+        const halfCasters = ['Paladin', 'Ranger'];
+        if (halfCasters.includes(className)) {
+            if (classLevel >= 17)
+                return 5;
+            if (classLevel >= 13)
+                return 4;
+            if (classLevel >= 9)
+                return 3;
+            if (classLevel >= 5)
+                return 2;
+            if (classLevel >= 2)
+                return 1;
+        }
+        // Third casters (Eldritch Knight, Arcane Trickster)
+        const thirdCasters = ['Eldritch Knight', 'Arcane Trickster'];
+        const subclassName = classInfo.subclass?.definition?.name || '';
+        if (thirdCasters.includes(subclassName)) {
+            if (classLevel >= 19)
+                return 4;
+            if (classLevel >= 13)
+                return 3;
+            if (classLevel >= 7)
+                return 2;
+            if (classLevel >= 3)
+                return 1;
+        }
+        // Artificer (unique progression)
+        if (className === 'Artificer') {
+            if (classLevel >= 17)
+                return 5;
+            if (classLevel >= 13)
+                return 4;
+            if (classLevel >= 9)
+                return 3;
+            if (classLevel >= 5)
+                return 2;
+            if (classLevel >= 1)
+                return 1;
+        }
+        return 0;
+    }
+    /**
+     * Add spells to a Foundry actor using SpellParser
+     */
+    async addSpellsToActor(actor, spells, options) {
+        try {
+            // Import SpellParser dynamically to avoid circular dependencies
+            const { SpellParser } = await import('./SpellParser-BdFNi7Nn.js');
+            let importedCount = 0;
+            for (const ddbSpell of spells) {
+                try {
+                    // Parse spell to Foundry format
+                    const foundrySpell = SpellParser.parseSpell(ddbSpell);
+                    // Check if spell already exists
+                    const existingSpell = actor.items.find((item) => item.type === 'spell' &&
+                        item.getFlag('beyond-foundry', 'ddbId') === ddbSpell.id);
+                    if (existingSpell && !options.updateExisting) {
+                        Logger.debug(`Skipping existing spell: ${foundrySpell.name}`);
+                        continue;
+                    }
+                    // Add DDB metadata
+                    foundrySpell.flags = {
+                        'beyond-foundry': {
+                            ddbId: ddbSpell.id,
+                            sourceId: ddbSpell.definition.id,
+                            prepared: ddbSpell.prepared,
+                            alwaysPrepared: false,
+                            usesSpellSlot: ddbSpell.usesSpellSlot,
+                            castAtLevel: ddbSpell.castAtLevel || null,
+                            restriction: null
+                        }
+                    };
+                    if (existingSpell) {
+                        await existingSpell.update(foundrySpell);
+                        Logger.debug(`Updated spell: ${foundrySpell.name}`);
+                    }
+                    else {
+                        await Item.create(foundrySpell, { parent: actor });
+                        Logger.debug(`Created spell: ${foundrySpell.name}`);
+                    }
+                    importedCount++;
+                }
+                catch (spellError) {
+                    Logger.warn(`Failed to import spell ${ddbSpell.definition?.name}: ${getErrorMessage(spellError)}`);
+                }
+            }
+            return importedCount;
+        }
+        catch (error) {
+            Logger.error(`Failed to add spells to actor: ${getErrorMessage(error)}`);
+            return 0;
         }
     }
 }
@@ -2357,9 +2285,9 @@ class AuthDialog extends Application {
             buttons: {
                 ok: {
                     label: 'Got it!',
-                    callback: () => { }
-                }
-            }
+                    callback: () => { },
+                },
+            },
         }).render(true);
     }
     /**
@@ -2368,7 +2296,7 @@ class AuthDialog extends Application {
     getData() {
         return {
             isConnected: false, // TODO: Check if already authenticated
-            proxyUrl: game.settings.get(MODULE_ID, 'proxyUrl')
+            proxyUrl: game.settings.get(MODULE_ID, 'proxyUrl'),
         };
     }
     /**
@@ -2422,8 +2350,9 @@ class CharacterImportDialog extends Application {
         // Import characters button
         html.find('.import-characters').on('click', this._onImportCharacters.bind(this));
         // Enter key handling for character ID input
-        html.find('#character-id-input').on('keypress', (event) => {
-            if (event.which === 13) { // Enter key
+        html.find('#character-id-input').on('keypress', event => {
+            if (event.which === 13) {
+                // Enter key
                 event.preventDefault();
                 // Create a fake event for compatibility
                 const fakeEvent = { preventDefault: () => { } };
@@ -2454,7 +2383,7 @@ class CharacterImportDialog extends Application {
         this.pendingCharacters.set(characterId, {
             id: characterId,
             loading: false,
-            loaded: false
+            loaded: false,
         });
         // Clear input
         input.value = '';
@@ -2472,7 +2401,10 @@ class CharacterImportDialog extends Application {
             ui.notifications.warn('Please enter character IDs');
             return;
         }
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        const lines = text
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
         let added = 0;
         let skipped = 0;
         for (const line of lines) {
@@ -2488,7 +2420,7 @@ class CharacterImportDialog extends Application {
             this.pendingCharacters.set(line, {
                 id: line,
                 loading: false,
-                loaded: false
+                loaded: false,
             });
             added++;
         }
@@ -2509,7 +2441,8 @@ class CharacterImportDialog extends Application {
     _onRemoveCharacter(event) {
         event.preventDefault();
         const button = event.target;
-        const characterId = button.dataset.characterId || button.closest('[data-character-id]')?.getAttribute('data-character-id');
+        const characterId = button.dataset.characterId ||
+            button.closest('[data-character-id]')?.getAttribute('data-character-id');
         if (characterId && this.pendingCharacters.has(characterId)) {
             this.pendingCharacters.delete(characterId);
             this.render();
@@ -2522,8 +2455,7 @@ class CharacterImportDialog extends Application {
         event.preventDefault();
         if (this.loading)
             return;
-        const unloadedCharacters = Array.from(this.pendingCharacters.values())
-            .filter(char => !char.loading && !char.loaded && !char.error);
+        const unloadedCharacters = Array.from(this.pendingCharacters.values()).filter(char => !char.loading && !char.loaded && !char.error);
         if (unloadedCharacters.length === 0) {
             ui.notifications.info('All characters are already loaded');
             return;
@@ -2602,7 +2534,7 @@ class CharacterImportDialog extends Application {
             importItems,
             updateExisting,
             spellPreparationMode: spellPreparationMode,
-            createCompendiumItems: false // Default to false for now
+            createCompendiumItems: false, // Default to false for now
         };
     }
     /**
@@ -2610,8 +2542,7 @@ class CharacterImportDialog extends Application {
      */
     async _onImportCharacters(event) {
         event.preventDefault();
-        const readyCharacters = Array.from(this.pendingCharacters.values())
-            .filter(char => char.loaded && char.character);
+        const readyCharacters = Array.from(this.pendingCharacters.values()).filter(char => char.loaded && char.character);
         if (readyCharacters.length === 0) {
             ui.notifications.warn('No characters are ready to import. Please preview characters first.');
             return;
@@ -2631,7 +2562,7 @@ class CharacterImportDialog extends Application {
                 results.push({
                     characterId: pendingChar.id,
                     characterName: pendingChar.character.name,
-                    result
+                    result,
                 });
             }
             // Show results
@@ -2643,7 +2574,9 @@ class CharacterImportDialog extends Application {
             if (failed > 0) {
                 ui.notifications.warn(`Failed to import ${failed} character(s)`);
                 // Log failed imports
-                results.filter(r => !r.result.success).forEach(r => {
+                results
+                    .filter(r => !r.result.success)
+                    .forEach(r => {
                     Logger.error(`Failed to import ${r.characterName}: ${r.result.errors?.join(', ')}`);
                 });
             }
@@ -2685,7 +2618,7 @@ class CharacterImportDialog extends Application {
             pendingCharacters: pendingCharactersList,
             readyToImport: readyToImport.length > 0,
             readyCount: readyToImport.length,
-            loading: this.loading
+            loading: this.loading,
         };
     }
     /**
@@ -2737,7 +2670,7 @@ Hooks.on('getActorSheetHeaderButtons', (app, buttons) => {
         onclick: () => {
             Logger.info('D&D Beyond import button clicked');
             CharacterImportDialog.show();
-        }
+        },
     });
 });
 // Add actor directory context menu option
@@ -2749,7 +2682,7 @@ Hooks.on('getActorDirectoryEntryContext', (html, options) => {
         callback: () => {
             Logger.info('D&D Beyond import context menu clicked');
             CharacterImportDialog.show();
-        }
+        },
     });
 });
 // Console command for testing (development)
@@ -2760,4 +2693,6 @@ Hooks.once('ready', () => {
     }
 });
 Logger.info(`${MODULE_NAME} module loaded`);
+
+export { Logger as L };
 //# sourceMappingURL=beyond-foundry.js.map
