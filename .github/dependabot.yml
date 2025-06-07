@@ -1,0 +1,85 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "maintainer-username"
+    assignees:
+      - "maintainer-username"
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    # Group related updates
+    groups:
+      foundry-dependencies:
+        patterns:
+          - "@foundryvtt/*"
+          - "foundry-*"
+      build-tools:
+        patterns:
+          - "rollup*"
+          - "@rollup/*"
+          - "typescript"
+          - "eslint*"
+          - "@typescript-eslint/*"
+      testing-tools:
+        patterns:
+          - "vitest*"
+          - "@vitest/*"
+          - "jest*"
+          - "@jest/*"
+      development-tools:
+        patterns:
+          - "prettier"
+          - "husky"
+          - "lint-staged"
+    # Ignore major version updates for critical dependencies
+    ignore:
+      - dependency-name: "foundry-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@foundryvtt/*"
+        update-types: ["version-update:semver-major"]
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "10:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "maintainer-username"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
+
+  # Enable version updates for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 2
+    reviewers:
+      - "maintainer-username"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    labels:
+      - "docker"
+      - "automated"
