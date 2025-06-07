@@ -95,6 +95,12 @@ temp/
 docker-compose.yml
 
 # Reference implementations (too large for git)
+reference/foundryvtt-dnd5e/
+
+# Cache directories
+.rollup.cache/
+
+# Reference implementations (too large for git)
 reference/
 
 # Cache directories

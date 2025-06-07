@@ -28,7 +28,7 @@
     ]
   },
   "esmodules": [
-    "beyond-foundry.js"
+    "build/beyond-foundry.js"
   ],
   "styles": [
     "beyond-foundry.css"
