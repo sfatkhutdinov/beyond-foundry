@@ -17,7 +17,7 @@ import { CharacterParser } from '../../parsers/character/CharacterParser.js';
  */
 export class BeyondFoundryAPI {
   private static instance: BeyondFoundryAPI;
-  private proxyEndpoint: string = '';
+  public proxyEndpoint: string = '';
   private apiEndpoint: string = '';
   private initialized: boolean = false;
 
@@ -785,7 +785,7 @@ export class BeyondFoundryAPI {
   /**
    * Check if a D&D class is a spellcasting class
    */
-  private isSpellcastingClass(classInfo: { definition?: { name?: string; spellRules?: unknown }; subclass?: { definition?: { name?: string } } }): boolean {
+  public isSpellcastingClass(classInfo: { definition?: { name?: string; spellRules?: unknown }; subclass?: { definition?: { name?: string } } }): boolean {
     if (!classInfo.definition) return false;
     
     // Common spellcasting classes
@@ -805,7 +805,7 @@ export class BeyondFoundryAPI {
   /**
    * Calculate spell level access for a class (based on ddb-proxy patterns)
    */
-  private calculateSpellLevelAccess(classInfo: { definition?: { name?: string }; level?: number; subclass?: { definition?: { name?: string } } }): number {
+  public calculateSpellLevelAccess(classInfo: { definition?: { name?: string }; level?: number; subclass?: { definition?: { name?: string } } }): number {
     if (!classInfo.definition || !classInfo.level) return 0;
     
     const classLevel = classInfo.level || 0;
