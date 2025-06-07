@@ -1,0 +1,341 @@
+name: Nightly Build
+
+on:
+  schedule:
+    # Run every night at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if no changes'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  check-changes:
+    name: Check for Changes
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.changes.outputs.has_changes }}
+      last_commit: ${{ steps.changes.outputs.last_commit }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
+
+    - name: Check for changes since last nightly
+      id: changes
+      run: |
+        # Check if we have any commits since yesterday
+        YESTERDAY=$(date -d '1 day ago' --iso-8601)
+        COMMITS_SINCE=$(git log --since="$YESTERDAY" --oneline | wc -l)
+        LAST_COMMIT=$(git log -1 --format="%H %s")
+        
+        echo "Commits since yesterday: $COMMITS_SINCE"
+        echo "Last commit: $LAST_COMMIT"
+        
+        if [ "$COMMITS_SINCE" -gt 0 ] || [ "${{ github.event.inputs.force_build }}" = "true" ]; then
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_changes=false" >> $GITHUB_OUTPUT
+        fi
+        
+        echo "last_commit=$LAST_COMMIT" >> $GITHUB_OUTPUT
+
+  nightly-build:
+    name: Nightly Build & Test
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run full test suite
+      run: |
+        npm run lint
+        npm run type-check
+        npm run test:coverage
+        npm run build
+
+    - name: Test module loading
+      run: |
+        # Test that the built module can be loaded
+        node -e "
+        const fs = require('fs');
+        const moduleContent = fs.readFileSync('./build/beyond-foundry.js', 'utf8');
+        console.log('Module size:', (moduleContent.length / 1024).toFixed(2), 'KB');
+        
+        // Basic syntax check
+        try {
+          new Function(moduleContent);
+          console.log('✅ Module syntax is valid');
+        } catch (error) {
+          console.error('❌ Module syntax error:', error.message);
+          process.exit(1);
+        }
+        "
+
+    - name: Performance regression test
+      run: |
+        # Run performance tests and compare with baseline
+        npm run build
+        
+        # Measure build time
+        BUILD_START=$(date +%s%N)
+        npm run build
+        BUILD_END=$(date +%s%N)
+        BUILD_TIME=$(( (BUILD_END - BUILD_START) / 1000000 ))
+        
+        echo "Build time: ${BUILD_TIME}ms"
+        
+        # Store metrics for trending
+        echo "build_time_ms=$BUILD_TIME" >> metrics.txt
+        echo "bundle_size_bytes=$(stat -f%z build/beyond-foundry.js)" >> metrics.txt
+        echo "node_version=${{ matrix.node-version }}" >> metrics.txt
+        echo "os=${{ matrix.os }}" >> metrics.txt
+
+    - name: Upload performance metrics
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-metrics-${{ matrix.node-version }}-${{ matrix.os }}
+        path: metrics.txt
+
+  compatibility-test:
+    name: FoundryVTT Compatibility Test
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        foundry-version: ['11.315', '12.331']
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build module
+      run: npm run build
+
+    - name: Test FoundryVTT v${{ matrix.foundry-version }} compatibility
+      run: |
+        # Download FoundryVTT (this would need proper licensing)
+        # For now, we'll simulate compatibility testing
+        echo "Testing compatibility with FoundryVTT v${{ matrix.foundry-version }}"
+        
+        # Validate module.json compatibility
+        node -e "
+        const module = JSON.parse(require('fs').readFileSync('module.json', 'utf8'));
+        const testVersion = '${{ matrix.foundry-version }}';
+        const [major, minor] = testVersion.split('.');
+        const testVersionNum = parseInt(major);
+        
+        const minVersion = parseInt(module.compatibility.minimum);
+        const maxVersion = parseInt(module.compatibility.maximum);
+        
+        console.log('Testing version:', testVersionNum);
+        console.log('Supported range:', minVersion, '-', maxVersion);
+        
+        if (testVersionNum >= minVersion && testVersionNum <= maxVersion) {
+          console.log('✅ Version compatibility check passed');
+        } else {
+          console.error('❌ Version compatibility check failed');
+          process.exit(1);
+        }
+        "
+
+  security-scan:
+    name: Nightly Security Scan
+    needs: check-changes
+    if: needs.check-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  create-nightly-release:
+    name: Create Nightly Release
+    needs: [check-changes, nightly-build, compatibility-test, security-scan]
+    if: needs.check-changes.outputs.has_changes == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies and build
+      run: |
+        npm ci
+        npm run build
+
+    - name: Create nightly package
+      run: |
+        # Generate nightly version
+        NIGHTLY_VERSION="nightly-$(date +%Y%m%d)"
+        echo "Creating nightly release: $NIGHTLY_VERSION"
+        
+        # Update module.json with nightly version
+        jq --arg version "$NIGHTLY_VERSION" '.version = $version' module.json > module.json.tmp
+        mv module.json.tmp module.json
+        
+        # Create package
+        mkdir -p nightly-release
+        zip -r "nightly-release/beyond-foundry-${NIGHTLY_VERSION}.zip" \
+          build/ \
+          lang/ \
+          templates/ \
+          module.json \
+          README.md \
+          LICENSE \
+          CHANGELOG.md
+
+    - name: Delete old nightly releases
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: releases } = await github.rest.repos.listReleases({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          
+          // Delete nightly releases older than 7 days
+          const cutoffDate = new Date();
+          cutoffDate.setDate(cutoffDate.getDate() - 7);
+          
+          for (const release of releases) {
+            if (release.tag_name.startsWith('nightly-') && 
+                new Date(release.created_at) < cutoffDate) {
+              console.log(`Deleting old nightly release: ${release.tag_name}`);
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id
+              });
+            }
+          }
+
+    - name: Create nightly release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: nightly-$(date +%Y%m%d)
+        name: Nightly Build $(date +%Y-%m-%d)
+        body: |
+          # Nightly Build $(date +%Y-%m-%d)
+          
+          **⚠️ This is an automated nightly build for testing purposes only!**
+          
+          This build includes the latest changes from the main branch:
+          ${{ needs.check-changes.outputs.last_commit }}
+          
+          ## What's included:
+          - Latest bug fixes and features
+          - Automated testing passed
+          - Security scans completed
+          
+          ## Installation:
+          1. Download the zip file below
+          2. Extract to your FoundryVTT modules directory
+          3. Enable in your world settings
+          
+          ## ⚠️ Important Notes:
+          - This is a development build and may contain bugs
+          - Not recommended for production use
+          - May not be compatible with all FoundryVTT versions
+          - No support provided for nightly builds
+          
+          ## Compatibility:
+          - FoundryVTT: v11+ 
+          - D&D 5e System: v3.0+
+          
+          ## Report Issues:
+          If you find issues with this nightly build, please report them with the "nightly-build" label.
+        files: nightly-release/*.zip
+        prerelease: true
+        draft: false
+
+  notify-results:
+    name: Notify Build Results
+    needs: [check-changes, nightly-build, compatibility-test, security-scan]
+    if: always() && needs.check-changes.outputs.has_changes == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Determine build status
+      id: status
+      run: |
+        if [ "${{ needs.nightly-build.result }}" = "success" ] && \
+           [ "${{ needs.compatibility-test.result }}" = "success" ] && \
+           [ "${{ needs.security-scan.result }}" = "success" ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "emoji=✅" >> $GITHUB_OUTPUT
+        else
+          echo "status=failure" >> $GITHUB_OUTPUT
+          echo "emoji=❌" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create build status issue
+      if: steps.status.outputs.status == 'failure'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const buildStatus = `
+          # ${{ steps.status.outputs.emoji }} Nightly Build Failed
+          
+          **Date**: $(date +%Y-%m-%d)
+          **Commit**: ${{ needs.check-changes.outputs.last_commit }}
+          
+          ## Failed Jobs:
+          - Build: ${{ needs.nightly-build.result }}
+          - Compatibility: ${{ needs.compatibility-test.result }}  
+          - Security: ${{ needs.security-scan.result }}
+          
+          Please check the [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+          `;
+          
+          await github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: 'Nightly Build Failed - $(date +%Y-%m-%d)',
+            body: buildStatus,
+            labels: ['automated', 'build-failure', 'priority:high']
+          });

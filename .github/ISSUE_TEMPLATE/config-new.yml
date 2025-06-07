@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://github.com/your-username/beyond-foundry/wiki
+    about: Check our comprehensive documentation and guides
+  - name: 💬 Community Discussion
+    url: https://github.com/your-username/beyond-foundry/discussions
+    about: Ask questions and discuss with the community
+  - name: 🔧 FoundryVTT Discord
+    url: https://discord.gg/foundryvtt
+    about: Get general FoundryVTT support on the official Discord
+  - name: 🐲 D&D Beyond Support
+    url: https://dndbeyond.zendesk.com/
+    about: For issues with D&D Beyond itself (not this module)

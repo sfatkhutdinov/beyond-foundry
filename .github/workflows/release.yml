@@ -1,0 +1,249 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run full test suite
+      run: npm run precommit
+      
+    - name: Build module
+      run: npm run build
+      
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+    - name: Update module.json version
+      run: |
+        jq '.version = "${{ steps.get_version.outputs.VERSION }}"' module.json > module.json.tmp
+        mv module.json.tmp module.json
+        
+    - name: Create release package
+      run: |
+        mkdir -p release
+        zip -r release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip \
+          build/ \
+          lang/ \
+          templates/ \
+          module.json \
+          README.md \
+          LICENSE \
+          CHANGELOG.md
+          
+    - name: Generate changelog
+      id: changelog
+      run: |
+        # Extract changelog for this version
+        if [ -f CHANGELOG.md ]; then
+          echo "CHANGELOG_CONTENT<<EOF" >> $GITHUB_OUTPUT
+          awk '/^## \[/ { if (found) exit; if ($0 ~ /\[${{ steps.get_version.outputs.VERSION }}\]/) found=1; next } found' CHANGELOG.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        else
+          echo "CHANGELOG_CONTENT=Release v${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.get_version.outputs.VERSION }}
+        name: Beyond Foundry v${{ steps.get_version.outputs.VERSION }}
+        body: |
+          # Beyond Foundry v${{ steps.get_version.outputs.VERSION }}
+          
+          ${{ steps.changelog.outputs.CHANGELOG_CONTENT }}
+          
+          ## Installation
+          
+          1. Download `beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip`
+          2. Extract to your FoundryVTT modules directory
+          3. Enable the module in your world
+          
+          ## Compatibility
+          
+          - FoundryVTT: v11+
+          - D&D 5e System: v3.0+
+          
+          ## Support
+          
+          If you encounter any issues, please report them on our [Issues page](https://github.com/${{ github.repository }}/issues).
+        files: |
+          release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip
+        draft: false
+        prerelease: false
+        
+    - name: Update module manifest with download URL
+      run: |
+        DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/v${{ steps.get_version.outputs.VERSION }}/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip"
+        jq --arg url "$DOWNLOAD_URL" '.download = $url' module.json > module.json.tmp
+        mv module.json.tmp module.json
+        
+    - name: Generate SBOM for release
+      uses: anchore/sbom-action@v0
+      with:
+        path: ./
+        format: spdx-json
+        artifact-name: beyond-foundry-v${{ steps.get_version.outputs.VERSION }}-sbom.spdx.json
+        
+    - name: Sign release artifacts
+      uses: sigstore/cosign-installer@v3
+      with:
+        cosign-release: 'v2.2.0'
+        
+    - name: Sign the release package
+      run: |
+        cosign sign-blob --yes \
+          --output-signature release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip.sig \
+          release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip
+      env:
+        COSIGN_EXPERIMENTAL: 1
+        
+    - name: Create release attestation
+      run: |
+        # Create attestation for the release
+        cat > attestation.json << EOF
+        {
+          "version": "${{ steps.get_version.outputs.VERSION }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "buildInfo": {
+            "runner": "${{ runner.os }}",
+            "nodeVersion": "20.x",
+            "gitCommit": "${{ github.sha }}",
+            "gitRef": "${{ github.ref }}",
+            "workflow": "${{ github.workflow }}",
+            "runId": "${{ github.run_id }}"
+          },
+          "artifacts": [
+            {
+              "name": "beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip",
+              "sha256": "$(sha256sum release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip | cut -d' ' -f1)"
+            }
+          ],
+          "dependencies": $(cat package-lock.json | jq '.packages | to_entries | map({name: .key, version: .value.version}) | map(select(.name != ""))')
+        }
+        EOF
+        
+    - name: Update release with additional assets
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.get_version.outputs.VERSION }}
+        files: |
+          release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip
+          release/beyond-foundry-v${{ steps.get_version.outputs.VERSION }}.zip.sig
+          beyond-foundry-v${{ steps.get_version.outputs.VERSION }}-sbom.spdx.json
+          attestation.json
+          
+    - name: Update package registries
+      run: |
+        # Update FoundryVTT Package Registry (placeholder)
+        echo "Updating FoundryVTT Package Registry..."
+        # This would integrate with FoundryVTT's package system
+        
+    - name: Create release announcement
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const version = '${{ steps.get_version.outputs.VERSION }}';
+          const changelog = `${{ steps.changelog.outputs.CHANGELOG_CONTENT }}`;
+          
+          // Create announcement discussion
+          const announcement = `
+          # 🎉 Beyond Foundry v${version} Released!
+          
+          We're excited to announce the release of Beyond Foundry v${version}!
+          
+          ${changelog}
+          
+          ## 🚀 Get Started
+          
+          1. **Download**: Get the [latest release](https://github.com/${{ github.repository }}/releases/tag/v${version})
+          2. **Install**: Extract to your FoundryVTT modules directory
+          3. **Enable**: Activate in your world settings
+          4. **Import**: Start importing your D&D Beyond content!
+          
+          ## 📚 Resources
+          
+          - [📖 Documentation](https://github.com/${{ github.repository }}/wiki)
+          - [🔧 Setup Guide](https://github.com/${{ github.repository }}/blob/main/docs/setup.md)
+          - [❓ Get Help](https://github.com/${{ github.repository }}/discussions)
+          - [🐛 Report Issues](https://github.com/${{ github.repository }}/issues)
+          
+          ## 🙏 Thank You
+          
+          Thank you to all contributors and the FoundryVTT community for making this release possible!
+          
+          Happy gaming! 🎲
+          `;
+          
+          // Post to discussions (this would need the discussions API)
+          console.log('Release announcement created');
+          
+    - name: Notify Discord webhook
+      if: env.DISCORD_WEBHOOK_URL
+      run: |
+        curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "🎉 Beyond Foundry v${{ steps.get_version.outputs.VERSION }} Released!",
+              "description": "A new version of Beyond Foundry is now available.",
+              "url": "https://github.com/${{ github.repository }}/releases/tag/v${{ steps.get_version.outputs.VERSION }}",
+              "color": 5814783,
+              "fields": [
+                {
+                  "name": "Version",
+                  "value": "v${{ steps.get_version.outputs.VERSION }}",
+                  "inline": true
+                },
+                {
+                  "name": "Download",
+                  "value": "[Get it here](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.get_version.outputs.VERSION }})",
+                  "inline": true
+                }
+              ],
+              "footer": {
+                "text": "Beyond Foundry",
+                "icon_url": "https://github.com/${{ github.repository_owner }}.png"
+              },
+              "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            }]
+          }' \
+          "$DISCORD_WEBHOOK_URL"
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        
+    - name: Update documentation
+      run: |
+        # Trigger documentation update
+        echo "Triggering documentation update for v${{ steps.get_version.outputs.VERSION }}"
+        # This could trigger a separate workflow to update docs
+        mv module.json.tmp module.json
+        
+    - name: Commit updated module.json
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add module.json
+        git commit -m "Update module.json for release v${{ steps.get_version.outputs.VERSION }}" || exit 0

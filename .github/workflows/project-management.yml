@@ -1,0 +1,206 @@
+name: Project Management
+
+on:
+  issues:
+    types: [opened, closed, labeled, assigned]
+  pull_request:
+    types: [opened, closed, merged, labeled, assigned]
+  schedule:
+    # Run weekly project health checks
+    - cron: '0 9 * * 1'
+
+jobs:
+  update-project-board:
+    name: Update Project Board
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+    - name: Add to project board
+      uses: actions/add-to-project@v1.0.2
+      with:
+        project-url: https://github.com/users/your-username/projects/1
+        github-token: ${{ secrets.PROJECT_TOKEN }}
+
+    - name: Update project status
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.PROJECT_TOKEN }}
+        script: |
+          const item = context.payload.issue || context.payload.pull_request;
+          
+          // Determine status based on labels and state
+          let status = 'Todo';
+          
+          if (item.assignees && item.assignees.length > 0) {
+            status = 'In Progress';
+          }
+          
+          if (item.labels.some(label => label.name === 'in-review')) {
+            status = 'In Review';
+          }
+          
+          if (item.state === 'closed') {
+            status = item.pull_request && item.pull_request.merged ? 'Done' : 'Closed';
+          }
+          
+          console.log(`Setting status to: ${status} for item: ${item.title}`);
+
+  milestone-management:
+    name: Milestone Management
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+    - name: Auto-assign milestone
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const item = context.payload.issue || context.payload.pull_request;
+          
+          // Skip if already has milestone
+          if (item.milestone) return;
+          
+          // Get open milestones
+          const { data: milestones } = await github.rest.issues.listMilestones({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            sort: 'due_on'
+          });
+          
+          if (milestones.length === 0) return;
+          
+          // Auto-assign to next milestone based on labels
+          let targetMilestone = null;
+          
+          if (item.labels.some(label => label.name === 'bug' || label.name === 'priority:high')) {
+            // Assign urgent items to nearest milestone
+            targetMilestone = milestones[0];
+          } else if (item.labels.some(label => label.name === 'enhancement')) {
+            // Assign features to appropriate milestone
+            targetMilestone = milestones.find(m => m.title.includes('Feature')) || milestones[0];
+          }
+          
+          if (targetMilestone) {
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: item.number,
+              milestone: targetMilestone.number
+            });
+            
+            console.log(`Assigned to milestone: ${targetMilestone.title}`);
+          }
+
+  weekly-health-check:
+    name: Weekly Project Health Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+    - name: Generate project health report
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          
+          // Get project statistics
+          const now = new Date();
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          
+          // Get recent issues and PRs
+          const [issues, pulls, milestones] = await Promise.all([
+            github.rest.issues.listForRepo({
+              owner, repo,
+              state: 'all',
+              since: weekAgo.toISOString(),
+              per_page: 100
+            }),
+            github.rest.pulls.list({
+              owner, repo,
+              state: 'all',
+              per_page: 100
+            }),
+            github.rest.issues.listMilestones({
+              owner, repo,
+              state: 'open'
+            })
+          ]);
+          
+          // Calculate metrics
+          const newIssues = issues.data.filter(i => !i.pull_request && new Date(i.created_at) > weekAgo).length;
+          const closedIssues = issues.data.filter(i => !i.pull_request && i.state === 'closed' && new Date(i.closed_at) > weekAgo).length;
+          const openIssues = issues.data.filter(i => !i.pull_request && i.state === 'open').length;
+          
+          const mergedPRs = pulls.data.filter(pr => pr.merged_at && new Date(pr.merged_at) > weekAgo).length;
+          const openPRs = pulls.data.filter(pr => pr.state === 'open').length;
+          
+          // Check milestone progress
+          const overdueMilestones = milestones.data.filter(m => 
+            m.due_on && new Date(m.due_on) < now
+          );
+          
+          // Generate health score
+          let healthScore = 100;
+          if (openIssues > 20) healthScore -= 20;
+          if (openPRs > 5) healthScore -= 15;
+          if (overdueMilestones.length > 0) healthScore -= 25;
+          if (newIssues > closedIssues * 2) healthScore -= 20;
+          
+          const healthStatus = healthScore >= 80 ? '🟢 Healthy' : 
+                              healthScore >= 60 ? '🟡 Needs Attention' : 
+                              '🔴 Critical';
+          
+          // Create health report
+          const report = `
+          # Weekly Project Health Report
+          
+          **Date**: ${now.toISOString().split('T')[0]}
+          **Health Score**: ${healthScore}/100 ${healthStatus}
+          
+          ## This Week's Activity
+          - 📊 New Issues: ${newIssues}
+          - ✅ Closed Issues: ${closedIssues}
+          - 🔀 Merged PRs: ${mergedPRs}
+          
+          ## Current Status
+          - 📋 Open Issues: ${openIssues}
+          - 🔄 Open PRs: ${openPRs}
+          - ⏰ Overdue Milestones: ${overdueMilestones.length}
+          
+          ## Recommendations
+          ${healthScore < 80 ? '- Consider increasing issue triage frequency' : ''}
+          ${openPRs > 5 ? '- Review and merge pending pull requests' : ''}
+          ${overdueMilestones.length > 0 ? '- Update overdue milestone dates or move issues' : ''}
+          ${newIssues > closedIssues * 2 ? '- Focus on closing existing issues' : ''}
+          
+          ## Milestone Progress
+          ${milestones.data.map(m => {
+            const progress = m.closed_issues / (m.open_issues + m.closed_issues) * 100;
+            return `- **${m.title}**: ${progress.toFixed(1)}% complete (${m.closed_issues}/${m.open_issues + m.closed_issues})`;
+          }).join('\n')}
+          `;
+          
+          console.log(report);
+          
+          // Create or update health check issue
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner, repo,
+            labels: 'project-health',
+            state: 'open'
+          });
+          
+          if (existingIssues.data.length > 0) {
+            // Update existing issue
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: existingIssues.data[0].number,
+              body: report
+            });
+          } else {
+            // Create new health check issue
+            await github.rest.issues.create({
+              owner, repo,
+              title: `Project Health Check - ${now.toISOString().split('T')[0]}`,
+              body: report,
+              labels: ['project-health', 'automated']
+            });
+          }

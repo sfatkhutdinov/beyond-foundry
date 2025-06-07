@@ -1,0 +1,138 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug! Please fill out the form below to help us investigate and fix the issue.
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Pre-submission checklist
+      description: Please confirm the following before submitting your bug report
+      options:
+        - label: I have searched existing issues to make sure this bug hasn't been reported before
+          required: true
+        - label: I have tested with the latest version of Beyond Foundry
+          required: true
+        - label: I have verified this is not a conflict with another module by testing with only Beyond Foundry enabled
+          required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: Describe what happened and what you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened
+    validations:
+      required: true
+
+  - type: input
+    id: foundry-version
+    attributes:
+      label: FoundryVTT Version
+      description: What version of FoundryVTT are you using?
+      placeholder: "e.g., 11.315"
+    validations:
+      required: true
+
+  - type: input
+    id: dnd5e-version
+    attributes:
+      label: D&D 5e System Version
+      description: What version of the D&D 5e system are you using?
+      placeholder: "e.g., 3.0.2"
+    validations:
+      required: true
+
+  - type: input
+    id: module-version
+    attributes:
+      label: Beyond Foundry Version
+      description: What version of Beyond Foundry are you using?
+      placeholder: "e.g., 1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: What browser are you using?
+      placeholder: "e.g., Chrome 120.0, Firefox 119.0"
+    validations:
+      required: false
+
+  - type: textarea
+    id: ddb-content
+    attributes:
+      label: D&D Beyond Content
+      description: What type of content were you trying to import? (Character, Spell, Monster, etc.)
+      placeholder: Describe the D&D Beyond content involved
+    validations:
+      required: false
+
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: Console Errors
+      description: Any errors from the browser console (F12)
+      placeholder: Paste any console errors here
+      render: javascript
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or information that might help
+      placeholder: Add any other context about the problem here
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: modules
+    attributes:
+      label: Other Active Modules
+      description: Are you using other modules that might be related to this issue?
+      options:
+        - label: D&D Beyond Importer (MrPrimate)
+        - label: Plutonium
+        - label: Other character import modules
+        - label: No other relevant modules active
