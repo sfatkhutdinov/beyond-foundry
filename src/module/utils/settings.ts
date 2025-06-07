@@ -8,18 +8,18 @@ export function registerSettings(): void {
   // Proxy configuration
   game.settings.register(MODULE_ID, SETTINGS.PROXY_URL, {
     name: 'beyond-foundry.settings.proxyUrl.name',
-    hint: 'beyond-foundry.settings.proxyUrl.hint', 
+    hint: 'beyond-foundry.settings.proxyUrl.hint',
     scope: 'world',
     config: true,
     type: String,
     default: DEFAULT_PROXY_URL,
-    onChange: () => window.location.reload()
+    onChange: () => window.location.reload(),
   });
 
   game.settings.register(MODULE_ID, SETTINGS.USE_DOCKER_PROXY, {
     name: 'beyond-foundry.settings.useDockerProxy.name',
     hint: 'beyond-foundry.settings.useDockerProxy.hint',
-    scope: 'world', 
+    scope: 'world',
     config: true,
     type: Boolean,
     default: false,
@@ -29,10 +29,10 @@ export function registerSettings(): void {
       } else {
         game.settings.set(MODULE_ID, SETTINGS.PROXY_URL, DEFAULT_PROXY_URL);
       }
-    }
+    },
   });
 
-  // API configuration  
+  // API configuration
   game.settings.register(MODULE_ID, SETTINGS.API_ENDPOINT, {
     name: 'beyond-foundry.settings.apiEndpoint.name',
     hint: 'beyond-foundry.settings.apiEndpoint.hint',
@@ -40,7 +40,7 @@ export function registerSettings(): void {
     config: true,
     type: String,
     default: '',
-    onChange: () => window.location.reload()
+    onChange: () => window.location.reload(),
   });
 
   // Debug mode
@@ -50,7 +50,7 @@ export function registerSettings(): void {
     scope: 'client',
     config: true,
     type: Boolean,
-    default: false
+    default: false,
   });
 
   // Import options
@@ -60,22 +60,22 @@ export function registerSettings(): void {
     scope: 'world',
     config: true,
     type: Boolean,
-    default: true
+    default: true,
   });
 
   game.settings.register(MODULE_ID, SETTINGS.IMPORT_POLICY, {
-    name: 'beyond-foundry.settings.importPolicy.name', 
+    name: 'beyond-foundry.settings.importPolicy.name',
     hint: 'beyond-foundry.settings.importPolicy.hint',
     scope: 'world',
     config: true,
     type: String,
     choices: {
-      'ask': 'beyond-foundry.settings.importPolicy.ask',
-      'update': 'beyond-foundry.settings.importPolicy.update', 
-      'replace': 'beyond-foundry.settings.importPolicy.replace',
-      'skip': 'beyond-foundry.settings.importPolicy.skip'
+      ask: 'beyond-foundry.settings.importPolicy.ask',
+      update: 'beyond-foundry.settings.importPolicy.update',
+      replace: 'beyond-foundry.settings.importPolicy.replace',
+      skip: 'beyond-foundry.settings.importPolicy.skip',
     },
-    default: 'ask'
+    default: 'ask',
   });
 
   // Authentication
@@ -85,7 +85,7 @@ export function registerSettings(): void {
     scope: 'world',
     config: false, // Hidden from UI - managed by auth dialog
     type: String,
-    default: ''
+    default: '',
   });
 }
 
@@ -110,10 +110,10 @@ export function getModuleSettings(): ModuleSettings {
   return {
     proxyUrl: getModuleSetting(SETTINGS.PROXY_URL),
     useDockerProxy: getModuleSetting(SETTINGS.USE_DOCKER_PROXY),
-    apiEndpoint: getModuleSetting(SETTINGS.API_ENDPOINT), 
+    apiEndpoint: getModuleSetting(SETTINGS.API_ENDPOINT),
     debugMode: getModuleSetting(SETTINGS.DEBUG_MODE),
     autoImportItems: getModuleSetting(SETTINGS.AUTO_IMPORT_ITEMS),
     importPolicy: getModuleSetting(SETTINGS.IMPORT_POLICY) as ImportPolicy,
-    cobaltToken: getModuleSetting(SETTINGS.COBALT_TOKEN)
+    cobaltToken: getModuleSetting(SETTINGS.COBALT_TOKEN),
   };
 }

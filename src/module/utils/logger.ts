@@ -8,7 +8,7 @@ export class Logger {
 
   static log(message: string, level: 'info' | 'warn' | 'error' | 'debug' = 'info'): void {
     const prefix = `${this.moduleId} |`;
-    
+
     switch (level) {
       case 'info':
         console.log(prefix, message);

@@ -18,7 +18,7 @@ export const SETTINGS = {
   DEBUG_MODE: 'debugMode',
   AUTO_IMPORT_ITEMS: 'autoImportItems',
   IMPORT_POLICY: 'importPolicy',
-  COBALT_TOKEN: 'cobaltToken'
+  COBALT_TOKEN: 'cobaltToken',
 } as const;
 
 // Default import options
@@ -26,5 +26,5 @@ export const DEFAULT_IMPORT_OPTIONS = {
   importItems: true,
   importSpells: true,
   updateExisting: false,
-  createCompendiumItems: true
+  createCompendiumItems: true,
 };

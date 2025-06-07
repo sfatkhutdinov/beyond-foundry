@@ -285,16 +285,19 @@ export interface FoundryActor {
   type: string;
   img?: string;
   system: {
-    abilities: Record<string, {
-      value: number;
-      proficient: number;
-      bonuses: {
-        check: string;
-        save: string;
-      };
-      min?: number;
-      mod?: number;
-    }>;
+    abilities: Record<
+      string,
+      {
+        value: number;
+        proficient: number;
+        bonuses: {
+          check: string;
+          save: string;
+        };
+        min?: number;
+        mod?: number;
+      }
+    >;
     attributes: {
       ac: {
         flat: number | null;
@@ -345,29 +348,32 @@ export interface FoundryActor {
         encumbered: boolean;
       };
     };
-    skills: Record<string, {
-      value: number;
-      proficient?: number;
-      bonuses: {
-        check: string;
-        passive: string;
-      };
-      ability: string;
-      label?: string;
-      mod?: number;
-      prof?: number;
-      total?: number;
-      passive?: number;
-    }>;
+    skills: Record<
+      string,
+      {
+        value: number;
+        proficient?: number;
+        bonuses: {
+          check: string;
+          passive: string;
+        };
+        ability: string;
+        label?: string;
+        mod?: number;
+        prof?: number;
+        total?: number;
+        passive?: number;
+      }
+    >;
     spells: Record<string, any>;
     resources: Record<string, any>;
     bonuses?: {
-      mwak?: { attack: string; damage: string; };
-      rwak?: { attack: string; damage: string; };
-      msak?: { attack: string; damage: string; };
-      rsak?: { attack: string; damage: string; };
-      abilities?: { check: string; save: string; skill: string; };
-      spell?: { dc: string; };
+      mwak?: { attack: string; damage: string };
+      rwak?: { attack: string; damage: string };
+      msak?: { attack: string; damage: string };
+      rsak?: { attack: string; damage: string };
+      abilities?: { check: string; save: string; skill: string };
+      spell?: { dc: string };
     };
     details: {
       biography: {
@@ -384,13 +390,16 @@ export interface FoundryActor {
         pct: number;
       };
       level?: number;
-      classes?: Record<string, {
-        levels: number;
-        subclass: string;
-        hitDice: { used: number; max: number; };
-        advancement: any[];
-        spellcasting: string;
-      }>;
+      classes?: Record<
+        string,
+        {
+          levels: number;
+          subclass: string;
+          hitDice: { used: number; max: number };
+          advancement: any[];
+          spellcasting: string;
+        }
+      >;
       appearance?: string;
       trait?: string;
       ideal?: string;
