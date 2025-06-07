@@ -9,6 +9,7 @@
     "build:watch": "rollup -c tools/rollup.config.js -w",
     "dev": "npm run build:watch",
     "clean": "rm -rf build/*",
+    "cleanup": "./scripts/cleanup-project.sh",
     "rebuild": "npm run clean && npm run build",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
