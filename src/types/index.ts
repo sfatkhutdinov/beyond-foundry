@@ -172,6 +172,11 @@ export interface DDBSpell {
     ritualCastingTime?: string;
     ritual: boolean;
     concentration: boolean;
+    sources?: Array<{
+      sourceId: number;
+      pageNumber?: number;
+      sourceType?: string;
+    }>;
   };
   prepared: boolean;
   countsAsKnownSpell: boolean;
