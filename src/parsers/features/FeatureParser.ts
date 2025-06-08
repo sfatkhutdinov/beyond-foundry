@@ -130,7 +130,8 @@ export class FeatureParser {
   }
 
   /**
-   * Parse a single feature to Foundry format
+   * Parse a single feature to Foundry format (static interface, ddb-importer parity)
+   * TODO: Add support for advanced feature fields (homebrew flags, enhanced properties, system fields, etc.)
    */
   static parseFeature(ddbFeature: DDBFeature, type: string): FoundryItem | null {
     try {
@@ -206,6 +207,41 @@ export class FeatureParser {
       Logger.error(`Feature parsing error: ${getErrorMessage(error)}`);
       return null;
     }
+  }
+
+  /**
+   * Parse an array of features to Foundry format (static interface)
+   * TODO: Add support for batch feature enhancements and error aggregation
+   */
+  static parseFeatureArray(features: DDBFeature[], type: string): FoundryItem[] {
+    return features.map((feature) => this.parseFeature(feature, type)).filter(Boolean) as FoundryItem[];
+  }
+
+  /**
+   * TODO: Parse homebrew and custom feature flags
+   */
+  private static parseHomebrewFlags(_ddbFeature: DDBFeature): Record<string, unknown> {
+    void _ddbFeature;
+    // TODO: Implement homebrew/custom feature detection and flagging
+    return {};
+  }
+
+  /**
+   * TODO: Enhanced property parsing (feature type, filterType, etc.)
+   */
+  private static parseEnhancedProperties(_ddbFeature: DDBFeature): Record<string, unknown> {
+    void _ddbFeature;
+    // TODO: Implement enhanced property parsing for ddb-importer parity
+    return {};
+  }
+
+  /**
+   * TODO: Add support for additional system fields (e.g., level scaling, prerequisites, advanced effects)
+   */
+  private static parseAdditionalSystemFields(_ddbFeature: DDBFeature): Record<string, unknown> {
+    void _ddbFeature;
+    // TODO: Implement additional system fields for advanced feature support
+    return {};
   }
 
   /**

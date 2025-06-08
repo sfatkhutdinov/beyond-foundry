@@ -7,35 +7,33 @@ import { Logger, getErrorMessage } from '../../module/utils/logger.js';
 export class ItemParser {
   
   /**
-   * Parse all character items from D&D Beyond data
+   * Parse an array of D&D Beyond items to Foundry format
+   */
+  static async parseItemArray(ddbItems: DDBItem[]): Promise<FoundryItem[]> {
+    const items: FoundryItem[] = [];
+    for (const ddbItem of ddbItems) {
+      try {
+        const foundryItem = this.parseItem(ddbItem);
+        if (foundryItem) {
+          items.push(foundryItem);
+        }
+      } catch (error) {
+        Logger.warn(`Failed to parse item ${ddbItem.definition?.name}: ${getErrorMessage(error)}`);
+      }
+    }
+    Logger.info(`Parsed ${items.length} items from array`);
+    return items;
+  }
+
+  /**
+   * @deprecated Use parseItemArray instead. This method will be removed in a future release.
    */
   static async parseCharacterItems(ddbCharacter: DDBCharacter): Promise<FoundryItem[]> {
-    try {
-      const items: FoundryItem[] = [];
-      
-      if (!ddbCharacter.inventory) {
-        Logger.warn('No inventory found for character');
-        return items;
-      }
-
-      for (const ddbItem of ddbCharacter.inventory) {
-        try {
-          const foundryItem = this.parseItem(ddbItem);
-          if (foundryItem) {
-            items.push(foundryItem);
-          }
-        } catch (error) {
-          Logger.warn(`Failed to parse item ${ddbItem.definition?.name}: ${getErrorMessage(error)}`);
-        }
-      }
-
-      Logger.info(`Parsed ${items.length} items from character inventory`);
-      return items;
-
-    } catch (error) {
-      Logger.error(`Character items parsing error: ${getErrorMessage(error)}`);
+    if (!ddbCharacter.inventory) {
+      Logger.warn('No inventory found for character');
       return [];
     }
+    return this.parseItemArray(ddbCharacter.inventory);
   }
 
   /**
@@ -151,16 +149,15 @@ export class ItemParser {
    */
   private static parseWeaponSystem(ddbItem: DDBItem): Record<string, unknown> {
     const weaponData = ddbItem.definition;
-    
     return {
       type: {
-        value: this.getWeaponType(weaponData),
+        value: ItemParser.getWeaponType(weaponData),
         baseItem: weaponData?.baseItem || ''
       },
-      properties: this.parseWeaponProperties(weaponData),
+      properties: ItemParser.parseWeaponProperties(weaponData),
       proficient: true, // Assume proficient for now
-      damage: this.parseWeaponDamage(weaponData),
-      range: this.parseWeaponRange(weaponData),
+      damage: ItemParser.parseWeaponDamage(weaponData),
+      range: ItemParser.parseWeaponRange(weaponData),
       actionType: weaponData?.attackType === 1 ? 'mwak' : 'rwak'
     };
   }
@@ -170,13 +167,12 @@ export class ItemParser {
    */
   private static parseEquipmentSystem(ddbItem: DDBItem): Record<string, unknown> {
     const equipData = ddbItem.definition;
-    
     return {
       type: {
-        value: this.getEquipmentType(equipData),
+        value: ItemParser.getEquipmentType(equipData),
         baseItem: equipData?.baseItem || ''
       },
-      armor: this.parseArmorData(equipData),
+      armor: ItemParser.parseArmorData(equipData),
       proficient: true
     };
   }
@@ -184,7 +180,7 @@ export class ItemParser {
   /**
    * Parse tool-specific system data
    */
-  private static parseToolSystem(ddbItem: DDBItem): Record<string, unknown> {
+  private static parseToolSystem(_ddbItem: DDBItem): Record<string, unknown> {
     return {
       type: {
         value: 'tool',
@@ -201,7 +197,7 @@ export class ItemParser {
   private static parseConsumableSystem(ddbItem: DDBItem): Record<string, unknown> {
     return {
       type: {
-        value: this.getConsumableType(ddbItem),
+        value: ItemParser.getConsumableType(ddbItem),
         subtype: ''
       },
       uses: {
@@ -213,20 +209,87 @@ export class ItemParser {
     };
   }
 
+  /**
+   * TODO: Parse magic item attunement and advanced attunement states
+   */
+  private static parseAdvancedAttunement(_ddbItem: DDBItem): number {
+    // TODO: Implement advanced attunement logic (ddb-importer parity)
+    return 0;
+  }
+
+  /**
+   * TODO: Parse container relationships (e.g., bags, packs, parent-child)
+   */
+  private static parseContainerInfo(_ddbItem: DDBItem): Record<string, unknown> {
+    // TODO: Implement container relationship parsing
+    return {};
+  }
+
+  /**
+   * TODO: Parse homebrew and custom item flags
+   */
+  private static parseHomebrewFlags(_ddbItem: DDBItem): Record<string, unknown> {
+    // TODO: Implement homebrew/custom item detection and flagging
+    return {};
+  }
+
+  /**
+   * TODO: Enhanced property parsing (weapon/armor/tool/consumable types, filterType, etc.)
+   */
+  private static parseEnhancedProperties(_ddbItem: DDBItem): Record<string, unknown> {
+    // TODO: Implement enhanced property parsing for ddb-importer parity
+    return {};
+  }
+
+  /**
+   * TODO: Add support for weight multipliers, default icons, and additional Foundry flags
+   */
+  private static parseAdditionalSystemFields(_ddbItem: DDBItem): Record<string, unknown> {
+    // TODO: Implement additional system fields (weightMultiplier, defaultIcon, etc.)
+    return {};
+  }
+
   // Helper methods for parsing specific data
   private static getItemImage(ddbItem: DDBItem): string {
     return ddbItem.definition?.avatarUrl || 
            ddbItem.definition?.largeAvatarUrl || 
            'icons/svg/item-bag.svg';
   }
-
+  private static getWeaponType(_weaponData: unknown): string {
+    return 'simpleM';
+  }
+  private static parseWeaponProperties(_weaponData: unknown): Record<string, boolean> {
+    return {};
+  }
+  private static parseWeaponDamage(_weaponData: unknown): Record<string, unknown> {
+    return {
+      parts: [],
+      versatile: ''
+    };
+  }
+  private static parseWeaponRange(_weaponData: unknown): Record<string, unknown> {
+    return {
+      value: 5,
+      long: null,
+      units: 'ft'
+    };
+  }
+  private static getEquipmentType(_equipData: unknown): string {
+    return 'clothing';
+  }
+  private static parseArmorData(_equipData: unknown): Record<string, unknown> {
+    return {
+      type: 'clothing',
+      value: 10,
+      dex: null
+    };
+  }
   private static parseAttunement(ddbItem: DDBItem): number {
     if (ddbItem.definition?.requiresAttunement) {
-      return ddbItem.isAttuned ? 2 : 1; // 2 = attuned, 1 = required, 0 = none
+      return ddbItem.isAttuned ? 2 : 1;
     }
     return 0;
   }
-
   private static parseRarity(ddbItem: DDBItem): string {
     const rarity = ddbItem.definition?.rarity?.toLowerCase();
     switch (rarity) {
@@ -239,48 +302,6 @@ export class ItemParser {
       default: return 'common';
     }
   }
-
-  private static getWeaponType(weaponData: unknown): string {
-    // TODO: Implement weapon type mapping
-    return 'simpleM'; // Placeholder
-  }
-
-  private static parseWeaponProperties(weaponData: unknown): Record<string, boolean> {
-    // TODO: Implement weapon properties parsing
-    return {};
-  }
-
-  private static parseWeaponDamage(weaponData: unknown): Record<string, unknown> {
-    // TODO: Implement weapon damage parsing
-    return {
-      parts: [],
-      versatile: ''
-    };
-  }
-
-  private static parseWeaponRange(weaponData: unknown): Record<string, unknown> {
-    // TODO: Implement weapon range parsing
-    return {
-      value: 5,
-      long: null,
-      units: 'ft'
-    };
-  }
-
-  private static getEquipmentType(equipData: unknown): string {
-    // TODO: Implement equipment type mapping
-    return 'clothing';
-  }
-
-  private static parseArmorData(equipData: unknown): Record<string, unknown> {
-    // TODO: Implement armor data parsing
-    return {
-      type: 'clothing',
-      value: 10,
-      dex: null
-    };
-  }
-
   private static getConsumableType(ddbItem: DDBItem): string {
     const type = ddbItem.definition?.type?.toLowerCase();
     switch (type) {

@@ -216,6 +216,7 @@ export class BeyondFoundryAPI {
         return {
           success: false,
           errors: ['Failed to fetch character data from D&D Beyond'],
+          endpoint: 'importCharacter',
         };
       }
 
@@ -244,6 +245,7 @@ export class BeyondFoundryAPI {
               `Character "${ddbCharacter.name}" already exists. Use update option to overwrite.`,
             ],
             warnings: ['Character import skipped due to existing character'],
+            endpoint: 'importCharacter',
           };
         }
       } else {
@@ -255,6 +257,7 @@ export class BeyondFoundryAPI {
         return {
           success: false,
           errors: ['Failed to create character in FoundryVTT'],
+          endpoint: 'importCharacter',
         };
       }
 
@@ -294,14 +297,16 @@ export class BeyondFoundryAPI {
 
       return {
         success: true,
-        actor,
+        actor: actor as unknown as import('../../types/index.js').FoundryActor,
         warnings,
+        endpoint: 'importCharacter',
       };
     } catch (error) {
       Logger.error(`Character import error: ${getErrorMessage(error)}`);
       return {
         success: false,
         errors: [`Character import error: ${getErrorMessage(error)}`],
+        endpoint: 'importCharacter',
       };
     }
   }
@@ -352,14 +357,22 @@ export class BeyondFoundryAPI {
           }
 
           // Prepare class info for spell fetching
-          const fetchClassInfo = {
+          interface SpellFetchClassInfo {
+            id: number;
+            name: string;
+            level: number;
+            spellLevelAccess: number;
+            campaignId?: number;
+            backgroundId?: number;
+          }
+          const fetchClassInfo: SpellFetchClassInfo = {
             id: classInfo.definition?.id || 0,
             name: classInfo.definition?.name || 'Unknown',
             level: classInfo.level || 1,
-            spellLevelAccess,
-            ...(ddbCharacter.campaignId && { campaignId: ddbCharacter.campaignId }),
-            ...(ddbCharacter.background?.definition?.id && { backgroundId: ddbCharacter.background.definition.id })
+            spellLevelAccess
           };
+          if (typeof ddbCharacter.campaignId === 'number') fetchClassInfo.campaignId = ddbCharacter.campaignId;
+          if (typeof ddbCharacter.background?.definition?.id === 'number') fetchClassInfo.backgroundId = ddbCharacter.background.definition.id;
 
           Logger.debug(`Fetching spells for ${fetchClassInfo.name} (Level ${fetchClassInfo.level}, Spell Level Access: ${spellLevelAccess})`);
 
