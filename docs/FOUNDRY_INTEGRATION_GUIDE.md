@@ -184,6 +184,28 @@ api.openAuthDialog();
 
 ---
 
+## 📦 Bulk Spell Import & Compendium Usage
+
+### How to Bulk Import All Spells
+1. Open the FoundryVTT console (F12).
+2. Run:
+   ```javascript
+   // Replace 'beyondfoundry.spells' with your compendium name if needed
+   await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+   ```
+3. Wait for the import to complete. All D&D Beyond spells will be available in the compendium.
+
+### How Spell Import Works
+- When importing a character, Beyond Foundry checks the compendium for each spell (by DDB ID or name).
+- If found, the actor is linked to the compendium spell (no duplicate embedded item is created).
+- If not found, the spell is imported as an embedded item (rare).
+- This ensures all spells reference a single, canonical source.
+
+### Troubleshooting Compendium Issues
+- If a spell is missing from the compendium, re-run the bulk import.
+- Ensure you are using the correct compendium name in your import options.
+- For advanced troubleshooting, see the developer notes in `src/module/api/BeyondFoundryAPI.ts`.
+
 ## 🔍 Validation Checklist
 
 ### ✅ Module Loading
@@ -219,6 +241,10 @@ api.openAuthDialog();
 - [ ] Equipment properties preserved
 - [ ] Racial traits and features imported
 - [ ] Background information included
+
+### ✅ Compendium Spell Linking
+- [ ] Spells are linked to compendium entries (not duplicated as embedded items)
+- [ ] Bulk spell import populates the compendium as expected
 
 ---
 
@@ -273,6 +299,13 @@ api.openAuthDialog();
 2. Verify FoundryVTT version compatibility
 3. Clear browser cache
 4. Check console for UI errors
+
+#### Issue: "Spell not found in compendium"
+**Symptoms:** Imported character spells are duplicated as embedded items
+**Solutions:**
+1. Re-run bulk import: `await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");`
+2. Check compendium name in settings
+3. Verify spell existence in D&D Beyond
 
 ---
 

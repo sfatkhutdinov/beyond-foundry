@@ -187,6 +187,30 @@ try {
 }
 ```
 
+## 🗃️ Canonical Spell Compendium Linking (June 2025)
+
+### Overview
+- Spells are now imported as references to a single canonical compendium entry (by DDB ID or name), not as duplicate embedded items.
+- Bulk import all D&D Beyond spells into a compendium using `bulkImportSpellsToCompendium`.
+- Character import links spells to compendium entries, falling back to embedded items only if a compendium entry is missing.
+
+### Bulk Spell Import Usage
+```javascript
+// In FoundryVTT console
+await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+```
+
+### Spell Linking Workflow
+- On character import, each spell is checked in the compendium by DDB ID (or name).
+- If found, the actor is linked to the compendium spell.
+- If not found, the spell is imported as an embedded item (rare).
+- This prevents duplicate spell items and ensures a single source of truth.
+
+### Developer Notes
+- Uses dynamic typing (`as any`) for compendium/document access due to Foundry's runtime API.
+- Compatible with FoundryVTT v10/v11+.
+- See `src/module/api/BeyondFoundryAPI.ts` for implementation details.
+
 ## 🎉 Summary
 
 Beyond Foundry now has **complete spell import capabilities** that rival dedicated D&D Beyond importers. The implementation follows proven patterns from the reference implementations while maintaining the modular, type-safe architecture of the Beyond Foundry project.
