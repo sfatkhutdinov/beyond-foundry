@@ -1,0 +1,23 @@
+# code-index-mcp.yaml
+context_loading_priority:
+  1_always_loaded:
+    - src/beyond-foundry.ts
+    - src/module/api/BeyondFoundryAPI.ts
+    - src/types/index.ts
+
+  2_feature_specific:
+    character_import:
+      - reference/ddb-importer/src/parser/character/index.js
+      - reference/ddb-importer/src/parser/character/abilities.js
+      - reference/foundryvtt-dnd5e/system/data-models/actor/character.js
+
+    spell_import:
+      - reference/ddb-importer/src/parser/spells/index.js
+      - reference/foundryvtt-dnd5e/system/data-models/item/spell.js
+
+    authentication:
+      - reference/ddb-proxy/server/auth.js
+      - reference/ddb-proxy/server/endpoints/
+
+  3_reference_only:
+    - Load as needed for specific implementation details
