@@ -1,0 +1,809 @@
+{
+  "name": "Yelris Lethassethra",
+  "type": "character",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "abilities": {
+      "str": {
+        "value": 12,
+        "proficient": 0,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "mod": 1
+      },
+      "dex": {
+        "value": 16,
+        "proficient": 1,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "mod": 3
+      },
+      "con": {
+        "value": 14,
+        "proficient": 0,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "mod": 2
+      },
+      "int": {
+        "value": 13,
+        "proficient": 1,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "mod": 1
+      },
+      "wis": {
+        "value": 20,
+        "proficient": 1,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "mod": 5
+      },
+      "cha": {
+        "value": 14,
+        "proficient": 0,
+        "bonuses": {
+          "check": "",
+          "save": ""
+        },
+        "mod": 2
+      }
+    },
+    "attributes": {
+      "ac": {
+        "flat": null,
+        "calc": "default",
+        "formula": ""
+      },
+      "hp": {
+        "value": 144,
+        "max": 144,
+        "temp": 0,
+        "tempmax": 0
+      },
+      "init": {
+        "ability": "dex",
+        "bonus": 0
+      },
+      "movement": {
+        "burrow": 0,
+        "climb": 0,
+        "fly": 0,
+        "swim": 0,
+        "walk": 30,
+        "units": "ft",
+        "hover": false
+      },
+      "senses": {
+        "darkvision": 60,
+        "blindsight": 0,
+        "tremorsense": 0,
+        "truesight": 0,
+        "units": "ft",
+        "special": ""
+      },
+      "spellcasting": "wis",
+      "prof": 6,
+      "spelldc": 19
+    },
+    "details": {
+      "biography": {
+        "value": "A wise druid who protects the ancient forests.",
+        "public": ""
+      },
+      "alignment": "cg",
+      "race": "Aereni Wood Elf",
+      "background": "Folk Hero",
+      "originalClass": "Druid",
+      "level": 20,
+      "xp": {
+        "value": 355000,
+        "max": 355000,
+        "pct": 0
+      },
+      "appearance": "Tall elf with silver hair and green eyes.",
+      "trait": "Speaks to animals as if they were old friends.",
+      "ideal": "Nature must be preserved at all costs.",
+      "bond": "The ancient oak grove is my sacred charge.",
+      "flaw": "I trust animals more than people."
+    },
+    "traits": {
+      "size": "med",
+      "di": {
+        "value": [],
+        "custom": ""
+      },
+      "dr": {
+        "value": [],
+        "custom": ""
+      },
+      "dv": {
+        "value": [],
+        "custom": ""
+      },
+      "ci": {
+        "value": [],
+        "custom": ""
+      },
+      "languages": {
+        "value": [
+          "common",
+          "elvish"
+        ],
+        "custom": ""
+      },
+      "weaponProf": {
+        "value": [
+          "sim",
+          "mar"
+        ],
+        "custom": ""
+      },
+      "armorProf": {
+        "value": [
+          "lgt",
+          "med",
+          "shl"
+        ],
+        "custom": ""
+      }
+    },
+    "currency": {
+      "pp": 2,
+      "gp": 150,
+      "ep": 0,
+      "sp": 25,
+      "cp": 0
+    },
+    "skills": {
+      "acr": {
+        "value": 0,
+        "ability": "dex",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ani": {
+        "value": 0,
+        "ability": "wis",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "arc": {
+        "value": 0,
+        "ability": "int",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ath": {
+        "value": 0,
+        "ability": "str",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "dec": {
+        "value": 0,
+        "ability": "cha",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "his": {
+        "value": 0,
+        "ability": "int",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ins": {
+        "value": 0,
+        "ability": "wis",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "inti": {
+        "value": 0,
+        "ability": "cha",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "inv": {
+        "value": 0,
+        "ability": "int",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "med": {
+        "value": 0,
+        "ability": "wis",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "nat": {
+        "value": 0,
+        "ability": "int",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "prc": {
+        "value": 0,
+        "ability": "wis",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "prf": {
+        "value": 0,
+        "ability": "cha",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "per": {
+        "value": 0,
+        "ability": "cha",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "rel": {
+        "value": 0,
+        "ability": "int",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "slt": {
+        "value": 0,
+        "ability": "dex",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "ste": {
+        "value": 0,
+        "ability": "dex",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      },
+      "sur": {
+        "value": 0,
+        "ability": "wis",
+        "bonuses": {
+          "check": "",
+          "passive": ""
+        }
+      }
+    },
+    "spells": {
+      "spell1": {
+        "value": 4,
+        "override": null,
+        "max": 4
+      },
+      "spell2": {
+        "value": 3,
+        "override": null,
+        "max": 3
+      },
+      "spell3": {
+        "value": 3,
+        "override": null,
+        "max": 3
+      },
+      "spell4": {
+        "value": 3,
+        "override": null,
+        "max": 3
+      },
+      "spell5": {
+        "value": 3,
+        "override": null,
+        "max": 3
+      },
+      "spell6": {
+        "value": 2,
+        "override": null,
+        "max": 2
+      },
+      "spell7": {
+        "value": 2,
+        "override": null,
+        "max": 2
+      },
+      "spell8": {
+        "value": 1,
+        "override": null,
+        "max": 1
+      },
+      "spell9": {
+        "value": 1,
+        "override": null,
+        "max": 1
+      },
+      "pact": {
+        "value": 0,
+        "override": null,
+        "max": 0,
+        "level": 1
+      },
+      "spells": 3
+    },
+    "resources": {
+      "primary": {
+        "value": 0,
+        "max": 0,
+        "sr": false,
+        "lr": true,
+        "label": ""
+      },
+      "secondary": {
+        "value": 0,
+        "max": 0,
+        "sr": false,
+        "lr": true,
+        "label": ""
+      },
+      "tertiary": {
+        "value": 0,
+        "max": 0,
+        "sr": false,
+        "lr": true,
+        "label": ""
+      }
+    }
+  },
+  "items": [
+    {
+      "name": "Scimitar",
+      "type": "weapon",
+      "img": "icons/svg/item-bag.svg",
+      "system": {
+        "type": {
+          "value": "weapon",
+          "baseItem": ""
+        },
+        "quantity": 1,
+        "weight": 0,
+        "equipped": true,
+        "identified": true,
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": null,
+          "units": ""
+        },
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": ""
+        },
+        "range": {
+          "value": 5,
+          "long": null,
+          "units": "ft"
+        },
+        "uses": {
+          "value": 0,
+          "max": "",
+          "per": null
+        },
+        "actionType": "mwak",
+        "attackBonus": "",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [
+            [
+              "1d6",
+              "slashing"
+            ]
+          ],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": null,
+          "scaling": "spell"
+        },
+        "armor": {
+          "value": 10
+        },
+        "hp": {
+          "value": 0,
+          "max": 0,
+          "dt": null,
+          "conditions": ""
+        },
+        "weaponType": "simpleM",
+        "baseItem": "scimitar",
+        "properties": {
+          "ada": false,
+          "fin": true,
+          "lgt": true,
+          "mgc": false,
+          "rel": false,
+          "ret": false,
+          "spc": false,
+          "thr": false,
+          "two": false,
+          "ver": false
+        },
+        "proficient": true
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 1,
+          "sourceType": "inventory"
+        }
+      }
+    },
+    {
+      "name": "Leather Armor",
+      "type": "equipment",
+      "img": "icons/svg/item-bag.svg",
+      "system": {
+        "type": {
+          "value": "equipment",
+          "baseItem": ""
+        },
+        "quantity": 1,
+        "weight": 0,
+        "equipped": true,
+        "identified": true,
+        "armor": {
+          "value": 11,
+          "type": "light",
+          "dex": null
+        },
+        "baseItem": "leather",
+        "speed": {
+          "value": null,
+          "conditions": ""
+        },
+        "strength": null,
+        "stealth": false,
+        "proficient": true
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 2,
+          "sourceType": "inventory"
+        }
+      }
+    },
+    {
+      "name": "Cure Wounds",
+      "type": "spell",
+      "img": "icons/svg/book.svg",
+      "system": {
+        "type": {
+          "value": "spell",
+          "baseItem": ""
+        },
+        "level": 1,
+        "school": "evocation",
+        "components": {
+          "vocal": true,
+          "somatic": true,
+          "material": false,
+          "ritual": false,
+          "concentration": false
+        },
+        "materials": {
+          "value": "",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "prepared",
+          "prepared": true
+        },
+        "scaling": {
+          "mode": "level",
+          "formula": ""
+        },
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": null,
+          "units": "inst"
+        },
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "creature"
+        },
+        "range": {
+          "value": 1,
+          "long": null,
+          "units": "ft"
+        },
+        "uses": {
+          "value": 0,
+          "max": "",
+          "per": null
+        },
+        "actionType": "other",
+        "attackBonus": "",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": null,
+          "scaling": "spell"
+        },
+        "description": {
+          "value": "A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier.",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "PHB",
+        "attributes": {
+          "spelldc": null
+        }
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 2019,
+          "sourceType": "spell",
+          "prepared": true
+        }
+      }
+    },
+    {
+      "name": "Fireball",
+      "type": "spell",
+      "img": "icons/svg/book.svg",
+      "system": {
+        "type": {
+          "value": "spell",
+          "baseItem": ""
+        },
+        "level": 3,
+        "school": "evocation",
+        "components": {
+          "vocal": true,
+          "somatic": true,
+          "material": true,
+          "ritual": false,
+          "concentration": false
+        },
+        "materials": {
+          "value": "a tiny ball of bat guano and sulfur",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "prepared",
+          "prepared": true
+        },
+        "scaling": {
+          "mode": "level",
+          "formula": ""
+        },
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": null,
+          "units": "inst"
+        },
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "creature"
+        },
+        "range": {
+          "value": 150,
+          "long": null,
+          "units": "ft"
+        },
+        "uses": {
+          "value": 0,
+          "max": "",
+          "per": null
+        },
+        "actionType": "other",
+        "attackBonus": "",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": null,
+          "scaling": "spell"
+        },
+        "description": {
+          "value": "A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame.",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "PHB",
+        "attributes": {
+          "spelldc": null
+        }
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 2138,
+          "sourceType": "spell",
+          "prepared": true
+        }
+      }
+    },
+    {
+      "name": "Detect Magic",
+      "type": "spell",
+      "img": "icons/svg/book.svg",
+      "system": {
+        "type": {
+          "value": "spell",
+          "baseItem": ""
+        },
+        "level": 1,
+        "school": "divination",
+        "components": {
+          "vocal": true,
+          "somatic": true,
+          "material": false,
+          "ritual": true,
+          "concentration": true
+        },
+        "materials": {
+          "value": "",
+          "consumed": false,
+          "cost": 0,
+          "supply": 0
+        },
+        "preparation": {
+          "mode": "prepared",
+          "prepared": false
+        },
+        "scaling": {
+          "mode": "level",
+          "formula": ""
+        },
+        "activation": {
+          "type": "action",
+          "cost": 1,
+          "condition": ""
+        },
+        "duration": {
+          "value": 10,
+          "units": "minute"
+        },
+        "target": {
+          "value": null,
+          "width": null,
+          "units": "",
+          "type": "self"
+        },
+        "range": {
+          "value": 0,
+          "long": null,
+          "units": "ft"
+        },
+        "uses": {
+          "value": 0,
+          "max": "",
+          "per": null
+        },
+        "actionType": "other",
+        "attackBonus": "",
+        "chatFlavor": "",
+        "critical": {
+          "threshold": null,
+          "damage": ""
+        },
+        "damage": {
+          "parts": [],
+          "versatile": ""
+        },
+        "formula": "",
+        "save": {
+          "ability": "",
+          "dc": null,
+          "scaling": "spell"
+        },
+        "description": {
+          "value": "For the duration, you sense the presence of magic within 30 feet of you.",
+          "chat": "",
+          "unidentified": ""
+        },
+        "source": "PHB",
+        "attributes": {
+          "spelldc": null
+        }
+      },
+      "effects": [],
+      "flags": {
+        "beyond-foundry": {
+          "ddbId": 2028,
+          "sourceType": "spell",
+          "prepared": false
+        }
+      }
+    }
+  ],
+  "effects": [],
+  "flags": {
+    "beyond-foundry": {
+      "ddbCharacterId": 147239148,
+      "lastSync": 1749344200641,
+      "parsingVersion": "2.0.0"
+    }
+  }
+}
