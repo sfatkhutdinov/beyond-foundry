@@ -9,7 +9,7 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 - ✅ **Proxy Integration:** ddb-proxy integration complete, Docker-ready ([setup](docs/DOCKER_SETUP.md))
 - ✅ **UI Dialogs:** Import and authentication dialogs implemented ([see UI](docs/ui.md))
 - ✅ **TypeScript Build System:** Modern, strict, and reliable ([modernization](docs/MODERNIZATION_COMPLETE.md))
-- 🟡 **Bulk Import & Compendium:** Planned for next phase
+- 🟢 **Bulk Import & Compendium:** Canonical spell compendium linking and bulk import complete! See below for usage.
 - 🟡 **Advanced Features:** (e.g., auto-sync, batch import) in planning
 
 See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.md](docs/roadmap.md) for detailed progress and goals.
@@ -21,8 +21,10 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - Comprehensive character sheet mapping to FoundryVTT D&D 5e system
 - Support for all character levels, classes, races, and backgrounds
 
-### 🪄 Spell Integration (Production Ready!)
+### 🧙‍♂️ Spell Integration (Production Ready!)
 - **Complete spell import** from character spell lists
+- **Canonical compendium linking**: Spells are now linked to a single compendium entry, preventing duplicates
+- **Bulk spell import**: Populate the compendium with all D&D Beyond spells in one step
 - **Advanced spell parsing** with proper FoundryVTT formatting
 - **Spell preparation modes**: Prepared, Pact Magic, Always Prepared, At Will, Innate
 - **Scaling formulas** and higher level effects
@@ -81,6 +83,33 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **[Quick Reference](docs/quick-reference.md)** - Developer quick reference
 - **[UI Components](docs/ui.md)** - Import and authentication dialogs
 - **[Docker Setup](docs/DOCKER_SETUP.md)** - Running with Docker and ddb-proxy
+
+## ✨ Canonical Spell Compendium Linking & Bulk Import
+
+Beyond Foundry now uses a canonical compendium for all spells:
+- When importing a character, spells are linked to a single compendium entry (by DDB ID or name) instead of creating duplicate embedded items.
+- You can bulk import all D&D Beyond spells into a compendium for fast, consistent spell access.
+- The character import workflow will reference compendium spells where possible, falling back to embedded items only if a compendium entry is missing.
+
+### How to Bulk Import Spells to a Compendium
+
+1. Open the FoundryVTT console (F12).
+2. Run:
+   ```javascript
+   // Replace 'beyondfoundry.spells' with your compendium name if needed
+   await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+   ```
+3. Wait for the import to complete. All D&D Beyond spells will be available in the compendium.
+
+### How Character Spell Import Works Now
+- When importing a character, Beyond Foundry checks the compendium for each spell (by DDB ID or name).
+- If found, the actor is linked to the compendium spell (no duplicate embedded item is created).
+- If not found, the spell is imported as an embedded item (rare).
+- This ensures all spells reference a single, canonical source.
+
+### Developer Notes
+- The compendium workflow uses dynamic Foundry API access (`as any`) for compatibility with v10/v11+.
+- See `src/module/api/BeyondFoundryAPI.ts` for implementation details.
 
 ## Development & Context Management Instructions
 

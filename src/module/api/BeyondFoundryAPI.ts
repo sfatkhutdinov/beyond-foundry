@@ -5,6 +5,7 @@ import type {
   AuthResponse,
   ImportOptions,
   DDBSpell,
+  FoundrySpell,
 } from '../../types/index.js';
 import { getModuleSettings } from '../utils/settings.js';
 import { Logger, getErrorMessage } from '../utils/logger.js';
@@ -871,65 +872,156 @@ export class BeyondFoundryAPI {
   }
 
   /**
-   * Add spells to a Foundry actor using SpellParser
+   * Bulk import all D&D Beyond spells into a FoundryVTT compendium
+   * @param cobaltToken - D&D Beyond session token
+   * @param compendiumName - The compendium to populate (default: 'beyondfoundry.spells')
    */
+  public async bulkImportSpellsToCompendium(cobaltToken: string, compendiumName = 'beyondfoundry.spells'): Promise<number> {
+    try {
+      Logger.info(`Starting bulk spell import to compendium: ${compendiumName}`);
+      const response = await fetch(`${this.proxyEndpoint}/proxy/class/spells`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ className: 'Wizard', cobalt: cobaltToken })
+      });
+      if (!response.ok) throw new Error(`Failed to fetch spells: ${response.status}`);
+      const data = await response.json();
+      if (!data.success || !Array.isArray(data.data)) throw new Error('Invalid spell data response');
+      const spells: DDBSpell[] = data.data;
+      if (!spells.length) throw new Error('No spells returned from proxy');
+
+      const { SpellParser } = await import('../../parsers/spells/SpellParser.js');
+      // Use 'as any' for Foundry dynamic API compatibility
+      const packs = (game as any).packs as any;
+      let pack = packs.get(compendiumName) as any;
+      if (!pack) {
+        Logger.info(`Compendium ${compendiumName} not found, creating...`);
+        await CompendiumCollection.createCompendium({
+          label: 'Beyond Foundry Spells',
+          name: compendiumName.split('.')[1] || 'spells',
+          type: 'Item',
+        });
+        pack = packs.get(compendiumName) as any;
+      }
+      if (!pack) throw new Error(`Failed to access compendium: ${compendiumName}`);
+
+      await pack.getIndex();
+      // Build ddbId index by fetching ItemDocuments for flags
+      const index: Record<number, string> = {};
+      for (const entry of pack.index) {
+        if (!entry._id) continue;
+        const doc = await pack.getDocument(entry._id);
+        // Type assertion for Foundry ItemDocument
+        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        if (typeof ddbId === 'number') index[ddbId] = entry._id;
+      }
+
+      let imported = 0;
+      for (const ddbSpell of spells) {
+        const foundrySpell: FoundrySpell = SpellParser.parseSpell(ddbSpell);
+        const existingId = index[ddbSpell.definition.id];
+        if (existingId) {
+          if (typeof pack.updateEntity === 'function') {
+            await pack.updateEntity({ _id: existingId, ...foundrySpell });
+          } else if (typeof pack.update === 'function') {
+            await pack.update({ _id: existingId, ...foundrySpell });
+          }
+          Logger.debug(`Updated spell in compendium: ${foundrySpell.name}`);
+        } else {
+          if (typeof pack.createEntity === 'function') {
+            await pack.createEntity(foundrySpell);
+          } else if (typeof pack.create === 'function') {
+            await pack.create(foundrySpell);
+          }
+          Logger.debug(`Created spell in compendium: ${foundrySpell.name}`);
+        }
+        imported++;
+      }
+      Logger.info(`Bulk spell import complete: ${imported} spells processed.`);
+      return imported;
+    } catch (error) {
+      Logger.error(`Bulk spell import failed: ${getErrorMessage(error)}`);
+      return 0;
+    }
+  }
+
   private async addSpellsToActor(
-    actor: Actor, 
-    spells: DDBSpell[], 
+    actor: Actor,
+    spells: DDBSpell[],
     options: Partial<ImportOptions>
   ): Promise<number> {
     try {
-      // Import SpellParser dynamically to avoid circular dependencies
       const { SpellParser } = await import('../../parsers/spells/SpellParser.js');
-      
       let importedCount = 0;
-      
+      const compendiumName = options.spellCompendiumName || 'beyondfoundry.spells';
+      // Use 'as any' for Foundry dynamic API compatibility
+      const packs = (game as any).packs as any;
+      const pack = packs.get(compendiumName) as any;
+      const compendiumIndex: { [ddbId: number]: string } = {};
+      if (pack) {
+        await pack.getIndex();
+        for (const entry of pack.index) {
+          if (!entry._id) continue;
+          const doc = await pack.getDocument(entry._id);
+          const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+          if (typeof ddbId === 'number') compendiumIndex[ddbId] = entry._id;
+        }
+      }
       for (const ddbSpell of spells) {
         try {
-          // Parse spell to Foundry format
-          const foundrySpell = SpellParser.parseSpell(ddbSpell);
-          
-          // Check if spell already exists
-          const existingSpell = actor.items.find(
-            (item: any) => item.type === 'spell' && 
-                   item.getFlag('beyond-foundry', 'ddbId') === ddbSpell.id
-          );
-          
-          if (existingSpell && !options.updateExisting) {
-            Logger.debug(`Skipping existing spell: ${foundrySpell.name}`);
-            continue;
+          let compendiumEntry: { name?: string; id?: string } | null = null;
+          const compendiumId = pack && compendiumIndex[ddbSpell.definition.id];
+          if (pack && compendiumId) {
+            const doc = await pack.getDocument(compendiumId);
+            compendiumEntry = doc as { name?: string; id?: string };
           }
-          
-          // Add DDB metadata
-          foundrySpell.flags = {
-            'beyond-foundry': {
-              ddbId: ddbSpell.id,
-              sourceId: ddbSpell.definition.id,
-              prepared: ddbSpell.prepared,
-              alwaysPrepared: false,
-              usesSpellSlot: ddbSpell.usesSpellSlot,
-              castAtLevel: ddbSpell.castAtLevel || null,
-              restriction: null
-            }
-          };
-          
-          if (existingSpell) {
-            await existingSpell.update(foundrySpell);
-            Logger.debug(`Updated spell: ${foundrySpell.name}`);
+          if (compendiumEntry && compendiumEntry.name && compendiumEntry.id) {
+            await actor.createEmbeddedDocuments('Item', [{
+              name: compendiumEntry.name,
+              type: 'spell',
+              flags: { 'beyond-foundry': { ddbId: ddbSpell.definition.id, compendiumId: compendiumEntry.id } },
+              compendium: compendiumName,
+              _id: compendiumEntry.id
+            }]);
+            Logger.debug(`Linked spell from compendium: ${compendiumEntry.name}`);
           } else {
-            await Item.create(foundrySpell as any, { parent: actor });
-            Logger.debug(`Created spell: ${foundrySpell.name}`);
+            const foundrySpell: FoundrySpell = SpellParser.parseSpell(ddbSpell);
+            const existingSpell = actor.items.find(
+              (item: unknown) => {
+                // Type assertion for Foundry ItemDocument
+                const i = item as { data?: { type?: string; flags?: Record<string, { ddbId?: number }> } };
+                return i.data?.type === 'spell' && i.data?.flags?.['beyond-foundry']?.ddbId === ddbSpell.id;
+              }
+            );
+            if (existingSpell && !options.updateExisting) {
+              Logger.debug(`Skipping existing spell: ${foundrySpell.name}`);
+              continue;
+            }
+            foundrySpell.flags = {
+              'beyond-foundry': {
+                ddbId: ddbSpell.id,
+                sourceId: ddbSpell.definition.id,
+                prepared: ddbSpell.prepared,
+                alwaysPrepared: false,
+                usesSpellSlot: ddbSpell.usesSpellSlot,
+                castAtLevel: ddbSpell.castAtLevel || null,
+                restriction: null
+              }
+            };
+            if (existingSpell && typeof (existingSpell as { update?: Function }).update === 'function') {
+              await (existingSpell as { update: Function }).update(foundrySpell);
+              Logger.debug(`Updated spell: ${foundrySpell.name}`);
+            } else {
+              await Item.create(foundrySpell, { parent: actor });
+              Logger.debug(`Created spell: ${foundrySpell.name}`);
+            }
           }
-          
           importedCount++;
-          
         } catch (spellError) {
           Logger.warn(`Failed to import spell ${ddbSpell.definition?.name}: ${getErrorMessage(spellError)}`);
         }
       }
-      
       return importedCount;
-      
     } catch (error) {
       Logger.error(`Failed to add spells to actor: ${getErrorMessage(error)}`);
       return 0;

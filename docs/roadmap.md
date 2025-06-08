@@ -10,9 +10,10 @@
 - [x] Integration and diagnostic scripts
 
 ## Phase 2: Content Expansion
-- [ ] Equipment & item import improvements
-- [ ] Advanced equipment mapping (magic items, variants)
-- [ ] Compendium support (import to compendium)
+- [x] Equipment & item import improvements
+- [x] Advanced equipment mapping (magic items, variants)
+- [x] Compendium support (import to compendium, canonical spell linking)
+- [x] Bulk spell import
 - [ ] Bulk character import
 - [ ] Error handling and user feedback improvements
 - [ ] UI polish and accessibility

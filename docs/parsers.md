@@ -10,7 +10,7 @@ Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parse
 | Parser           | Status         | Supported Fields                | Missing / TODOs                | Reference / Notes                  |
 |------------------|:-------------:|---------------------------------|-------------------------------|------------------------------------|
 | CharacterParser  | ✅ Complete    | Stats, abilities, class, inventory, skills, backgrounds, features | Homebrew, edge cases           | [ddb-importer/character](../../reference/ddb-importer/src/parser/character/) |
-| SpellParser      | ✅ Production  | All spellcasting classes, multiclass, components, scaling, metadata | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
+| SpellParser      | ✅ Production  | All spellcasting classes, multiclass, components, scaling, metadata, **compendium linking** | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
 | ItemParser       | 🟡 In Progress | Weapons, armor, gear, basic magic items | Advanced magic, attunement, containers, homebrew, enhanced properties, system fields | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
 | FeatureParser    | 🟡 In Progress | Class, racial, background, feat features | Homebrew flags, enhanced properties, system fields, advanced effects | [ddb-importer/features](../../reference/ddb-importer/src/parser/features/) |
 | MonsterParser    | ⏳ Planned     | -                               | All fields                    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
@@ -29,6 +29,8 @@ Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parse
 - All major parsers (ItemParser, FeatureParser, etc.) now follow a consistent static interface: `parse<Type>`, `parse<Type>Array`, and have TODO stubs for advanced features (homebrew flags, enhanced properties, system fields, etc.)
 - Reference implementations: ddb-importer, ddb-proxy
 - See `analysis/` for sample data and parser outputs
+- SpellParser now supports canonical compendium linking: spells are referenced from a single compendium entry (by DDB ID or name) when importing characters.
+- Bulk spell import is available via `bulkImportSpellsToCompendium` (see README and SPELL_ENHANCEMENT_COMPLETE.md).
 
 ## Known Issues & TODOs
 - Homebrew content requires additional mapping and testing

@@ -601,6 +601,7 @@ export interface ImportOptions {
   updateExisting: boolean;
   createCompendiumItems: boolean;
   spellPreparationMode?: 'prepared' | 'pact' | 'always' | 'atwill' | 'innate';
+  spellCompendiumName?: string; // Added for compendium spell linking
 }
 
 // API response types
