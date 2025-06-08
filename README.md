@@ -77,7 +77,7 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **[Project Organization](docs/project-organization.md)** - Directory structure and file organization
 - **[Development Setup](docs/setup.md)** - Getting started with development
 - **[Authentication Guide](docs/authentication.md)** - Setting up D&D Beyond authentication
-- **[Parser Documentation](docs/parsers.md)** - Understanding the parsing system
+- **[Parser Documentation](docs/parsers.md)** - Understanding the parsing system, modular parser architecture, interface conventions, and advanced feature stubs (see ItemParser and FeatureParser for TODOs on homebrew flags, enhanced properties, and system fields)
 - **[Quick Reference](docs/quick-reference.md)** - Developer quick reference
 - **[UI Components](docs/ui.md)** - Import and authentication dialogs
 - **[Docker Setup](docs/DOCKER_SETUP.md)** - Running with Docker and ddb-proxy

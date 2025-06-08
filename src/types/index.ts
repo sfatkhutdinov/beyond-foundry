@@ -263,6 +263,9 @@ export interface DDBSpell {
   countsAsKnownSpell: boolean;
   usesSpellSlot: boolean;
   castAtLevel?: number;
+  spellListId?: number | null;
+  alwaysPrepared?: boolean;
+  restriction?: string | null;
   [key: string]: unknown;
 }
 
@@ -286,6 +289,49 @@ export interface DDBClassFeature {
     level: number;
     classId: number;
   };
+}
+
+// Minimal stubs for parser compatibility (expand as needed)
+export interface DDBMonster {
+  id: number;
+  name: string;
+  // Add more fields as needed for monster parsing
+  [key: string]: unknown;
+}
+
+export interface DDBAdventure {
+  id: number;
+  name: string;
+  // Add more fields as needed for adventure parsing
+  [key: string]: unknown;
+}
+
+export interface DDBBackground {
+  id: number;
+  name: string;
+  // Add more fields as needed for background parsing
+  [key: string]: unknown;
+}
+
+export interface DDBRace {
+  id: number;
+  name: string;
+  // Add more fields as needed for race parsing
+  [key: string]: unknown;
+}
+
+export interface DDBRule {
+  id: number;
+  name: string;
+  // Add more fields as needed for rule parsing
+  [key: string]: unknown;
+}
+
+export interface DDBFeat {
+  id: number;
+  name: string;
+  // Add more fields as needed for feat parsing
+  [key: string]: unknown;
 }
 
 // FoundryVTT data types

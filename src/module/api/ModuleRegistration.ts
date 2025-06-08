@@ -1,3 +1,7 @@
+// Add this at the top for FoundryVTT global
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const game: any;
+
 import { MODULE_ID, MODULE_NAME } from '../constants.js';
 import { BeyondFoundryAPI } from './BeyondFoundryAPI.js';
 import { RouteHandler } from './RouteHandler.js';
@@ -88,7 +92,7 @@ export class ModuleRegistration {
         fetchWithTimeout: async (url: string, options: RequestInit = {}, timeout: number = 30000) => {
           return await this.safeApiCall(async () => {
             // Use Foundry's built-in utility if available
-            if ((foundry as any).utils?.fetchJsonWithTimeout) {
+            if (foundry && typeof foundry === 'object' && 'utils' in foundry && typeof (foundry as any).utils?.fetchJsonWithTimeout === 'function') {
               return await (foundry as any).utils.fetchJsonWithTimeout(url, { ...options, timeout });
             } else {
               // Fallback to standard fetch with timeout
@@ -110,8 +114,8 @@ export class ModuleRegistration {
         // Safe URL encoding using Foundry's utility
         encodeURL: (path: string): string => {
           // Use Foundry's built-in utility if available
-          if ((foundry as any).utils?.encodeURL) {
-            return (foundry as any).utils.encodeURL(path);
+          if ((foundry as unknown as { utils?: { encodeURL?: unknown } }).utils?.encodeURL) {
+            return (foundry as unknown as { utils?: { encodeURL?: unknown } }).utils.encodeURL(path);
           } else {
             // Fallback to standard encoding
             return encodeURIComponent(path);
@@ -121,13 +125,13 @@ export class ModuleRegistration {
         // D&D 5e system integration helpers
         d5e: {
           // Migrate actor data using D&D 5e system utilities
-          migrateActorData: async (actorData: any): Promise<any> => {
+          migrateActorData: async (actorData: unknown): Promise<unknown> => {
             if (game.system.id !== 'dnd5e') return actorData;
 
             try {
               // Use D&D 5e migration if available
-              if ((game as any).dnd5e?.migrations?.migrateActorData) {
-                return await (game as any).dnd5e.migrations.migrateActorData(actorData);
+              if (game && typeof game === 'object' && 'dnd5e' in game && game.dnd5e?.migrations?.migrateActorData) {
+                return await game.dnd5e.migrations.migrateActorData(actorData);
               }
               return actorData;
             } catch (error) {
@@ -137,7 +141,7 @@ export class ModuleRegistration {
           },
 
           // Create actor using D&D 5e system
-          createActor: async (actorData: any): Promise<Actor | null> => {
+          createActor: async (actorData: unknown): Promise<Actor | null> => {
             try {
               const migratedData = await moduleAPI.utils.d5e.migrateActorData(actorData);
               return await Actor.create(migratedData);
@@ -148,7 +152,7 @@ export class ModuleRegistration {
           },
 
           // Create item using D&D 5e system
-          createItem: async (itemData: any, actor?: Actor): Promise<Item | null> => {
+          createItem: async (itemData: unknown, actor?: Actor): Promise<Item | null> => {
             try {
               if (actor) {
                 return await Item.create(itemData, { parent: actor });
@@ -162,13 +166,21 @@ export class ModuleRegistration {
           },
 
           // Check if item/spell exists in SRD compendium
-          findInCompendium: async (name: string, type: string): Promise<any | null> => {
+          findInCompendium: async (name: string, type: string): Promise<unknown | null> => {
             try {
-              const pack = game.packs.find(p => p.metadata.type === type && p.metadata.system === 'dnd5e');
+              // Use global 'game' object, cast packs to expected type
+              const pack = (game.packs as unknown as { find: (predicate: (p: unknown) => boolean) => unknown }).find((p: any) => {
+                const packObj = p as { metadata?: { type?: string; system?: string } };
+                return packObj.metadata?.type === type && packObj.metadata?.system === 'dnd5e';
+              });
               if (!pack) return null;
 
-              const index = await pack.getIndex();
-              return index.find(entry => entry.name.toLowerCase() === name.toLowerCase()) || null;
+              // Assume pack has getIndex method
+              const index = await (pack as { getIndex: () => Promise<unknown[]> }).getIndex();
+              return (index as unknown[]).find((entry: unknown) => {
+                const entryObj = entry as { name?: string };
+                return entryObj.name?.toLowerCase() === name.toLowerCase();
+              }) || null;
             } catch (error) {
               Logger.warn(`Compendium search failed: ${getErrorMessage(error)}`);
               return null;
@@ -179,10 +191,10 @@ export class ModuleRegistration {
     };
 
     // Register in game.modules
-    (game as any).modules.get(MODULE_ID).api = moduleAPI;
+    (game as unknown as { modules: { get: (id: string) => { api?: unknown } } }).modules.get(MODULE_ID).api = moduleAPI;
 
     // Also register in global beyondFoundry namespace for easy access
-    (game as any).beyondFoundry = moduleAPI;
+    (game as unknown as { beyondFoundry?: unknown }).beyondFoundry = moduleAPI;
 
     Logger.info('✅ WebSocket-based API endpoints registered');
   }
@@ -191,7 +203,8 @@ export class ModuleRegistration {
    * Register Socket communication for real-time updates
    */
   registerSocketHandlers(): void {
-    game.socket?.on(`module.${MODULE_ID}`, (data) => {
+    // Use global 'game' object, cast socket to expected type
+    (game.socket as unknown as { on: (event: string, cb: (data: unknown) => void) => void })?.on(`module.${MODULE_ID}`, (data: unknown) => {
       this.handleSocketMessage(data);
     });
 
@@ -203,8 +216,8 @@ export class ModuleRegistration {
    */
   registerHooks(): void {
     // Character sheet integration
-    Hooks.on('getActorSheetHeaderButtons', (app: any, buttons: any[]) => {
-      if (app.actor.type !== 'character' || game.system.id !== 'dnd5e') return;
+    Hooks.on('getActorSheetHeaderButtons', (app: unknown, buttons: unknown[]) => {
+      if ((app as { actor?: { type?: string } }).actor?.type !== 'character' || game.system.id !== 'dnd5e') return;
 
       buttons.unshift({
         label: 'Import from D&D Beyond',
@@ -212,13 +225,13 @@ export class ModuleRegistration {
         icon: 'fas fa-download',
         onclick: async () => {
           const { CharacterImportDialog } = await import('../apps/CharacterImportDialog.js');
-          new CharacterImportDialog(app.actor).render(true);
+          new CharacterImportDialog((app as { actor?: unknown }).actor).render(true);
         }
       });
     });
 
     // Item sheet integration
-    Hooks.on('getItemSheetHeaderButtons', (app: any, buttons: any[]) => {
+    Hooks.on('getItemSheetHeaderButtons', (app: unknown, buttons: unknown[]) => {
       if (game.system.id !== 'dnd5e') return;
 
       buttons.unshift({
@@ -226,7 +239,7 @@ export class ModuleRegistration {
         class: 'beyond-foundry-update',
         icon: 'fas fa-sync',
         onclick: async () => {
-          const ddbId = app.item.getFlag('beyond-foundry', 'ddbId');
+          const ddbId = (app as { item?: { getFlag: (namespace: string, key: string) => unknown } }).item.getFlag('beyond-foundry', 'ddbId');
           if (ddbId) {
             // Implement item update logic
             ui.notifications?.info('Item update from D&D Beyond coming soon!');
@@ -245,10 +258,10 @@ export class ModuleRegistration {
    */
   registerConsoleAPI(): void {
     // Add development shortcuts to console
-    (window as any).beyondFoundry = (game as any).beyondFoundry;
+    (window as unknown as { beyondFoundry?: unknown; bfTest?: unknown }).beyondFoundry = (game as unknown).beyondFoundry;
     
     // Add quick testing functions
-    (window as any).bfTest = {
+    (window as unknown as { bfTest?: { connection?: unknown; auth?: unknown; character?: unknown; diagnostic?: unknown } }).bfTest = {
       connection: async () => await this.api.testProxyConnection(),
       auth: async (token?: string) => await this.api.authenticate(token),
       character: async (id: string) => await this.routeHandler.getCharacter(id),
@@ -276,23 +289,24 @@ export class ModuleRegistration {
   /**
    * Handle socket messages for real-time communication
    */
-  private async handleSocketMessage(data: any): Promise<void> {
-    try {
-      switch (data.type) {
+  private async handleSocketMessage(data: unknown): Promise<void> {
+    if (typeof data === 'object' && data !== null && 'type' in data) {
+      const msg = data as { type: string; message?: string; characterName?: string; error?: string };
+      switch (msg.type) {
         case 'import-update':
-          ui.notifications?.info(`Import progress: ${data.message}`);
+          ui.notifications?.info(`Import progress: ${msg.message}`);
           break;
         case 'import-complete':
-          ui.notifications?.info(`Import completed: ${data.characterName}`);
+          ui.notifications?.info(`Import completed: ${msg.characterName}`);
           break;
         case 'import-error':
-          ui.notifications?.error(`Import failed: ${data.error}`);
+          ui.notifications?.error(`Import failed: ${msg.error}`);
           break;
         default:
           Logger.debug('Unknown socket message', data);
       }
-    } catch (error) {
-      Logger.error(`Socket message handling error: ${getErrorMessage(error)}`);
+    } else {
+      Logger.debug('Received non-object socket message', data);
     }
   }
 

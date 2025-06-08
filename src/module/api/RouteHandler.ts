@@ -127,7 +127,15 @@ export class RouteHandler {
               }
             }
           })),
-          categories: this.categorizeItems(items),
+          categories: this.categorizeItems(items.map(item => ({
+            name: item.name,
+            type: item.type,
+            img: item.img,
+            system: item.system,
+            flags: item.flags,
+            // Spread any additional data fields if present
+            ...Object.fromEntries(Object.entries(item).filter(([k]) => !['toObject'].includes(k)))
+          })) as FoundryItemData[]),
           summary: {
             totalItems: items.length,
             equipped: items.filter(item => item.system?.equipped).length,
@@ -167,32 +175,35 @@ export class RouteHandler {
 
       // Parse features using FeatureParser
       const features = await FeatureParser.parseCharacterFeatures(ddbCharacter);
+      // Ensure type: 'feat' for FoundryFeature[]
+      const foundryFeatures = features.map(feature => ({
+        ...feature,
+        type: 'feat',
+        flags: {
+          'beyond-foundry': {
+            sourceId: `ddb:character:${characterId}`,
+            origin: 'D&D Beyond',
+            importedAt: Date.now()
+          }
+        }
+      })) as import('../../types/index.js').FoundryFeature[];
 
       return {
         success: true,
         endpoint: '/import/character/features',
         characterId,
         data: {
-          features: features.map(feature => ({
-            ...feature,
-            flags: {
-              'beyond-foundry': {
-                sourceId: `ddb:character:${characterId}`,
-                origin: 'D&D Beyond',
-                importedAt: Date.now()
-              }
-            }
-          })),
+          features: foundryFeatures,
           categories: {
-            classFeatures: features.filter(f => f.system?.type?.value === 'class'),
-            raceFeatures: features.filter(f => f.system?.type?.value === 'race'),
-            feats: features.filter(f => f.system?.type?.value === 'feat'),
-            backgroundFeatures: features.filter(f => f.system?.type?.value === 'background')
+            classFeatures: foundryFeatures.filter(f => f.system?.type?.value === 'class'),
+            raceFeatures: foundryFeatures.filter(f => f.system?.type?.value === 'race'),
+            feats: foundryFeatures.filter(f => f.system?.type?.value === 'feat'),
+            backgroundFeatures: foundryFeatures.filter(f => f.system?.type?.value === 'background')
           },
           summary: {
-            totalFeatures: features.length,
-            withUses: features.filter(f => f.system?.uses?.max).length,
-            passive: features.filter(f => !f.system?.activation?.type).length
+            totalFeatures: foundryFeatures.length,
+            withUses: foundryFeatures.filter(f => f.system?.uses?.max).length,
+            passive: foundryFeatures.filter(f => !f.system?.activation?.type).length
           }
         }
       };
@@ -227,7 +238,7 @@ export class RouteHandler {
       }
 
       // Use the existing spell fetching functionality
-      const spells = [];
+      const spells: DDBSpell[] = [];
       const spellsByLevel: Record<number, FoundrySpell[]> = {};
 
       if (ddbCharacter.classes) {
@@ -252,11 +263,12 @@ export class RouteHandler {
         }
       }
 
-      // Group spells by level
+      // Group spells by level using SpellParser
       for (const spell of spells) {
-        const level = spell.definition?.level || 0;
+        const foundrySpell = SpellParser.parseSpell(spell);
+        const level = foundrySpell.system.level || 0;
         if (!spellsByLevel[level]) spellsByLevel[level] = [];
-        spellsByLevel[level].push(spell);
+        spellsByLevel[level].push(foundrySpell);
       }
 
       return {
@@ -264,24 +276,14 @@ export class RouteHandler {
         endpoint: '/import/character/spells',
         characterId,
         data: {
-          spells: spells.map(spell => ({
-            ...spell,
-            flags: {
-              'beyond-foundry': {
-                sourceId: `ddb:character:${characterId}`,
-                origin: 'D&D Beyond',
-                importedAt: Date.now(),
-                ddbId: spell.id
-              }
-            }
-          })),
+          spells: spells.map(spell => SpellParser.parseSpell(spell)),
           spellsByLevel,
           summary: {
             totalSpells: spells.length,
             preparedSpells: spells.filter(s => s.prepared).length,
             knownSpells: spells.filter(s => !s.prepared).length,
             cantrips: spellsByLevel[0]?.length || 0,
-            highestLevel: Math.max(...Object.keys(spellsByLevel).map(Number))
+            highestLevel: Object.keys(spellsByLevel).length > 0 ? Math.max(...Object.keys(spellsByLevel).map(Number)) : 0
           }
         }
       };
@@ -644,9 +646,10 @@ export class RouteHandler {
   }
 
   private getFeatureCount(character: DDBCharacter): number {
-    return (character.classFeatures || []).length + 
-           (character.raceFeatures || []).length + 
-           (character.feats || []).length;
+    const classFeatures = Array.isArray((character as any).classFeatures) ? (character as any).classFeatures.length : 0;
+    const raceFeatures = Array.isArray((character as any).raceFeatures) ? (character as any).raceFeatures.length : 0;
+    const feats = Array.isArray((character as any).feats) ? (character as any).feats.length : 0;
+    return classFeatures + raceFeatures + feats;
   }
 
   private categorizeItems(items: FoundryItemData[]): ItemCategory {

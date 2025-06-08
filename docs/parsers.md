@@ -11,22 +11,57 @@ Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parse
 |------------------|:-------------:|---------------------------------|-------------------------------|------------------------------------|
 | CharacterParser  | ✅ Complete    | Stats, abilities, class, inventory, skills, backgrounds, features | Homebrew, edge cases           | [ddb-importer/character](../../reference/ddb-importer/src/parser/character/) |
 | SpellParser      | ✅ Production  | All spellcasting classes, multiclass, components, scaling, metadata | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
-| EquipmentParser  | 🟡 In Progress | Weapons, armor, gear, basic magic items | Advanced magic, variants, attunement | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
+| ItemParser       | 🟡 In Progress | Weapons, armor, gear, basic magic items | Advanced magic, attunement, containers, homebrew, enhanced properties, system fields | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
+| FeatureParser    | 🟡 In Progress | Class, racial, background, feat features | Homebrew flags, enhanced properties, system fields, advanced effects | [ddb-importer/features](../../reference/ddb-importer/src/parser/features/) |
 | MonsterParser    | ⏳ Planned     | -                               | All fields                    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
+| AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
+| BackgroundParser | ⏳ Planned     | -                               | All fields                    |                                    |
+| RaceParser       | ⏳ Planned     | -                               | All fields                    |                                    |
+| ClassParser      | ⏳ Planned     | -                               | All fields                    |                                    |
+| RuleParser       | ⏳ Planned     | -                               | All fields                    |                                    |
+| FeatParser       | ⏳ Planned     | -                               | All fields                    |                                    |
 
 ---
 
 ## Implementation Notes
 - Parsers are located in `src/parsers/`
 - Each parser is modular and type-safe (TypeScript)
+- All major parsers (ItemParser, FeatureParser, etc.) now follow a consistent static interface: `parse<Type>`, `parse<Type>Array`, and have TODO stubs for advanced features (homebrew flags, enhanced properties, system fields, etc.)
 - Reference implementations: ddb-importer, ddb-proxy
 - See `analysis/` for sample data and parser outputs
 
 ## Known Issues & TODOs
 - Homebrew content requires additional mapping and testing
 - Some rare DDB edge cases may not be fully supported yet
-- Equipment attunement and advanced item features are in progress
+- Equipment attunement, advanced item features, and advanced feature fields are in progress
+- FeatureParser and ItemParser have TODO stubs for homebrew flags, enhanced properties, and additional system fields for future-proofing
 
 ---
 
 For detailed spell parser implementation, see [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md).
+
+# Parser Architecture (Updated June 2025)
+
+Beyond Foundry uses a modular parser architecture. Each content type has its own parser class in `src/parsers/`:
+
+- `CharacterParser` (character/CharacterParser.ts)
+- `SpellParser` (spells/SpellParser.ts)
+- `ItemParser` (items/ItemParser.ts)
+- `FeatureParser` (features/FeatureParser.ts)
+- `MonsterParser` (MonsterParser.ts, stub)
+- `AdventureParser` (AdventureParser.ts, stub)
+- `BackgroundParser` (BackgroundParser.ts, stub)
+- `RaceParser` (RaceParser.ts, stub)
+- `ClassParser` (ClassParser.ts, stub)
+- `RuleParser` (RuleParser.ts, stub)
+- `FeatParser` (FeatParser.ts, stub)
+
+All parsers are exported via `src/parsers/index.ts` for unified imports:
+
+```typescript
+import { CharacterParser, SpellParser, ItemParser, FeatureParser, MonsterParser, ... } from 'src/parsers';
+```
+
+Stub parsers throw a not implemented error and are ready for incremental development. All parser classes follow a consistent static `parse<Type>` method interface, and advanced feature stubs are present for future enhancements.
+
+See also: `docs/project-organization.md` for directory layout.

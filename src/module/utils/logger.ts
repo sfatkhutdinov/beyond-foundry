@@ -20,7 +20,12 @@ export class Logger {
         console.error(prefix, message, data || '');
         break;
       case 'debug':
-        if (game.settings.get(MODULE_ID, 'debugMode')) {
+        // Node.js test environment: always log debug, skip game.settings
+        if (typeof game === 'undefined' || typeof window === 'undefined') {
+          // Node.js or test: always log debug
+          console.log(`${prefix} [DEBUG]`, message, data || '');
+        } else if (game.settings.get(MODULE_ID, 'debugMode')) {
+          // Foundry: respect debugMode
           console.log(`${prefix} [DEBUG]`, message, data || '');
         }
         break;
