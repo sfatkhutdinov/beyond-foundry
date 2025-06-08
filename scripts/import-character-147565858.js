@@ -16,8 +16,8 @@ const __dirname = path.dirname(__filename);
 
 // Configuration
 const PROXY_ENDPOINT = 'http://localhost:3100';
-const CHARACTER_ID = '147565858';
-const OUTPUT_FILE = '147565858.json';
+const CHARACTER_ID = process.argv[3] || '147565858';
+const OUTPUT_FILE = `${CHARACTER_ID}.json`;
 
 console.log('🎭 Character Import Tool for D&D Beyond');
 console.log('='*50);
@@ -175,7 +175,7 @@ async function main() {
     if (!cobaltToken) {
       console.log('\n❌ Missing cobalt token argument');
       console.log('\n📝 Usage:');
-      console.log('  node import-character-147565858.js <cobalt-token>');
+      console.log('  node import-character-147565858.js <cobalt-token> [character-id]');
       console.log('\n💡 To get your cobalt token:');
       console.log('  1. Go to dndbeyond.com and log in');
       console.log('  2. Open browser dev tools (F12)');
