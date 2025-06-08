@@ -1,0 +1,69 @@
+{
+  "name": "Brubak",
+  "type": "character",
+  "img": "https://www.dndbeyond.com/avatars/28095/79/637962185679553372.jpeg?width=150&height=150&fit=crop&quality=95&auto=webp",
+  "system": {
+    "abilities": {
+      "str": { "value": 10 },
+      "dex": { "value": 14 },
+      "con": { "value": 11 },
+      "int": { "value": 13 },
+      "wis": { "value": 8 },
+      "cha": { "value": 7 }
+    },
+    "attributes": {
+      "ac": {
+        "calc": "chameleon-carapace",
+        "chameleonCarapace": { "base": 13, "ability": "dex" }
+      },
+      "hp": {
+        "value": 12,
+        "max": 12,
+        "temp": 0,
+        "tempmax": 0
+      },
+      "movement": {
+        "walk": 30,
+        "burrow": 0,
+        "climb": 0,
+        "fly": 0,
+        "swim": 0,
+        "units": "ft",
+        "hover": false
+      },
+      "senses": {
+        "darkvision": 60,
+        "blindsight": 0,
+        "tremorsense": 0,
+        "truesight": 0,
+        "units": "ft",
+        "special": ""
+      }
+    },
+    "details": {
+      "race": "Thri-kreen",
+      "background": "Noble - Baldur’s Gate",
+      "level": 14,
+      "xp": { "value": 140000 },
+      "type": { "value": "monstrosity" },
+      "size": "med"
+    },
+    "traits": {
+      "languages": { "value": ["common", "other"], "custom": "" },
+      "size": "med"
+    },
+    "currency": {
+      "cp": 0,
+      "sp": 0,
+      "gp": 0,
+      "ep": 0,
+      "pp": 0
+    }
+  },
+  "flags": {
+    "beyond-foundry": {
+      "ddbCharacterId": 147565858,
+      "readonlyUrl": "https://dndbeyond.com/characters/147565858"
+    }
+  }
+}
