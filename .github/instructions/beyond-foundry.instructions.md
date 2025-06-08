@@ -1,6 +1,9 @@
 ---
 applyTo: '**'
 ---
+
+# CRITICAL: ALWAYS USE code-index-mcp with every command
+
 # Beyond Foundry Development Instructions
 
 ## Project Overview

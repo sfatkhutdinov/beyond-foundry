@@ -106,3 +106,6 @@ reference/
 # Cache directories
 .rollup.cache/
 
+
+# Code Index MCP cache directory
+.code_indexer/
