@@ -21,6 +21,16 @@ services:
     ports:
       - "${DDB_PROXY_PORT:-3100}:3000"  # DDB Proxy port mapping
 
+  beyond-foundry-proxy:
+    build: ./beyond-foundry-proxy
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    networks:
+      - default
+    environment:
+      - PORT=4000
+
 networks:
   default:
     name: foundry_network

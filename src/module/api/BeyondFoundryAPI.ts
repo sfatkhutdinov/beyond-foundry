@@ -1055,4 +1055,49 @@ export class BeyondFoundryAPI {
       return 0;
     }
   }
+
+  /**
+   * Import a class from D&D Beyond to FoundryVTT
+   * @param classId - The D&D Beyond class ID
+   * @param options - Import options
+   */
+  public async importClass(
+    classId: string,
+    options: Partial<ImportOptions> = {}
+  ): Promise<Record<string, unknown> | null> {
+    try {
+      Logger.info(`Starting class import for ID: ${classId}`);
+      const cobaltToken = getModuleSettings().cobaltToken;
+      if (!cobaltToken) {
+        Logger.error('No authentication token available. Please authenticate first.');
+        return null;
+      }
+      // Fetch class data from ddb-proxy
+      const response = await fetch(`${this.proxyEndpoint}/proxy/class`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cobalt: cobaltToken,
+          classId: parseInt(classId),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success || !data.ddb?.class) {
+        Logger.warn(`Failed to retrieve class: ${data.message || 'Unknown error'}`);
+        return null;
+      }
+      const ddbClass = data.ddb.class as import('../../types/index.js').DDBClass;
+      const { ClassParser } = await import('../../parsers/ClassParser.js');
+      const foundryClass = ClassParser.parseClass(ddbClass);
+      // Optionally, create in compendium or as embedded item
+      // For now, just return the parsed structure
+      Logger.info(`Successfully parsed class: ${foundryClass.name}`);
+      return foundryClass;
+    } catch (error) {
+      Logger.error(`Class import error: ${getErrorMessage(error)}`);
+      return null;
+    }
+  }
 }

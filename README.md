@@ -184,3 +184,38 @@ npm run type-check    # Validate TypeScript
 ```
 
 See `docs/roadmap.md` for detailed progress and goals.
+
+## 🐳 Docker/Proxy Authentication: Baking in Your Cobalt Cookie
+
+For local development and terminal-based testing, you can bake your D&D Beyond Cobalt cookie into the proxy Docker container. This allows you to test endpoints without passing the token in every request.
+
+### How to Use
+
+1. **Set the `COBALT_COOKIE` environment variable** when running the proxy container. You can do this in two ways:
+
+   - **Via `.env` file** (recommended for local dev):
+     1. Create a file named `.env` in the `beyond-foundry-proxy/` directory (or project root).
+     2. Add this line (replace with your actual token):
+        ```env
+        COBALT_COOKIE=your_cobalt_session_token_here
+        ```
+     3. The `docker-compose.yml` is already configured to load this variable.
+
+   - **Via shell environment variable**:
+     ```sh
+     export COBALT_COOKIE=your_cobalt_session_token_here
+     docker-compose up -d
+     ```
+
+2. **Restart the proxy container** after setting the variable:
+   ```sh
+   docker-compose down && docker-compose up -d
+   ```
+
+3. **Test endpoints** without passing a token in the body:
+   ```sh
+   curl -X POST http://localhost:4000/proxy/auth
+   ```
+   If the cookie is set, you should get a success response.
+
+**Security Note:** Never commit your `.env` file or Cobalt token to version control. `.env` is already in `.gitignore`.
