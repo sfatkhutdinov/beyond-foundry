@@ -6,41 +6,46 @@ import { MODULE_ID } from '../constants.js';
 export class Logger {
   private static moduleId = MODULE_ID;
 
-  static log(message: string, level: 'info' | 'warn' | 'error' | 'debug' = 'info'): void {
+  static log(message: string, level: 'info' | 'warn' | 'error' | 'debug' = 'info', data?: unknown): void {
     const prefix = `${this.moduleId} |`;
 
     switch (level) {
       case 'info':
-        console.log(prefix, message);
+        console.log(prefix, message, data || '');
         break;
       case 'warn':
-        console.warn(prefix, message);
+        console.warn(prefix, message, data || '');
         break;
       case 'error':
-        console.error(prefix, message);
+        console.error(prefix, message, data || '');
         break;
       case 'debug':
-        if (game.settings.get(MODULE_ID, 'debugMode')) {
-          console.log(`${prefix} [DEBUG]`, message);
+        // Node.js test environment: always log debug, skip game.settings
+        if (typeof game === 'undefined' || typeof window === 'undefined') {
+          // Node.js or test: always log debug
+          console.log(`${prefix} [DEBUG]`, message, data || '');
+        } else if (game.settings.get(MODULE_ID, 'debugMode')) {
+          // Foundry: respect debugMode
+          console.log(`${prefix} [DEBUG]`, message, data || '');
         }
         break;
     }
   }
 
-  static info(message: string): void {
-    this.log(message, 'info');
+  static info(message: string, data?: unknown): void {
+    this.log(message, 'info', data);
   }
 
-  static warn(message: string): void {
-    this.log(message, 'warn');
+  static warn(message: string, data?: unknown): void {
+    this.log(message, 'warn', data);
   }
 
-  static error(message: string): void {
-    this.log(message, 'error');
+  static error(message: string, data?: unknown): void {
+    this.log(message, 'error', data);
   }
 
-  static debug(message: string): void {
-    this.log(message, 'debug');
+  static debug(message: string, data?: unknown): void {
+    this.log(message, 'debug', data);
   }
 }
 

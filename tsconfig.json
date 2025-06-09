@@ -28,7 +28,8 @@
     "types": ["@league-of-foundry-developers/foundry-vtt-types"]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "src/types/foundry-types.d.ts"
   ],
   "exclude": [
     "node_modules",

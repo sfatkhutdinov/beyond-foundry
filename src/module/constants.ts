@@ -3,7 +3,7 @@ export const MODULE_ID = 'beyond-foundry';
 export const MODULE_NAME = 'Beyond Foundry';
 
 // API endpoints - configured for Docker environment
-export const DEFAULT_PROXY_URL = 'http://localhost:3100';
+export const DEFAULT_PROXY_URL = 'http://localhost:4000';
 export const DOCKER_PROXY_URL = 'http://ddb-proxy:3000';
 
 // D&D Beyond API constants
