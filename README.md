@@ -111,6 +111,36 @@ Beyond Foundry now uses a canonical compendium for all spells:
 - The compendium workflow uses dynamic Foundry API access (`as any`) for compatibility with v10/v11+.
 - See `src/module/api/BeyondFoundryAPI.ts` for implementation details.
 
+## 🛡️ Canonical Item Compendium Linking & Bulk Import
+
+Beyond Foundry now uses a canonical compendium for all items, mirroring the spell import system:
+- When importing a character, items are linked to a single compendium entry (by DDB ID) instead of creating duplicate embedded items.
+- You can bulk import all D&D Beyond items into a compendium for fast, consistent item access.
+- The character import workflow will reference compendium items where possible, falling back to embedded items only if a compendium entry is missing.
+- All imported items must include `flags['beyond-foundry'].ddbId` for compendium matching and linking.
+
+### How to Bulk Import Items to a Compendium
+
+1. Open the FoundryVTT console (F12).
+2. Run:
+   ```javascript
+   // Replace 'beyondfoundry.items' with your compendium name if needed
+   await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium("beyondfoundry.items");
+   ```
+3. Wait for the import to complete. All D&D Beyond items will be available in the compendium.
+
+### How Character Item Import Works Now
+- When importing a character, Beyond Foundry checks the compendium for each item (by DDB ID).
+- If found, the actor is linked to the compendium item (no duplicate embedded item is created).
+- If not found, the item is imported as an embedded item (rare).
+- This ensures all items reference a single, canonical source.
+
+### Developer Notes
+- The compendium workflow uses dynamic Foundry API access (`as any`) for compatibility with v10/v11+.
+- See `src/module/api/BeyondFoundryAPI.ts` for implementation details, including the new `bulkImportItemsToCompendium` and `addItemsToActor` helpers.
+- The canonical item structure for FoundryVTT is more detailed than the analysis output and must include all required fields for compendium linking and Foundry integration.
+- The analysis output (e.g., `comprehensive-analysis-*.json`) is for debugging/validation and is intentionally simpler than the final import structure.
+
 ## Development & Context Management Instructions
 
 See [.github/instructions/development-context-management.instructions.md](.github/instructions/development-context-management.instructions.md) for consolidated instructions on:

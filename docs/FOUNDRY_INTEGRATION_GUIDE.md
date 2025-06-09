@@ -206,6 +206,39 @@ api.openAuthDialog();
 - Ensure you are using the correct compendium name in your import options.
 - For advanced troubleshooting, see the developer notes in `src/module/api/BeyondFoundryAPI.ts`.
 
+---
+
+## 🛡️ Bulk Item Import & Canonical Compendium Linking
+
+### How to Bulk Import All Items
+1. Open the FoundryVTT console (F12).
+2. Run:
+   ```javascript
+   // Replace 'beyondfoundry.items' with your compendium name if needed
+   await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium("beyondfoundry.items");
+   ```
+3. Wait for the import to complete. All D&D Beyond items will be available in the compendium.
+
+### How Item Import Works
+- When importing a character, Beyond Foundry checks the compendium for each item (by DDB ID).
+- If found, the actor is linked to the compendium item (no duplicate embedded item is created).
+- If not found, the item is imported as an embedded item (rare).
+- All imported items must include `flags['beyond-foundry'].ddbId` for compendium matching and linking.
+- This ensures all items reference a single, canonical source and prevents duplication.
+
+### Validation Checklist (Items)
+- [ ] Items are linked to compendium entries (not duplicated as embedded items)
+- [ ] Bulk item import populates the compendium as expected
+- [ ] All imported items have `flags['beyond-foundry'].ddbId`
+
+### Developer Notes
+- The canonical item structure for FoundryVTT is more detailed than the analysis output and must include all required fields for compendium linking and Foundry integration.
+- The analysis output (e.g., `comprehensive-analysis-*.json`) is for debugging/validation and is intentionally simpler than the final import structure.
+- See `src/module/api/BeyondFoundryAPI.ts` for the new `bulkImportItemsToCompendium` and `addItemsToActor` helpers.
+- This workflow has been validated with real D&D Beyond data (e.g., Alchemist's Supplies, ID 397).
+
+---
+
 ## 🔍 Validation Checklist
 
 ### ✅ Module Loading
@@ -245,6 +278,11 @@ api.openAuthDialog();
 ### ✅ Compendium Spell Linking
 - [ ] Spells are linked to compendium entries (not duplicated as embedded items)
 - [ ] Bulk spell import populates the compendium as expected
+
+### ✅ Compendium Item Linking
+- [ ] Items are linked to compendium entries (not duplicated as embedded items)
+- [ ] Bulk item import populates the compendium as expected
+- [ ] All imported items have `flags['beyond-foundry'].ddbId`
 
 ---
 
@@ -306,6 +344,13 @@ api.openAuthDialog();
 1. Re-run bulk import: `await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");`
 2. Check compendium name in settings
 3. Verify spell existence in D&D Beyond
+
+#### Issue: "Item not found in compendium"
+**Symptoms:** Imported character items are duplicated as embedded items
+**Solutions:**
+1. Re-run bulk import: `await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium("beyondfoundry.items");`
+2. Check compendium name in settings
+3. Verify item existence in D&D Beyond
 
 ---
 
