@@ -132,7 +132,7 @@ Choose ONE of these approaches:
 **Docker Users**: If you have ddb-proxy running (e.g., via docker-compose), you can immediately start using it:
 ```javascript
 // Connect to existing ddb-proxy
-const proxyUrl = 'http://localhost:3100'; // Or internal Docker address
+const proxyUrl = 'http://localhost:4000'; // Or internal Docker address
 ```
 
 #### Option B: Browser Extension
