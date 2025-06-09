@@ -1,5 +1,5 @@
 import type { DDBCharacter, DDBItem } from '../../types/index.js';
-import { Logger, getErrorMessage } from '../../module/utils/logger.ts';
+import { Logger, getErrorMessage } from '../../module/utils/logger';
 
 /**
  * Parser for D&D Beyond items and equipment

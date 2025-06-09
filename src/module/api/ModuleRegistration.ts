@@ -90,8 +90,8 @@ export class ModuleRegistration {
       },
 
       // Generic endpoint dispatcher (RESTful interface)
-      request: async (method: string, path: string, data?: any): Promise<APIResponse> => {
-        return await this.dispatcher.dispatch(method, path, data);
+      request: async (method: string, path: string, data?: unknown): Promise<APIResponse> => {
+        return await this.dispatcher.dispatch(method, path, data as Record<string, unknown>);
       },
 
       // Utility functions using Foundry's built-in utilities
@@ -108,12 +108,9 @@ export class ModuleRegistration {
               foundry &&
               typeof foundry === 'object' &&
               'utils' in foundry &&
-              typeof (foundry as any).utils?.fetchJsonWithTimeout === 'function'
+              typeof (foundry as { utils?: { fetchJsonWithTimeout?: unknown } }).utils?.fetchJsonWithTimeout === 'function'
             ) {
-              return await (foundry as any).utils.fetchJsonWithTimeout(url, {
-                ...options,
-                timeout,
-              });
+              return await (foundry as { utils: { fetchJsonWithTimeout: (url: string, options: unknown) => Promise<APIResponse> } }).utils.fetchJsonWithTimeout(url, { ...options, signal: controller.signal });
             } else {
               // Fallback to standard fetch with timeout
               const controller = new AbortController();
@@ -132,15 +129,11 @@ export class ModuleRegistration {
         },
 
         // Safe URL encoding using Foundry's utility
-        encodeURL: (path: string): string => {
-          // Use Foundry's built-in utility if available
-          if ((foundry as unknown as { utils?: { encodeURL?: unknown } }).utils?.encodeURL) {
-            return (foundry as unknown as { utils?: { encodeURL?: unknown } }).utils.encodeURL(
-              path
-            );
+        encodeURL: (_path: string): string => {
+          if (typeof (foundry as { utils?: { encodeURL?: unknown } }).utils?.encodeURL === 'function') {
+            return (foundry as { utils: { encodeURL: (path: string) => string } }).utils.encodeURL(_path);
           } else {
-            // Fallback to standard encoding
-            return encodeURIComponent(path);
+            return encodeURIComponent(_path);
           }
         },
 
@@ -271,7 +264,7 @@ export class ModuleRegistration {
     });
 
     // Item sheet integration
-    Hooks.on('getItemSheetHeaderButtons', (app: unknown, buttons: unknown[]) => {
+    Hooks.on('getItemSheetHeaderButtons', (app: { item?: { getFlag: (_namespace: string, _key: string) => unknown } }, buttons: unknown[]) => {
       if (game.system.id !== 'dnd5e') return;
 
       buttons.unshift({
@@ -279,9 +272,7 @@ export class ModuleRegistration {
         class: 'beyond-foundry-update',
         icon: 'fas fa-sync',
         onclick: async () => {
-          const ddbId = (
-            app as { item?: { getFlag: (namespace: string, key: string) => unknown } }
-          ).item.getFlag('beyond-foundry', 'ddbId');
+          const ddbId = app.item?.getFlag('beyond-foundry', 'ddbId');
           if (ddbId) {
             // Implement item update logic
             ui.notifications?.info('Item update from D&D Beyond coming soon!');
@@ -300,9 +291,7 @@ export class ModuleRegistration {
    */
   registerConsoleAPI(): void {
     // Add development shortcuts to console
-    (window as unknown as { beyondFoundry?: unknown; bfTest?: unknown }).beyondFoundry = (
-      game as unknown
-    ).beyondFoundry;
+    (window as unknown as { beyondFoundry?: unknown; bfTest?: unknown }).beyondFoundry = (game as { beyondFoundry?: unknown }).beyondFoundry;
 
     // Add quick testing functions
     (

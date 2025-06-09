@@ -229,8 +229,8 @@ export class BeyondFoundryAPI {
       const actorData = CharacterParser.parseCharacter(ddbCharacter);
 
       // Remove inventory items from actorData.items (will be handled via compendium linking)
-      actorData.items = actorData.items.filter(
-        (item: any) =>
+      actorData.items = (actorData.items ?? []).filter(
+        (item: { type: string }) =>
           item.type !== 'weapon' &&
           item.type !== 'equipment' &&
           item.type !== 'loot' &&
@@ -352,13 +352,14 @@ export class BeyondFoundryAPI {
     ddbItems: DDBItem[],
     options: Partial<ImportOptions>
   ): Promise<number> {
-    const compendiumName = options.itemCompendiumName || 'beyondfoundry.items';
+    // Use correct property or update ImportOptions if needed
+    const compendiumName = (options as { itemCompendiumName?: string }).itemCompendiumName || 'beyondfoundry.items';
     const { ItemParser } = await import('../../parsers/items/ItemParser.js');
-    // Use 'as any' for Foundry dynamic API compatibility
-    const packs = (game as any).packs as any;
-    const pack = packs.get(compendiumName) as any;
+    // Safely access packs for Foundry dynamic API
+    const packs = (game as any)['packs'];
+    const pack = packs.get(compendiumName);
     const compendiumIndex: { [ddbId: number]: string } = {};
-    if (pack) {
+    if (pack && typeof pack.getIndex === 'function') {
       await pack.getIndex();
       for (const entry of pack.index) {
         if (!entry._id) continue;
@@ -367,12 +368,12 @@ export class BeyondFoundryAPI {
         if (typeof ddbId === 'number') compendiumIndex[ddbId] = entry._id;
       }
     }
-    let importedCount = 0;
+    const importedCount = 0;
     for (const ddbItem of ddbItems) {
       try {
         let compendiumEntry: { name?: string; id?: string; type?: string } | null = null;
         const compendiumId = pack && compendiumIndex[ddbItem.definition.id];
-        if (pack && compendiumId) {
+        if (pack && typeof compendiumId === 'string') {
           const doc = await pack.getDocument(compendiumId);
           compendiumEntry = doc as { name?: string; id?: string; type?: string };
         }
@@ -398,11 +399,8 @@ export class BeyondFoundryAPI {
           await Item.create(foundryItem, { parent: actor });
           Logger.debug(`Embedded item: ${foundryItem.name}`);
         }
-        importedCount++;
-      } catch (itemError) {
-        Logger.warn(
-          `Failed to import item ${ddbItem.definition?.name}: ${getErrorMessage(itemError)}`
-        );
+      } catch (error) {
+        Logger.warn(`Failed to import item: ${getErrorMessage(error)}`);
       }
     }
     return importedCount;
@@ -752,7 +750,7 @@ export class BeyondFoundryAPI {
 
     // Explain character testing
     Logger.info('\n💡 Character Testing:');
-    Logger.info('Character list is not available through ddb-proxy.');
+    Logger.info('Character list is not available through ddb-proxy');
     Logger.info('To test character fetching:');
     Logger.info('1. Get character ID from D&D Beyond URL: dndbeyond.com/characters/{ID}');
     Logger.info('2. Use getCharacter(characterId) to fetch character data');
@@ -911,8 +909,8 @@ export class BeyondFoundryAPI {
 
       const { SpellParser } = await import('../../parsers/spells/SpellParser.js');
       // Use 'as any' for Foundry dynamic API compatibility
-      const packs = (game as any).packs as any;
-      let pack = packs.get(compendiumName) as any;
+      const packs = game.packs;
+      let pack = packs.get(compendiumName);
       if (!pack) {
         Logger.info(`Compendium ${compendiumName} not found, creating...`);
         await CompendiumCollection.createCompendium({
@@ -920,7 +918,7 @@ export class BeyondFoundryAPI {
           name: compendiumName.split('.')[1] || 'spells',
           type: 'Item',
         });
-        pack = packs.get(compendiumName) as any;
+        pack = packs.get(compendiumName);
       }
       if (!pack) throw new Error(`Failed to access compendium: ${compendiumName}`);
 
@@ -988,8 +986,8 @@ export class BeyondFoundryAPI {
 
       const { ItemParser } = await import('../../parsers/items/ItemParser.js');
       // Use 'as any' for Foundry dynamic API compatibility
-      const packs = (game as any).packs as any;
-      let pack = packs.get(compendiumName) as any;
+      const packs = game.packs;
+      let pack = packs.get(compendiumName);
       if (!pack) {
         Logger.info(`Compendium ${compendiumName} not found, creating...`);
         await CompendiumCollection.createCompendium({
@@ -997,7 +995,7 @@ export class BeyondFoundryAPI {
           name: compendiumName.split('.')[1] || 'items',
           type: 'Item',
         });
-        pack = packs.get(compendiumName) as any;
+        pack = packs.get(compendiumName);
       }
       if (!pack) throw new Error(`Failed to access compendium: ${compendiumName}`);
 
@@ -1051,8 +1049,8 @@ export class BeyondFoundryAPI {
       let importedCount = 0;
       const compendiumName = options.spellCompendiumName || 'beyondfoundry.spells';
       // Use 'as any' for Foundry dynamic API compatibility
-      const packs = (game as any).packs as any;
-      const pack = packs.get(compendiumName) as any;
+      const packs = game.packs;
+      const pack = packs.get(compendiumName);
       const compendiumIndex: { [ddbId: number]: string } = {};
       if (pack) {
         await pack.getIndex();
@@ -1067,8 +1065,8 @@ export class BeyondFoundryAPI {
         try {
           let compendiumEntry: { name?: string; id?: string } | null = null;
           const compendiumId = pack && compendiumIndex[ddbSpell.definition.id];
-          if (pack && compendiumId) {
-            const doc = await pack.getDocument(compendiumId);
+          if (pack && compendiumId && typeof compendiumId === 'string') {
+            const doc = await (pack as { getDocument: (id: string) => Promise<unknown> }).getDocument(compendiumId);
             compendiumEntry = doc as { name?: string; id?: string };
           }
           if (compendiumEntry && compendiumEntry.name && compendiumEntry.id) {
