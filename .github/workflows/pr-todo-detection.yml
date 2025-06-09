@@ -1,0 +1,29 @@
+# .github/workflows/pr-todo-detection.yml
+# Detects new actionable TODO/FIXME comments in PRs and comments on the PR if any are found
+
+name: PR TODO/FIXME Detection
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  detect-todos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Detect new TODOs/FIXMEs in PR
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.sha }}
+        run: |
+          # This script will fail (exit 1) if new actionable TODOs/FIXMEs are found
+          node scripts/pr-todo-detect.js
