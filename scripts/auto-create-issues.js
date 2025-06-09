@@ -215,14 +215,20 @@ async function appendClosedTodosToChangelog() {
   const changelogPath = path.join(path.dirname(new URL(import.meta.url).pathname), '../CHANGELOG.md');
   let changelog = fs.readFileSync(changelogPath, 'utf8');
   const today = new Date().toISOString().slice(0, 10);
+  // Find the most recent release section (## [x.x.x] ...)
+  const releaseHeaderIdx = changelog.indexOf('## [');
+  if (releaseHeaderIdx === -1) return; // fallback: do nothing
+  // Find the next section after the release header
+  const nextSectionIdx = changelog.indexOf('## [', releaseHeaderIdx + 1);
+  const insertIdx = nextSectionIdx !== -1 ? nextSectionIdx : changelog.length;
+  // Build the section
   let section = `\n### ✅ Resolved TODOs/FIXMEs (${today})\n`;
   for (const issue of closedTodos) {
     section += `- ${issue.title.replace('[AUTO] ', '')} (closed #${issue.number})\n`;
   }
-  // Insert after the first heading (after the first line)
-  const lines = changelog.split('\n');
-  lines.splice(1, 0, section);
-  fs.writeFileSync(changelogPath, lines.join('\n'), 'utf8');
+  // Insert the section after the most recent release
+  changelog = changelog.slice(0, insertIdx) + section + changelog.slice(insertIdx);
+  fs.writeFileSync(changelogPath, changelog, 'utf8');
   console.log('Appended closed TODOs to CHANGELOG.md');
 }
 
