@@ -9,9 +9,9 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 5
     reviewers:
-      - "maintainer-username"
+      - "sfatkhutdinov"
     assignees:
-      - "maintainer-username"
+      - "sfatkhutdinov"
     commit-message:
       prefix: "chore"
       prefix-development: "chore"
@@ -59,7 +59,7 @@ updates:
       time: "10:00"
     open-pull-requests-limit: 3
     reviewers:
-      - "maintainer-username"
+      - "sfatkhutdinov"
     commit-message:
       prefix: "ci"
       include: "scope"
@@ -76,7 +76,7 @@ updates:
       time: "09:00"
     open-pull-requests-limit: 2
     reviewers:
-      - "maintainer-username"
+      - "sfatkhutdinov"
     commit-message:
       prefix: "docker"
       include: "scope"

@@ -9,7 +9,7 @@ const { execSync } = require('child_process');
 const archiver = require('archiver');
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const REPO_OWNER = 'YOUR_GITHUB_USERNAME_OR_ORG'; // TODO: Set this
+const REPO_OWNER = 'sfatkhutdinov'; // Based on module.json author
 const REPO_NAME = 'beyond-foundry';
 
 if (!GITHUB_TOKEN) {
@@ -73,8 +73,8 @@ async function createRelease() {
     await octokit.repos.getReleaseByTag({ owner: REPO_OWNER, repo: REPO_NAME, tag });
     console.log('Release already exists for this version.');
     return;
-  } catch (e) {
-    // Not found, continue
+  } catch {
+    // Release not found, continue with creation
   }
   // Create release
   const release = await octokit.repos.createRelease({
