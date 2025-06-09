@@ -20,7 +20,7 @@ export class AdventureParser {
    * TODO: Add support for batch adventure parsing and error aggregation
    */
   public static parseAdventureArray(adventures: DDBAdventure[]): unknown[] {
-    return adventures.map((adventure) => this.parseAdventure(adventure));
+    return adventures.map(adventure => this.parseAdventure(adventure));
   }
 
   /**

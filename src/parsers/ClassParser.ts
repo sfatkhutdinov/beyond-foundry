@@ -55,7 +55,7 @@ export class ClassParser {
    * TODO: Add support for batch class parsing and error aggregation
    */
   public static parseClassArray(classes: DDBClass[]): unknown[] {
-    return classes.map((cls) => this.parseClass(cls));
+    return classes.map(cls => this.parseClass(cls));
   }
 
   /**

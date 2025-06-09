@@ -19,7 +19,11 @@ export class APIDispatcher {
    * @param path API path
    * @param data Request data/parameters
    */
-  async dispatch(method: string, path: string, data: Record<string, unknown> = {}): Promise<APIResponse> {
+  async dispatch(
+    method: string,
+    path: string,
+    data: Record<string, unknown> = {}
+  ): Promise<APIResponse> {
     try {
       Logger.debug(`API Request: ${method} ${path}`, data);
 
@@ -35,16 +39,15 @@ export class APIDispatcher {
           return {
             success: false,
             endpoint: path,
-            error: `Unsupported HTTP method: ${method}`
+            error: `Unsupported HTTP method: ${method}`,
           };
       }
-
     } catch (error) {
       Logger.error(`API dispatch error: ${getErrorMessage(error)}`);
       return {
         success: false,
         endpoint: path,
-        error: getErrorMessage(error)
+        error: getErrorMessage(error),
       };
     }
   }
@@ -52,7 +55,12 @@ export class APIDispatcher {
   /**
    * Handle GET requests
    */
-  private async handleGet(endpoint: string, characterId: string, subResource: string, data: Record<string, unknown>): Promise<APIResponse> {
+  private async handleGet(
+    endpoint: string,
+    characterId: string,
+    subResource: string,
+    data: Record<string, unknown>
+  ): Promise<APIResponse> {
     switch (endpoint) {
       case 'import':
         return await this.handleImportGet(characterId, subResource, data);
@@ -64,7 +72,7 @@ export class APIDispatcher {
         return {
           success: false,
           endpoint: `GET /${endpoint}`,
-          error: `Unknown endpoint: ${endpoint}`
+          error: `Unknown endpoint: ${endpoint}`,
         };
     }
   }
@@ -72,7 +80,12 @@ export class APIDispatcher {
   /**
    * Handle POST requests
    */
-  private async handlePost(endpoint: string, characterId: string, subResource: string, data: Record<string, unknown>): Promise<APIResponse> {
+  private async handlePost(
+    endpoint: string,
+    characterId: string,
+    subResource: string,
+    data: Record<string, unknown>
+  ): Promise<APIResponse> {
     switch (endpoint) {
       case 'import':
         return await this.handleImportPost(characterId, subResource, data);
@@ -80,7 +93,7 @@ export class APIDispatcher {
         return {
           success: false,
           endpoint: `POST /${endpoint}`,
-          error: `Unsupported POST endpoint: ${endpoint}`
+          error: `Unsupported POST endpoint: ${endpoint}`,
         };
     }
   }
@@ -88,12 +101,16 @@ export class APIDispatcher {
   /**
    * Handle import GET requests
    */
-  private async handleImportGet(characterId: string, subResource: string, data: { options?: Record<string, unknown> }): Promise<APIResponse> {
+  private async handleImportGet(
+    characterId: string,
+    subResource: string,
+    data: { options?: Record<string, unknown> }
+  ): Promise<APIResponse> {
     if (!characterId) {
       return {
         success: false,
         endpoint: '/import',
-        error: 'Character ID is required'
+        error: 'Character ID is required',
       };
     }
 
@@ -121,7 +138,7 @@ export class APIDispatcher {
         return {
           success: false,
           endpoint: `/import/character/${characterId}/${subResource}`,
-          error: `Unknown import resource: ${subResource}`
+          error: `Unknown import resource: ${subResource}`,
         };
     }
   }
@@ -129,12 +146,16 @@ export class APIDispatcher {
   /**
    * Handle import POST requests
    */
-  private async handleImportPost(characterId: string, subResource: string, data: { options?: Record<string, unknown> }): Promise<APIResponse> {
+  private async handleImportPost(
+    characterId: string,
+    subResource: string,
+    data: { options?: Record<string, unknown> }
+  ): Promise<APIResponse> {
     if (!characterId) {
       return {
         success: false,
         endpoint: '/import',
-        error: 'Character ID is required'
+        error: 'Character ID is required',
       };
     }
 
@@ -145,7 +166,7 @@ export class APIDispatcher {
         return {
           success: false,
           endpoint: `/import/character/${characterId}/${subResource}`,
-          error: `Unsupported POST import resource: ${subResource}`
+          error: `Unsupported POST import resource: ${subResource}`,
         };
     }
   }
@@ -153,12 +174,16 @@ export class APIDispatcher {
   /**
    * Handle export GET requests
    */
-  private async handleExportGet(characterId: string, subResource: string, _data: Record<string, unknown>): Promise<APIResponse> {
+  private async handleExportGet(
+    characterId: string,
+    subResource: string,
+    _data: Record<string, unknown>
+  ): Promise<APIResponse> {
     if (!characterId) {
       return {
         success: false,
         endpoint: '/export',
-        error: 'Character ID is required'
+        error: 'Character ID is required',
       };
     }
 
@@ -170,7 +195,7 @@ export class APIDispatcher {
         return {
           success: false,
           endpoint: `/export/character/${characterId}/${subResource}`,
-          error: `Unknown export resource: ${subResource}`
+          error: `Unknown export resource: ${subResource}`,
         };
     }
   }
@@ -178,7 +203,10 @@ export class APIDispatcher {
   /**
    * Handle debug GET requests
    */
-  private async handleDebugGet(subResource: string, _data: Record<string, unknown>): Promise<APIResponse> {
+  private async handleDebugGet(
+    subResource: string,
+    _data: Record<string, unknown>
+  ): Promise<APIResponse> {
     switch (subResource) {
       case 'status':
         return await this.routeHandler.getDebugStatus();
@@ -186,7 +214,7 @@ export class APIDispatcher {
         return {
           success: false,
           endpoint: `/debug/${subResource}`,
-          error: `Unknown debug resource: ${subResource}`
+          error: `Unknown debug resource: ${subResource}`,
         };
     }
   }
@@ -228,7 +256,7 @@ export class APIDispatcher {
       'GET /import/character/:id/story': 'Get character story and background',
       'POST /import/character/:id/full': 'Import complete character with all data',
       'GET /export/character/:id': 'Export character from Foundry to JSON',
-      'GET /debug/status': 'Get debug status and system information'
+      'GET /debug/status': 'Get debug status and system information',
     };
   }
 

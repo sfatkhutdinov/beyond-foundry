@@ -20,7 +20,7 @@ export class RaceParser {
    * TODO: Add support for batch race parsing and error aggregation
    */
   public static parseRaceArray(races: DDBRace[]): unknown[] {
-    return races.map((race) => this.parseRace(race));
+    return races.map(race => this.parseRace(race));
   }
 
   /**

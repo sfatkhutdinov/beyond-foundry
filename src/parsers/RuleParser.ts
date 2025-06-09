@@ -20,7 +20,7 @@ export class RuleParser {
    * TODO: Add support for batch rule parsing and error aggregation
    */
   public static parseRuleArray(rules: DDBRule[]): unknown[] {
-    return rules.map((rule) => this.parseRule(rule));
+    return rules.map(rule => this.parseRule(rule));
   }
 
   /**

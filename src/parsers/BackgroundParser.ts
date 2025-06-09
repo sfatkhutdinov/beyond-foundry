@@ -20,7 +20,7 @@ export class BackgroundParser {
    * TODO: Add support for batch background parsing and error aggregation
    */
   public static parseBackgroundArray(backgrounds: DDBBackground[]): unknown[] {
-    return backgrounds.map((background) => this.parseBackground(background));
+    return backgrounds.map(background => this.parseBackground(background));
   }
 
   /**
@@ -44,7 +44,9 @@ export class BackgroundParser {
   /**
    * TODO: Add support for additional system fields (e.g., feature integration, advanced effects)
    */
-  private static parseAdditionalSystemFields(_ddbBackground: DDBBackground): Record<string, unknown> {
+  private static parseAdditionalSystemFields(
+    _ddbBackground: DDBBackground
+  ): Record<string, unknown> {
     void _ddbBackground;
     // TODO: Implement additional system fields for advanced background support
     return {};

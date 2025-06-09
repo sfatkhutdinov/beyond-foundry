@@ -10,7 +10,7 @@ import { CharacterImportDialog } from './apps/CharacterImportDialog.js';
  *
  * This module allows importing purchased D&D Beyond content into FoundryVTT
  * with support for characters, spells, items, and more.
- * 
+ *
  * Enhanced with RESTful API endpoints and Foundry VTT integration
  * as specified in the endpoint conversion strategy.
  */
@@ -24,7 +24,7 @@ Hooks.once('init', async () => {
 
   // Initialize core API
   const api = BeyondFoundryAPI.getInstance();
-  
+
   // Store core API reference for basic access
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (game as any).modules.get(MODULE_ID)!.api = api;

@@ -20,7 +20,7 @@ export class MonsterParser {
    * TODO: Add support for batch monster parsing and error aggregation
    */
   public static parseMonsterArray(monsters: DDBMonster[]): unknown[] {
-    return monsters.map((monster) => this.parseMonster(monster));
+    return monsters.map(monster => this.parseMonster(monster));
   }
 
   /**
