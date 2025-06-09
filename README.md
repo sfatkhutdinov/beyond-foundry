@@ -1,6 +1,11 @@
 # Beyond Foundry
 
 > **Note:** This is the **main and canonical repository** for Beyond Foundry. All development, issues, and releases are tracked here.
+> 
+> **Repository Status:**
+> - This repository is now organized, up to date, and all legacy parser results and large files have been removed from the working tree.
+> - **IMPORTANT:** The main branch is protected on GitHub. If you need to remove large files from history, you must temporarily disable branch protection to allow a force-push, or contact GitHub support for assistance. See NEXT_STEPS.md for details.
+> - To prevent future issues, ensure `.gitignore` excludes all large binary files and archives (see below).
 
 Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond content. This README provides an overview of the project, its purpose, development status, and setup instructions.
 
@@ -16,6 +21,12 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 - 🟡 **Advanced Features:** (e.g., auto-sync, batch import) in planning
 
 See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.md](docs/roadmap.md) for detailed progress and goals.
+
+## ⚠️ Large File Handling & .gitignore
+
+- All large files (e.g., FoundryVTT zips, cache, binaries) **must not** be committed to git. Use `.gitignore` to exclude them.
+- If a large file is accidentally committed, follow the instructions in NEXT_STEPS.md to remove it from history.
+- Consider using [Git LFS](https://git-lfs.github.com/) for any required large assets.
 
 ## ✨ Features
 

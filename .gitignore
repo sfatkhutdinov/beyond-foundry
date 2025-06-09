@@ -49,6 +49,21 @@ coverage/
 ehthumbs.db
 Thumbs.db
 
+# Large files and archives (prevent accidental commits)
+*.zip
+*.tar.gz
+*.7z
+*.rar
+*.bin
+*.exe
+*.dmg
+*.iso
+*.img
+*.lfs
+data/container_cache/
+data/Logs/
+build/
+
 # Logs
 logs/
 *.log
