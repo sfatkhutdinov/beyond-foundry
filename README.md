@@ -9,7 +9,8 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 - ✅ **Proxy Integration:** ddb-proxy integration complete, Docker-ready ([setup](docs/DOCKER_SETUP.md))
 - ✅ **UI Dialogs:** Import and authentication dialogs implemented ([see UI](docs/ui.md))
 - ✅ **TypeScript Build System:** Modern, strict, and reliable ([modernization](docs/MODERNIZATION_COMPLETE.md))
-- 🟢 **Bulk Import & Compendium:** Canonical spell compendium linking and bulk import complete! See below for usage.
+- ✅ **Bulk Import & Compendium:** Canonical spell compendium linking and bulk spell import complete!
+- ✅ **Endpoint Tests & Docker:** All endpoints tested, robust error handling, Docker deployment validated
 - 🟡 **Advanced Features:** (e.g., auto-sync, batch import) in planning
 
 See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.md](docs/roadmap.md) for detailed progress and goals.
@@ -45,6 +46,7 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 ### 🎛️ User Interface
 - **Enhanced import dialog** with spell import options
 - **Real-time import progress** tracking
+- **Bulk spell import** and canonical compendium linking
 - **Batch character import** support (planned)
 - **Import option customization**
 
@@ -60,10 +62,11 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
    - Get your CobaltSession cookie from D&D Beyond
    - Configure it in module settings
 
-3. **Import Characters**
+3. **Import Characters & Spells**
    - Find character IDs from D&D Beyond URLs (`dndbeyond.com/characters/{ID}`)
    - Use the import dialog to add and import characters
    - Choose spell preparation mode and other options
+   - Use bulk spell import to populate the compendium
 
 4. **Test Integration**
    ```javascript

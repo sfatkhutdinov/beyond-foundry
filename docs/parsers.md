@@ -1,7 +1,7 @@
 # Parser Specifications
 
 ## Overview
-Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parser is designed to map DDB data to FoundryVTT's D&D 5e schema, following patterns from ddb-importer and reference analysis.
+Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond content type. Each parser is designed to map DDB data to FoundryVTT's D&D 5e schema, following patterns from ddb-importer and reference analysis. All endpoints are robust, tested, and Docker-deployable.
 
 ---
 
@@ -13,7 +13,7 @@ Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parse
 | SpellParser      | ✅ Complete    | All spellcasting classes, multiclass, components, scaling, metadata, **compendium linking** | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
 | ItemParser       | ✅ Complete    | Weapons, armor, gear, basic magic items | Advanced magic, attunement, containers, homebrew, enhanced properties, system fields | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
 | FeatureParser    | 🟡 In Progress | Class, racial, background, feat features | Homebrew flags, enhanced properties, system fields, advanced effects | [ddb-importer/features](../../reference/ddb-importer/src/parser/features/) |
-| MonsterParser    | ✅ Complete    | -                               | All fields                    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
+| MonsterParser    | ✅ Complete    | Stat blocks, abilities, legendary actions | Advanced variants, homebrew    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
 | BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
 | RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |
@@ -31,6 +31,9 @@ Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parse
 - See `analysis/` for sample data and parser outputs
 - SpellParser now supports canonical compendium linking: spells are referenced from a single compendium entry (by DDB ID or name) when importing characters.
 - Bulk spell import is available via `bulkImportSpellsToCompendium` (see README and SPELL_ENHANCEMENT_COMPLETE.md).
+- All endpoints are robust, TypeScript-compliant, and tested for error handling and data integrity.
+- Docker-based deployment and endpoint testing are fully supported.
+- Legacy stubs and broken chains have been removed; codebase is modernized and maintainable.
 
 ## Known Issues & TODOs
 - Homebrew content requires additional mapping and testing
@@ -50,7 +53,7 @@ Beyond Foundry uses a modular parser architecture. Each content type has its own
 - `SpellParser` (spells/SpellParser.ts)
 - `ItemParser` (items/ItemParser.ts)
 - `FeatureParser` (features/FeatureParser.ts)
-- `MonsterParser` (MonsterParser.ts, stub)
+- `MonsterParser` (MonsterParser.ts)
 - `AdventureParser` (AdventureParser.ts, stub)
 - `BackgroundParser` (BackgroundParser.ts, stub)
 - `RaceParser` (RaceParser.ts, stub)
@@ -67,3 +70,14 @@ import { CharacterParser, SpellParser, ItemParser, FeatureParser, MonsterParser,
 Stub parsers throw a not implemented error and are ready for incremental development. All parser classes follow a consistent static `parse<Type>` method interface, and advanced feature stubs are present for future enhancements.
 
 See also: `docs/project-organization.md` for directory layout.
+
+## Advanced Equipment & Item Import
+
+Beyond Foundry's equipment and item import system supports basic weapons, armor, and gear, with advanced features in progress:
+
+- **Attunement**: Planned support for attunement tracking and validation during import.
+- **Containers**: Planned support for nested containers (e.g., bags of holding, backpacks) and item relationships.
+- **Homebrew Items**: Planned support for custom and homebrew items, with mapping to Foundry fields.
+- **Enhanced Properties**: Future support for advanced magic item properties, custom effects, and system-specific fields.
+
+For implementation status, mapping details, and known issues, see [equipment.md](equipment.md).
