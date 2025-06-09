@@ -2,9 +2,9 @@
 // Automates GitHub issue creation for TODO/FIXME and parser errors
 // Usage: node scripts/auto-create-issues.js
 
-const { Octokit } = require('@octokit/rest');
-const fs = require('fs');
-const path = require('path');
+import { Octokit } from '@octokit/rest';
+import fs from 'fs';
+import path from 'path';
 
 const GITHUB_TOKEN = process.env.GH_PAT || process.env.GITHUB_TOKEN;
 const REPO_OWNER = 'sfatkhutdinov';
@@ -39,7 +39,7 @@ function findTodos(dir, results = []) {
 
 // Utility: Parse parser-test-results for errors
 function findParserErrors() {
-  const dir = path.join(__dirname, '../parser-test-results');
+  const dir = path.join(path.dirname(new URL(import.meta.url).pathname), '../parser-test-results');
   if (!fs.existsSync(dir)) return [];
   const files = fs.readdirSync(dir);
   let errors = [];
@@ -67,7 +67,7 @@ async function issueExists(title) {
 
 // Main: Create issues for TODO/FIXME
 async function createTodoIssues() {
-  const todos = findTodos(path.join(__dirname, '../src'));
+  const todos = findTodos(path.join(path.dirname(new URL(import.meta.url).pathname), '../src'));
   for (const todo of todos) {
     const title = `[AUTO] ${todo.text}`;
     if (!(await issueExists(title))) {
