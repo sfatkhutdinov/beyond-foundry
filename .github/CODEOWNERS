@@ -1,0 +1,15 @@
+# Example CODEOWNERS file for Beyond Foundry
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Parsers
+/src/parsers/ @sfatkhutdinov
+
+# Module
+/src/module/ @sfatkhutdinov
+
+# Types
+/src/types/ @sfatkhutdinov
+
+# All JS/TS files
+*.js @sfatkhutdinov
+*.ts @sfatkhutdinov
