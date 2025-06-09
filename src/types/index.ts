@@ -292,11 +292,102 @@ export interface DDBClassFeature {
   };
 }
 
-// Minimal stubs for parser compatibility (expand as needed)
+// Comprehensive monster interface based on D&D Beyond data structure
 export interface DDBMonster {
   id: number;
-  name: string;
-  // Add more fields as needed for monster parsing
+  entityTypeId: number;
+  name: string | null;
+  description: string | null;
+  isActive: boolean;
+  removedHitPoints: number;
+  temporaryHitPoints: number | null;
+  groupId: number;
+  definition: {
+    id: number;
+    entityTypeId: number;
+    name: string;
+    alignmentId: number;
+    sizeId: number;
+    typeId: number;
+    armorClass: number;
+    armorClassDescription: string;
+    averageHitPoints: number;
+    hitPointDice: {
+      diceCount: number;
+      diceValue: number;
+      diceMultiplier: number | null;
+      fixedValue: number;
+      diceString: string;
+    };
+    movements: Array<{
+      movementId: number;
+      speed: number;
+      notes: string | null;
+    }>;
+    passivePerception: number;
+    isHomebrew: boolean;
+    challengeRatingId: number;
+    sourceId: number;
+    sourcePageNumber: number;
+    isLegendary: boolean;
+    isMythic: boolean;
+    hasLair: boolean;
+    avatarUrl: string;
+    largeAvatarUrl: string;
+    basicAvatarUrl: string;
+    version: string | null;
+    swarm: unknown | null;
+    subTypes: number[];
+    environments: number[];
+    tags: string[];
+    sources: Array<{
+      sourceId: number;
+      pageNumber: number;
+      sourceType: number;
+    }>;
+    stats: Array<{
+      statId: number;
+      name: string | null;
+      value: number;
+    }>;
+    senses: Array<{
+      senseId: number;
+      notes: string;
+    }>;
+    damageAdjustments: number[];
+    conditionImmunities: number[];
+    savingThrows: Array<{
+      abilityId: number;
+      value: number;
+      additionalBonus: number | null;
+    }>;
+    skills: Array<{
+      skillId: number;
+      value: number;
+      additionalBonus: number | null;
+    }>;
+    languages: Array<{
+      languageId: number;
+      notes: string;
+    }>;
+    specialTraitsDescription: string;
+    actionsDescription: string;
+    reactionsDescription: string;
+    legendaryActionsDescription: string;
+    mythicActionsDescription: string;
+    bonusActionsDescription: string;
+    characteristicsDescription: string;
+    lairDescription: string;
+    languageDescription: string | null;
+    languageNote: string;
+    hideCr: boolean;
+    isLegacy: boolean;
+    statBlockType: number;
+    initiative: number | null;
+    lairChallengeRatingId: number | null;
+    gear: unknown | null;
+    slug: string;
+  };
   [key: string]: unknown;
 }
 

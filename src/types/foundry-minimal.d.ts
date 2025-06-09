@@ -19,6 +19,10 @@ declare global {
     actors?: {
       find(_predicate: (_actor: any) => boolean): any;
     };
+    packs: {
+      find: (predicate: (pack: any) => boolean) => any;
+      get: (id: string) => any;
+    };
     version?: string;
     world?: {
       id: string;
@@ -77,6 +81,10 @@ declare global {
   class Dialog {
     constructor(_data: any);
     render(_force?: boolean): any;
+  }
+
+  class CompendiumCollection {
+    static createCompendium(_data: any): Promise<any>;
   }
 
   function mergeObject(_target: any, _source: any, _options?: any): any;

@@ -133,9 +133,22 @@ export class CharacterParser {
   }
 
   /**
-   * Parse character attributes (HP, AC, etc.)
+   * Parse character attributes with enhanced HP calculation
    */
   private static parseAttributes(ddbCharacter: DDBCharacter) {
+    // Enhanced HP calculation
+    const totalLevel = this.getTotalLevel(ddbCharacter);
+    const constitutionScore = this.getAbilityScore(ddbCharacter, 3); // CON is ID 3
+    const constitutionModifier = this.getAbilityModifier(constitutionScore);
+    
+    // Base HP calculation: base + (CON modifier × level) + bonuses
+    const baseHP = ddbCharacter.baseHitPoints || 0;
+    const levelHP = constitutionModifier * totalLevel;
+    const bonusHP = ddbCharacter.bonusHitPoints || 0;
+    const totalHP = Math.max(1, baseHP + levelHP + bonusHP);
+    
+    Logger.debug(`🩸 HP Calculation: base(${baseHP}) + level*con(${levelHP}) + bonus(${bonusHP}) = ${totalHP}`);
+
     return {
       ac: {
         flat: null,
@@ -143,9 +156,9 @@ export class CharacterParser {
         formula: '',
       },
       hp: {
-        value: ddbCharacter.baseHitPoints || 0,
-        max: ddbCharacter.baseHitPoints || 0,
-        temp: 0,
+        value: totalHP - (ddbCharacter.removedHitPoints || 0),
+        max: totalHP,
+        temp: ddbCharacter.temporaryHitPoints || 0,
         tempmax: 0,
         bonuses: {
           level: '',
@@ -333,77 +346,56 @@ export class CharacterParser {
   }
 
   /**
-   * Parse skills and proficiencies with comprehensive proficiency detection
+   * Enhanced skills parsing with proficiency detection
    */
   private static parseSkills(ddbCharacter: DDBCharacter) {
-    const skills: any = {};
-
-    // D&D 5e system skills
-    const skillList = [
-      'acr',
-      'ani',
-      'arc',
-      'ath',
-      'dec',
-      'his',
-      'ins',
-      'itm',
-      'inv',
-      'med',
-      'nat',
-      'prc',
-      'prf',
-      'per',
-      'rel',
-      'slt',
-      'ste',
-      'sur',
-    ];
-
-    skillList.forEach(skill => {
-      skills[skill] = {
-        value: 0, // 0 = not proficient, 1 = proficient, 2 = expertise
-        ability: this.getSkillAbility(skill),
-        bonuses: {
-          check: '',
-          passive: '',
-        },
-      };
-    });
+    const skills: Record<string, any> = {
+      acr: { value: 0, ability: 'dex', bonuses: { check: '', passive: '' } },
+      ani: { value: 0, ability: 'wis', bonuses: { check: '', passive: '' } },
+      arc: { value: 0, ability: 'int', bonuses: { check: '', passive: '' } },
+      ath: { value: 0, ability: 'str', bonuses: { check: '', passive: '' } },
+      dec: { value: 0, ability: 'cha', bonuses: { check: '', passive: '' } },
+      his: { value: 0, ability: 'int', bonuses: { check: '', passive: '' } },
+      ins: { value: 0, ability: 'wis', bonuses: { check: '', passive: '' } },
+      inti: { value: 0, ability: 'cha', bonuses: { check: '', passive: '' } },
+      inv: { value: 0, ability: 'int', bonuses: { check: '', passive: '' } },
+      med: { value: 0, ability: 'wis', bonuses: { check: '', passive: '' } },
+      nat: { value: 0, ability: 'int', bonuses: { check: '', passive: '' } },
+      prc: { value: 0, ability: 'wis', bonuses: { check: '', passive: '' } },
+      prf: { value: 0, ability: 'cha', bonuses: { check: '', passive: '' } },
+      per: { value: 0, ability: 'cha', bonuses: { check: '', passive: '' } },
+      rel: { value: 0, ability: 'int', bonuses: { check: '', passive: '' } },
+      slt: { value: 0, ability: 'dex', bonuses: { check: '', passive: '' } },
+      ste: { value: 0, ability: 'dex', bonuses: { check: '', passive: '' } },
+      sur: { value: 0, ability: 'wis', bonuses: { check: '', passive: '' } }
+    };
 
     // Apply skill proficiencies from modifiers
-    this.applySkillProficiencies(ddbCharacter, skills);
+    if (ddbCharacter.modifiers) {
+      Object.values(ddbCharacter.modifiers).forEach(modifierArray => {
+        if (Array.isArray(modifierArray)) {
+          modifierArray.forEach(modifier => {
+            if (modifier.type === 'proficiency' && modifier.subType === 'skill') {
+              const skillKey = this.getSkillKeyFromModifier(modifier);
+              if (skillKey && skills[skillKey]) {
+                skills[skillKey].value = 1; // Proficient
+                Logger.debug(`🎯 Skill proficiency: ${skillKey}`);
+              }
+            }
+            // Handle expertise (double proficiency)
+            if (modifier.type === 'expertise' && modifier.subType === 'skill') {
+              const skillKey = this.getSkillKeyFromModifier(modifier);
+              if (skillKey && skills[skillKey]) {
+                skills[skillKey].value = 2; // Expertise
+                Logger.debug(`🌟 Skill expertise: ${skillKey}`);
+              }
+            }
+          });
+        }
+      });
+    }
 
     return skills;
-  }
-
-  /**
-   * Apply skill proficiencies from D&D Beyond modifiers
-   */
-  private static applySkillProficiencies(ddbCharacter: DDBCharacter, skills: any) {
-    const modifiers = ddbCharacter.modifiers || {};
-
-    Object.values(modifiers).forEach(modifierArray => {
-      if (Array.isArray(modifierArray)) {
-        modifierArray.forEach(modifier => {
-          if (modifier.type === 'proficiency' && modifier.subType) {
-            const skillKey = this.getSkillKeyFromModifier(modifier);
-            if (skillKey && skills[skillKey]) {
-              skills[skillKey].value = 1; // Proficient
-              Logger.debug(`🎯 Skill proficiency: ${skillKey}`);
-            }
-          }
-
-          if (modifier.type === 'expertise' && modifier.subType) {
-            const skillKey = this.getSkillKeyFromModifier(modifier);
-            if (skillKey && skills[skillKey]) {
-              skills[skillKey].value = 2; // Expertise
-              Logger.debug(`⭐ Skill expertise: ${skillKey}`);
-            }
-          }
-        });
-      }
-    });
   }
 
   /**

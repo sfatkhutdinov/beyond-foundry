@@ -293,7 +293,7 @@ export class CharacterImportDialog extends Application {
       importSpells,
       importItems,
       updateExisting,
-      spellPreparationMode: spellPreparationMode as string,
+      spellPreparationMode: spellPreparationMode as 'prepared' | 'pact' | 'always' | 'atwill' | 'innate',
       createCompendiumItems: false, // Default to false for now
     };
   }

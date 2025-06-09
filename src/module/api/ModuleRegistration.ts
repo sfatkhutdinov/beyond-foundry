@@ -103,34 +103,33 @@ export class ModuleRegistration {
           timeout: number = 30000
         ) => {
           return await this.safeApiCall(async () => {
-            // Use Foundry's built-in utility if available
-            if (
-              foundry &&
-              typeof foundry === 'object' &&
-              'utils' in foundry &&
-              typeof (foundry as { utils?: { fetchJsonWithTimeout?: unknown } }).utils
-                ?.fetchJsonWithTimeout === 'function'
-            ) {
-              return await (
-                foundry as {
-                  utils: {
-                    fetchJsonWithTimeout: (url: string, options: unknown) => Promise<APIResponse>;
-                  };
-                }
-              ).utils.fetchJsonWithTimeout(url, { ...options, signal: controller.signal });
-            } else {
-              // Fallback to standard fetch with timeout
-              const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), timeout);
+            // Create controller for timeout handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-              try {
+            try {
+              // Use Foundry's built-in utility if available
+              if (
+                foundry &&
+                typeof foundry === 'object' &&
+                'utils' in foundry &&
+                typeof (foundry as { utils?: { fetchJsonWithTimeout?: unknown } }).utils
+                  ?.fetchJsonWithTimeout === 'function'
+              ) {
+                return await (
+                  foundry as {
+                    utils: {
+                      fetchJsonWithTimeout: (url: string, options: unknown) => Promise<APIResponse>;
+                    };
+                  }
+                ).utils.fetchJsonWithTimeout(url, { ...options, signal: controller.signal });
+              } else {
+                // Fallback to standard fetch with timeout
                 const response = await fetch(url, { ...options, signal: controller.signal });
-                clearTimeout(timeoutId);
                 return response;
-              } catch (error) {
-                clearTimeout(timeoutId);
-                throw error;
               }
+            } finally {
+              clearTimeout(timeoutId);
             }
           });
         },
