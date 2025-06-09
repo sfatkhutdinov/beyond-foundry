@@ -1,0 +1,15 @@
+FROM node:16-alpine AS build
+
+RUN ["apk", "add", "--no-cache", "yarn", "git"]
+WORKDIR /srv
+RUN ["git", "clone", "https://github.com/MrPrimate/ddb-proxy", ".", "--depth", "1" ]
+RUN ["yarn", "install", "--production"]
+
+FROM node:16-alpine AS ddb-proxy
+
+EXPOSE 3000
+
+WORKDIR /srv
+
+COPY --from=build /srv /srv
+CMD [ "node", "index.js" ]
