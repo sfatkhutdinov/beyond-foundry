@@ -222,7 +222,8 @@ export class CharacterImportDialog extends Application {
           char.loaded = true;
           delete char.error;
         } else {
-          char.error = typeof result?.error === 'string' ? result.error : 'Failed to load character';
+          char.error =
+            typeof result?.error === 'string' ? result.error : 'Failed to load character';
           char.loaded = false;
         }
       } catch (error) {
