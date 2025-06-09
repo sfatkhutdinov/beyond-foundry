@@ -24,6 +24,8 @@ services:
   beyond-foundry-proxy:
     build: ./beyond-foundry-proxy
     restart: unless-stopped
+    depends_on:
+      - ddb-proxy
     ports:
       - "4000:4000"
     networks:
