@@ -16,7 +16,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Configuration
-const PROXY_ENDPOINT = 'http://localhost:3100';
+const PROXY_ENDPOINT = 'http://localhost:4000';
 
 /**
  * Mock Foundry logger for testing

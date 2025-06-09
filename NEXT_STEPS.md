@@ -72,7 +72,7 @@ await api.importCharacter("147552172");
 🔧 Beyond Foundry - Quick Diagnostic
 ✅ Module: beyond-foundry v1.0.0 loaded
 ✅ API: BeyondFoundryAPI initialized  
-✅ Proxy: http://localhost:3100 responding
+✅ Proxy: http://localhost:4000 responding
 ✅ System: dnd5e compatible
 ✅ Settings: 6 registered correctly
 🎉 All systems operational!
@@ -108,7 +108,7 @@ await api.importCharacter("147552172");
 
 ### Check Proxy Status
 ```bash
-curl http://localhost:3100/ping  # Should return "pong"
+curl http://localhost:4000/ping  # Should return "pong"
 ```
 
 ### Rebuild Module (if changes made)

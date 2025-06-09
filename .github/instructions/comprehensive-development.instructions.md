@@ -336,7 +336,7 @@ npm run lint
 ### Testing with ddb-proxy
 ```bash
 # Test proxy connection
-curl http://localhost:3100/ping
+curl http://localhost:4000/ping
 
 # Test in FoundryVTT console
 const api = game.modules.get('beyond-foundry').api;
