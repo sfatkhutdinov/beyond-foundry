@@ -22,7 +22,7 @@ const setup = {
   projectRoot: path.resolve(__dirname, '..'),
   foundryModulesPath: null, // Will be detected or prompted
   moduleName: 'beyond-foundry',
-  proxyUrl: 'http://localhost:3100'
+  proxyUrl: 'http://localhost:4000'
 };
 
 /**
@@ -323,7 +323,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('');
   console.log('Options:');
   console.log('  --help, -h     Show this help message');
-  console.log('  --proxy-url    Set proxy URL (default: http://localhost:3100)');
+  console.log('  --proxy-url    Set proxy URL (default: http://localhost:4000)');
   console.log('');
   console.log('Examples:');
   console.log('  node setup-foundry-integration.js');

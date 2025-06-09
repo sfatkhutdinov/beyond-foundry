@@ -5,7 +5,7 @@ This guide walks through testing the Beyond Foundry module in a live FoundryVTT 
 ## Prerequisites
 
 1. **FoundryVTT Installed**: Version 12 or higher with D&D 5e system
-2. **ddb-proxy Running**: Docker container on localhost:3100
+2. **ddb-proxy Running**: Docker container on localhost:4000
 3. **D&D Beyond Cobalt Token**: For authentication testing
 4. **Module Built**: Run `npm run build` to ensure latest changes
 
@@ -72,7 +72,7 @@ This guide walks through testing the Beyond Foundry module in a live FoundryVTT 
 🔧 Beyond Foundry - Quick Diagnostic
 ✅ Module: beyond-foundry v1.0.0 loaded
 ✅ API: BeyondFoundryAPI initialized  
-✅ Proxy: http://localhost:3100 responding
+✅ Proxy: http://localhost:4000 responding
 ✅ System: dnd5e compatible
 ✅ Settings: 6 registered correctly
 🎉 All systems operational!
@@ -82,7 +82,7 @@ This guide walks through testing the Beyond Foundry module in a live FoundryVTT 
 
 1. **Open Module Settings** (Game Settings → Configure Settings → Module Settings)
 2. **Configure Beyond Foundry:**
-   - Proxy URL: `http://localhost:3100`
+   - Proxy URL: `http://localhost:4000`
    - Debug Mode: Enable
    - Auto Import Items: Enable
    - Import Policy: Ask before importing
@@ -174,9 +174,9 @@ This guide walks through testing the Beyond Foundry module in a live FoundryVTT 
 
 ### Proxy Connection Issues
 - Verify ddb-proxy is running: `docker ps | grep ddb-proxy`
-- Test proxy directly: `curl http://localhost:3100/ping`
+- Test proxy directly: `curl http://localhost:4000/ping`
 - Check firewall settings
-- Try `http://127.0.0.1:3100` instead of localhost
+- Try `http://127.0.0.1:4000` instead of localhost
 
 ### Authentication Failures
 - Verify cobalt token is current and valid

@@ -9,8 +9,8 @@ Beyond Foundry uses a proxy server (like ddb-proxy) to authenticate D&D Beyond u
 
 ## Troubleshooting
 - **Invalid Token:** Ensure your CobaltSession cookie is current and copied correctly from D&D Beyond
-- **Proxy Not Responding:** Check that ddb-proxy is running (`curl http://localhost:3100/ping`)
-- **CORS Issues:** Use the recommended proxy URLs; browser-to-proxy should be http://localhost:3100
+- **Proxy Not Responding:** Check that ddb-proxy is running (`curl http://localhost:4000/ping`)
+- **CORS Issues:** Use the recommended proxy URLs; browser-to-proxy should be http://localhost:4000
 - **Authentication Fails:** Try logging out and back into D&D Beyond, then recopy the token
 - **Multiple Users:** Each user must provide their own valid CobaltSession token
 

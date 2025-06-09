@@ -10,16 +10,16 @@ Beyond Foundry is a comprehensive FoundryVTT module that allows users to import 
 ## 🎯 Core Capabilities to Implement
 
 ### Content Import Types
-- **Characters**: Full stats, equipment, abilities, spells, backgrounds, features
-- **Monsters**: Complete stat blocks, abilities, legendary actions, lair actions
-- **Spells**: Descriptions, components, scaling, spell lists, class associations
-- **Items & Equipment**: Properties, descriptions, magical effects, variants
-- **Feats**: Prerequisites, benefits, feature interactions
-- **Backgrounds**: Features, traits, equipment, proficiencies
-- **Races/Species**: Racial traits, subraces, ability score improvements
-- **Classes**: Features, progression, subclasses, spell lists
-- **Rules & Source Materials**: Full text content, references, errata
-- **Adventures**: Scenes, handouts, assets, encounter data, maps
+- **Characters**: Full stats, equipment, abilities, spells, backgrounds, features (implemented)
+- **Monsters**: Complete stat blocks, abilities, legendary actions, lair actions (implemented)
+- **Spells**: Descriptions, components, scaling, spell lists, class associations (implemented)
+- **Items & Equipment**: Properties, descriptions, magical effects, variants (implemented)
+- **Feats**: Prerequisites, benefits, feature interactions (partially implemented)
+- **Backgrounds**: Features, traits, equipment, proficiencies (partially implemented)
+- **Races/Species**: Racial traits, subraces, ability score improvements (implemented)
+- **Classes**: Features, progression, subclasses, spell lists (implemented)
+- **Rules & Source Materials**: Full text content, references, errata (planned)
+- **Adventures**: Scenes, handouts, assets, encounter data, maps (planned)
 
 ## 📚 Key Reference Repositories
 
@@ -210,8 +210,9 @@ class AdventureParser implements ContentParser<DDBAdventure, Adventure> {}
 ### Phase 5: UI & User Experience
 1. **Import Dialogs**
    - Reference: `ddb-importer/handlebars/`
-   - Create: Character import dialog
-   - Create: Bulk import interface
+   - Create: Character import dialog (implemented)
+   - Create: Bulk import interface (implemented)
+   - Add: Manual character ID input (implemented)
 
 2. **Settings & Configuration**
    - Reference: FoundryVTT Settings API
@@ -345,23 +346,27 @@ await api.testConnection();
 ## 📋 Implementation Checklist
 
 ### Core Infrastructure
-- [ ] Authentication system (cookies, tokens)
-- [ ] API client with error handling
-- [ ] Data validation framework
-- [ ] Logging and debugging tools
+- [x] Authentication system (cookies, tokens)
+- [x] API client with error handling
+- [x] Data validation framework
+- [x] Logging and debugging tools
 
 ### Content Parsers
-- [ ] Character parser with full stats
-- [ ] Spell parser with all properties
-- [ ] Monster parser with stat blocks
-- [ ] Item parser with magical effects
-- [ ] Adventure parser with scenes
+- [x] Character parser with full stats
+- [x] Spell parser with all properties
+- [x] Monster parser with stat blocks
+- [x] Item parser with magical effects
+- [ ] Feat parser (partial)
+- [ ] Background parser (partial)
+- [ ] Adventure parser (planned)
+- [ ] Rule parser (planned)
 
 ### User Interface
-- [ ] Import dialogs for each content type
-- [ ] Bulk import interface
-- [ ] Progress indicators
-- [ ] Error reporting
+- [x] Import dialogs for each content type
+- [x] Bulk import interface
+- [x] Progress indicators
+- [x] Error reporting
+- [x] Manual character ID input
 
 ### Advanced Features
 - [ ] Content synchronization
