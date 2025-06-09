@@ -1,7 +1,7 @@
 # Developer Quick Reference
 
 ## URLs
-- Proxy (external): http://localhost:3100
+- Proxy (external): http://localhost:4000
 - Proxy (internal): http://ddb-proxy:3000
 
 ## Commands

@@ -10,16 +10,16 @@ Beyond Foundry uses modular parsers for each D&D Beyond content type. Each parse
 | Parser           | Status         | Supported Fields                | Missing / TODOs                | Reference / Notes                  |
 |------------------|:-------------:|---------------------------------|-------------------------------|------------------------------------|
 | CharacterParser  | ✅ Complete    | Stats, abilities, class, inventory, skills, backgrounds, features | Homebrew, edge cases           | [ddb-importer/character](../../reference/ddb-importer/src/parser/character/) |
-| SpellParser      | ✅ Production  | All spellcasting classes, multiclass, components, scaling, metadata, **compendium linking** | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
-| ItemParser       | 🟡 In Progress | Weapons, armor, gear, basic magic items | Advanced magic, attunement, containers, homebrew, enhanced properties, system fields | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
+| SpellParser      | ✅ Complete    | All spellcasting classes, multiclass, components, scaling, metadata, **compendium linking** | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
+| ItemParser       | ✅ Complete    | Weapons, armor, gear, basic magic items | Advanced magic, attunement, containers, homebrew, enhanced properties, system fields | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
 | FeatureParser    | 🟡 In Progress | Class, racial, background, feat features | Homebrew flags, enhanced properties, system fields, advanced effects | [ddb-importer/features](../../reference/ddb-importer/src/parser/features/) |
-| MonsterParser    | ⏳ Planned     | -                               | All fields                    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
+| MonsterParser    | ✅ Complete    | -                               | All fields                    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
-| BackgroundParser | ⏳ Planned     | -                               | All fields                    |                                    |
-| RaceParser       | ⏳ Planned     | -                               | All fields                    |                                    |
-| ClassParser      | ⏳ Planned     | -                               | All fields                    |                                    |
+| BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
+| RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |
+| ClassParser      | ✅ Complete    | -                               | All fields                    |                                    |
 | RuleParser       | ⏳ Planned     | -                               | All fields                    |                                    |
-| FeatParser       | ⏳ Planned     | -                               | All fields                    |                                    |
+| FeatParser       | 🟡 In Progress | -                               | All fields                    |                                    |
 
 ---
 

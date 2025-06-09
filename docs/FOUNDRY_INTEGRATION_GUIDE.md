@@ -14,7 +14,7 @@ The Beyond Foundry module is **production-ready** with complete character import
 - **Development environment** or test world
 
 ### 2. D&D Beyond Proxy
-- **ddb-proxy** running on `localhost:3100`
+- **ddb-proxy** running on `localhost:4000`
 - **Valid cobalt token** from D&D Beyond
 - **Character access** to D&D Beyond characters
 
@@ -80,7 +80,7 @@ BeyondFoundryAPI initialized
 1. Go to **Settings → Configure Settings → Module Settings**
 2. Find **Beyond Foundry** section
 3. Configure:
-   - **Proxy URL**: `http://localhost:3100`
+   - **Proxy URL**: `http://localhost:4000`
    - **Debug Mode**: `true` (for testing)
    - **Auto Import Items**: `true`
    - **Import Policy**: `ask` or `replace`
@@ -109,7 +109,7 @@ Expected output:
 🔧 Beyond Foundry - Quick Diagnostic
 ✅ Module: beyond-foundry v1.0.0 loaded
 ✅ API: BeyondFoundryAPI initialized  
-✅ Proxy: http://localhost:3100 responding
+✅ Proxy: http://localhost:4000 responding
 ✅ System: dnd5e compatible
 ✅ Settings: 6 registered correctly
 🎉 All systems operational!
@@ -248,7 +248,7 @@ api.openAuthDialog();
 - [ ] Settings are registered and configurable
 
 ### ✅ Proxy Integration
-- [ ] Proxy connection established
+- [ ] Proxy connection established (http://localhost:4000)
 - [ ] Authentication works with valid tokens
 - [ ] Character data fetches successfully
 - [ ] Error handling for network issues
@@ -307,10 +307,10 @@ api.openAuthDialog();
 4. Rebuild module: `npm run build`
 
 #### Issue: "Proxy connection failed"
-**Symptoms:** Cannot connect to `localhost:3100`
+**Symptoms:** Cannot connect to `localhost:4000`
 **Solutions:**
-1. Start ddb-proxy: `docker run -p 3100:3000 ghcr.io/mrprimate/ddb-proxy`
-2. Check proxy status: `curl http://localhost:3100/ping`
+1. Start ddb-proxy: `docker run -p 4000:4000 your-proxy-image`
+2. Check proxy status: `curl http://localhost:4000/ping`
 3. Verify no firewall blocking
 4. Try alternative proxy URL in settings
 
