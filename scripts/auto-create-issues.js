@@ -5,6 +5,7 @@
 import { Octokit } from '@octokit/rest';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 const GITHUB_TOKEN = process.env.GH_PAT || process.env.GITHUB_TOKEN;
 const REPO_OWNER = 'sfatkhutdinov';
@@ -17,8 +18,16 @@ if (!GITHUB_TOKEN) {
 
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
-// Utility: Find TODO/FIXME in codebase
+// Utility: Find actionable/tagged TODO/FIXME in codebase, skip trivial notes
+// Only match TODO/FIXME with a tag, e.g. TODO(ISSUE), TODO: [tag], TODO: description
+// Also add a unique hash for deduplication
+function hashTodo(todo) {
+  // Hash file, line, and text for uniqueness
+  return crypto.createHash('sha1').update(`${todo.file}:${todo.line}:${todo.text}`).digest('hex');
+}
+
 function findTodos(dir, results = []) {
+  const actionableRegex = /\b(?:TODO|FIXME)\b\s*(?:\([^)]+\)|:[^\w]?|\[[^\]]+\]|\s+.+)/i;
   const files = fs.readdirSync(dir);
   for (const file of files) {
     const fullPath = path.join(dir, file);
@@ -28,8 +37,10 @@ function findTodos(dir, results = []) {
       const content = fs.readFileSync(fullPath, 'utf8');
       const lines = content.split('\n');
       lines.forEach((line, idx) => {
-        if (/TODO|FIXME/.test(line)) {
-          results.push({ file: fullPath, line: idx + 1, text: line.trim() });
+        if (actionableRegex.test(line)) {
+          const todo = { file: fullPath, line: idx + 1, text: line.trim() };
+          todo.hash = hashTodo(todo);
+          results.push(todo);
         }
       });
     }
@@ -65,20 +76,63 @@ async function issueExists(title) {
   return issues.some(issue => issue.title === title);
 }
 
-// Main: Create issues for TODO/FIXME
+// Utility: Find TODO hashes in open issues
+async function getOpenTodoIssueHashes() {
+  const { data: issues } = await octokit.issues.listForRepo({
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    state: 'open',
+    per_page: 100
+  });
+  const hashToIssue = {};
+  for (const issue of issues) {
+    const match = issue.body && issue.body.match(/<!-- AUTO-TODO-HASH: ([a-f0-9]{40}) -->/);
+    if (match) hashToIssue[match[1]] = issue.number;
+  }
+  return hashToIssue;
+}
+
+// Utility: Label issues based on file path/content
+function getLabelsForTodo(todo) {
+  const labels = ['auto', 'todo'];
+  // Example: label by directory
+  if (todo.file.includes('/parsers/')) labels.push('parser');
+  if (todo.file.includes('/module/')) labels.push('module');
+  if (todo.file.includes('/types/')) labels.push('types');
+  // Example: label by TODO type
+  if (/FIXME/.test(todo.text)) labels.push('fixme');
+  // Add more rules as needed
+  return labels;
+}
+
+// Main: Create issues for TODO/FIXME with deduplication by hash and contextual labels
 async function createTodoIssues() {
   const todos = findTodos(path.join(path.dirname(new URL(import.meta.url).pathname), '../src'));
+  // Get all open issues with [AUTO] in the title and a hash in the body
+  const { data: issues } = await octokit.issues.listForRepo({
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    state: 'open',
+    per_page: 100
+  });
+  const existingHashes = new Set();
+  for (const issue of issues) {
+    const match = issue.body && issue.body.match(/<!-- AUTO-TODO-HASH: ([a-f0-9]{40}) -->/);
+    if (match) existingHashes.add(match[1]);
+  }
   for (const todo of todos) {
-    const title = `[AUTO] ${todo.text}`;
-    if (!(await issueExists(title))) {
+    if (!existingHashes.has(todo.hash)) {
+      const title = `[AUTO] ${todo.text}`;
+      const body = `Found in ${todo.file} at line ${todo.line}\n\n<!-- AUTO-TODO-HASH: ${todo.hash} -->`;
+      const labels = getLabelsForTodo(todo);
       await octokit.issues.create({
         owner: REPO_OWNER,
         repo: REPO_NAME,
         title,
-        body: `Found in ${todo.file} at line ${todo.line}`,
-        labels: ['auto', 'todo']
+        body,
+        labels
       });
-      console.log('Created issue:', title);
+      console.log('Created issue:', title, labels);
     }
   }
 }
@@ -101,7 +155,81 @@ async function createParserErrorIssues() {
   }
 }
 
+// Main: Close issues for removed TODOs
+async function closeResolvedTodoIssues() {
+  const todos = findTodos(path.join(path.dirname(new URL(import.meta.url).pathname), '../src'));
+  const currentHashes = new Set(todos.map(t => t.hash));
+  const hashToIssue = await getOpenTodoIssueHashes();
+  for (const hash in hashToIssue) {
+    if (!currentHashes.has(hash)) {
+      // TODO was removed, close the issue
+      await octokit.issues.update({
+        owner: REPO_OWNER,
+        repo: REPO_NAME,
+        issue_number: hashToIssue[hash],
+        state: 'closed'
+      });
+      console.log('Closed resolved TODO issue:', hashToIssue[hash]);
+    }
+  }
+}
+
+// Utility: Find new TODOs in a PR diff (for workflow usage)
+// This is a stub for future GitHub Actions integration
+async function findNewTodosInPR(prNumber) {
+  // This would use octokit.pulls.listFiles and compare with main branch
+  // For now, just a placeholder for workflow integration
+  return [];
+}
+
+// Optionally: Comment on PR if new TODOs are introduced (for workflow usage)
+async function commentOnPRIfNewTodos(prNumber, newTodos) {
+  if (newTodos.length === 0) return;
+  const body = `:warning: New TODOs/FIXMEs detected in this PR!\n\n` +
+    newTodos.map(t => `- ${t.text} (${t.file}:${t.line})`).join('\n');
+  await octokit.issues.createComment({
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    issue_number: prNumber,
+    body
+  });
+}
+
+// Utility: Append closed TODO/FIXME issues to CHANGELOG.md
+async function appendClosedTodosToChangelog() {
+  // Get recently closed issues with [AUTO] in the title and a TODO hash
+  const { data: issues } = await octokit.issues.listForRepo({
+    owner: REPO_OWNER,
+    repo: REPO_NAME,
+    state: 'closed',
+    per_page: 50,
+    sort: 'updated',
+    direction: 'desc'
+  });
+  const closedTodos = issues.filter(issue =>
+    issue.title.startsWith('[AUTO]') &&
+    /<!-- AUTO-TODO-HASH: [a-f0-9]{40} -->/.test(issue.body || '') &&
+    new Date(issue.closed_at) > new Date(Date.now() - 1000 * 60 * 60 * 24 * 2) // last 2 days
+  );
+  if (closedTodos.length === 0) return;
+  const changelogPath = path.join(path.dirname(new URL(import.meta.url).pathname), '../CHANGELOG.md');
+  let changelog = fs.readFileSync(changelogPath, 'utf8');
+  const today = new Date().toISOString().slice(0, 10);
+  let section = `\n### ✅ Resolved TODOs/FIXMEs (${today})\n`;
+  for (const issue of closedTodos) {
+    section += `- ${issue.title.replace('[AUTO] ', '')} (closed #${issue.number})\n`;
+  }
+  // Insert after the first heading (after the first line)
+  const lines = changelog.split('\n');
+  lines.splice(1, 0, section);
+  fs.writeFileSync(changelogPath, lines.join('\n'), 'utf8');
+  console.log('Appended closed TODOs to CHANGELOG.md');
+}
+
+// Call this at the end of the script
 (async () => {
   await createTodoIssues();
+  await closeResolvedTodoIssues();
   await createParserErrorIssues();
+  await appendClosedTodosToChangelog();
 })();
