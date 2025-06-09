@@ -162,3 +162,11 @@ node scripts/analyze-character.js
 ---
 
 *This decision and rationale were reviewed as of June 2025. See also: MCP integration and repository maintenance notes.*
+
+## Release Milestones
+
+- **v0.5.0 (June 2025):** MCP Synaptic integration, proxy structure finalized, major repository cleanup, and documentation overhaul. This tag marks a stable foundation for future development.
+
+---
+
+*For a full list of tags and releases, see the repository tags or CHANGELOG.md.*
