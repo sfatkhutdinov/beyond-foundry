@@ -218,11 +218,11 @@ export class CharacterImportDialog extends Application {
       try {
         const result = await api.getCharacter(char.id);
         if (result && result.success && result.character) {
-          char.character = result.character;
+          char.character = result.character as DDBCharacter;
           char.loaded = true;
           delete char.error;
         } else {
-          char.error = result?.error || 'Failed to load character';
+          char.error = typeof result?.error === 'string' ? result.error : 'Failed to load character';
           char.loaded = false;
         }
       } catch (error) {
@@ -292,7 +292,7 @@ export class CharacterImportDialog extends Application {
       importSpells,
       importItems,
       updateExisting,
-      spellPreparationMode: spellPreparationMode as any,
+      spellPreparationMode: spellPreparationMode as string,
       createCompendiumItems: false, // Default to false for now
     };
   }
@@ -385,7 +385,7 @@ export class CharacterImportDialog extends Application {
   /**
    * Get template data
    */
-  override getData(): any {
+  override getData(): Record<string, unknown> {
     const pendingCharactersList = Array.from(this.pendingCharacters.values());
     const readyToImport = pendingCharactersList.filter(char => char.loaded && char.character);
 
