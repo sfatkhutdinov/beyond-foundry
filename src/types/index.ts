@@ -151,6 +151,7 @@ export interface DDBItem {
   };
   quantity: number;
   equipped: boolean;
+  isAttuned?: boolean; // Added for attunement logic
   [key: string]: unknown;
 }
 
