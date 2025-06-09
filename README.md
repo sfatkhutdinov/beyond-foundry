@@ -1,5 +1,7 @@
 # Beyond Foundry
 
+> **Note:** This is the **main and canonical repository** for Beyond Foundry. All development, issues, and releases are tracked here.
+
 Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond content. This README provides an overview of the project, its purpose, development status, and setup instructions.
 
 ## 🚦 Development Status (June 2025)

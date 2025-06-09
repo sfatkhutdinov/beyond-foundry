@@ -1,5 +1,7 @@
 # Beyond Foundry - Project Organization
 
+> **Note:** This is the main and canonical repository for Beyond Foundry. All development, issue tracking, and releases are centralized here.
+
 ## Directory Structure
 
 This document explains the organized directory structure of the Beyond Foundry project.

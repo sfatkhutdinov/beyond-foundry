@@ -1,5 +1,7 @@
 # Contributing Guide
 
+> **Note:** This is the main repository for Beyond Foundry. Please submit all issues and pull requests here.
+
 ## Code Standards
 - TypeScript required
 - Modular, documented code
