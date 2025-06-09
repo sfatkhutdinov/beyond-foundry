@@ -140,3 +140,25 @@ node scripts/analyze-character.js
 - `.gitignore` excludes generated files
 - Only source code and documentation tracked
 - Analysis results can be optionally tracked
+
+# Project Structure and Proxy Server Decision
+
+## Current Structure
+- The `beyond-foundry-proxy` (proxy server) is included within the main Beyond Foundry repository.
+- This approach is chosen for early development efficiency, unified versioning, and easier local testing.
+- The proxy handles authentication and API requests to D&D Beyond, acting as a secure intermediary for the main module.
+
+## Rationale for Single-Repo Approach
+- **Simplicity:** Easier to coordinate changes between the main module and proxy.
+- **Unified Development:** Streamlined development, testing, and deployment.
+- **Documentation and Versioning:** All related code and docs are versioned together.
+- **Refactoring Option:** If the proxy grows in complexity or needs to be reused, it can be split into a separate repository later with minimal disruption.
+
+## Best Practices Going Forward
+- Keep proxy and main module code clearly separated within the repo (e.g., `beyond-foundry-proxy/` directory).
+- Document any cross-module dependencies.
+- Revisit the decision if the proxy is needed as a standalone service or for other projects.
+
+---
+
+*This decision and rationale were reviewed as of June 2025. See also: MCP integration and repository maintenance notes.*
