@@ -84,6 +84,23 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **[UI Components](docs/ui.md)** - Import and authentication dialogs
 - **[Docker Setup](docs/DOCKER_SETUP.md)** - Running with Docker and ddb-proxy
 
+## Documentation Index
+
+- [Project Organization](docs/project-organization.md): Directory structure, proxy rationale, and release milestones
+- [Architecture](docs/architecture.md)
+- [Authentication](docs/authentication.md)
+- [Development Status](docs/development-status.md)
+- [FOUNDRY_INTEGRATION_GUIDE](docs/FOUNDRY_INTEGRATION_GUIDE.md)
+- [FOUNDRY_TESTING](docs/FOUNDRY_TESTING.md)
+- [Legal](docs/legal.md)
+- [Parsers](docs/parsers.md)
+- [Quick Reference](docs/quick-reference.md)
+- [Roadmap](docs/roadmap.md)
+- [Setup](docs/setup.md)
+- [SPELL_ENHANCEMENT_COMPLETE](docs/SPELL_ENHANCEMENT_COMPLETE.md)
+- [Testing](docs/testing.md)
+- [UI](docs/ui.md)
+
 ## ✨ Canonical Spell Compendium Linking & Bulk Import
 
 Beyond Foundry now uses a canonical compendium for all spells:
