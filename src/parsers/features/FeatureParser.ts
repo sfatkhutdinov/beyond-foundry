@@ -273,12 +273,17 @@ export class FeatureParser {
    */
   static parseDescription(definition: DDBFeature['definition']): string {
     let description = definition.description || definition.snippet || '';
-    
     // Clean up HTML and formatting
+    // Remove all HTML tags
     description = description.replace(/<[^>]*>/g, '');
-    description = description.replace(/\n\s*\n/g, '\n');
-    
-    return description.trim();
+    // Remove script/style tags and their content
+    description = description.replace(/<script[\s\S]*?<\/script>/gi, '');
+    description = description.replace(/<style[\s\S]*?<\/style>/gi, '');
+    // Remove common dangerous characters
+    description = description.replace(/[<>"'`]/g, '');
+    // Optionally, trim whitespace
+    description = description.trim();
+    return description;
   }
 
   /**
