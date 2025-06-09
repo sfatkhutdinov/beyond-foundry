@@ -36,6 +36,7 @@
   "devDependencies": {
     "@eslint/js": "^9.15.0",
     "@league-of-foundry-developers/foundry-vtt-types": "^12.331.5",
+    "@octokit/rest": "^22.0.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/ajv": "^0.0.5",
@@ -44,6 +45,7 @@
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "archiver": "^7.0.1",
     "eslint": "^9.28.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.4.2",
