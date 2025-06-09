@@ -5,14 +5,49 @@ import type { DDBClass } from '../types/index.js';
 
 export class ClassParser {
   /**
-   * Parse a D&D Beyond class into FoundryVTT class data
+   * Parse a D&D Beyond class into FoundryVTT class data (full schema mapping)
    * @param ddbClass - The D&D Beyond class data
-   * @returns Parsed FoundryVTT class data (TODO)
+   * @returns Parsed FoundryVTT class data
    */
-  public static parseClass(_ddbClass: DDBClass): unknown {
-    void _ddbClass;
-    // TODO: Implement class parsing logic
-    throw new Error('ClassParser.parseClass not implemented');
+  public static parseClass(ddbClass: DDBClass): Record<string, unknown> {
+    if (!ddbClass || !ddbClass.definition) throw new Error('Invalid DDBClass input');
+    // Map DDBClass fields to FoundryVTT class item schema
+    const foundryClass: Record<string, unknown> = {
+      name: ddbClass.definition.name,
+      type: 'class',
+      img: '', // TODO: Add class icon if available from DDB
+      system: {
+        description: {
+          value: '', // TODO: DDB does not provide a full class description directly
+        },
+        source: '', // TODO: Fill from DDB if available
+        identifier: '', // TODO: Fill from DDB if available
+        hitDice: ddbClass.definition.hitDie,
+        levels: ddbClass.level,
+        advancement: [], // TODO: Advanced progression, fill if available
+        spellcasting: {}, // TODO: Fill if spellcasting class (see ddbClass.definition.spellRules?)
+        prerequisites: [], // TODO: Fill if available (e.g., ability score requirements)
+        subclass: ddbClass.subclassDefinition?.name || '',
+        features: (ddbClass.classFeatures || []).map(f => ({
+          name: f.name,
+          description: f.description,
+          level: f.requiredLevel,
+        })),
+        subclassFeatures: (ddbClass.subclassDefinition?.classFeatures || []).map(f => ({
+          name: f.name,
+          description: f.description,
+          level: f.requiredLevel,
+        })),
+      },
+      flags: {
+        'beyond-foundry': {
+          ddbId: ddbClass.id,
+        },
+      },
+      _id: undefined, // Let Foundry assign
+    };
+    // TODO: Add more system fields as needed for full FoundryVTT compatibility
+    return foundryClass;
   }
 
   /**
