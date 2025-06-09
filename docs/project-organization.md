@@ -1,5 +1,7 @@
 # Beyond Foundry - Project Organization
 
+> **Note:** This is the main and canonical repository for Beyond Foundry. All development, issue tracking, and releases are centralized here.
+
 ## Directory Structure
 
 This document explains the organized directory structure of the Beyond Foundry project.
@@ -21,30 +23,10 @@ templates/             # Handlebars templates for UI
 lang/                  # Localization files
 ```
 
-### Development & Testing
-
-```
-tests/                 # All test files
-├── test-*.js         # JavaScript tests
-├── test-*.cjs        # CommonJS tests
-└── validate-*.sh     # Validation scripts
-
-scripts/               # Utility scripts
-├── analyze-*.js      # Character analysis tools
-├── regenerate-*.js   # Data regeneration utilities
-└── validate-*.js     # Validation utilities
-
-tools/                 # Build configuration
-└── rollup.config.js  # Rollup build config
-
 debug/                 # Debug files and outputs
 ├── debug-*.js        # Debug scripts
 └── debug-*.json      # Debug data
-```
 
-### Documentation & Analysis
-
-```
 docs/                  # Project documentation
 ├── *.md              # Core documentation
 └── development/       # Development-specific docs
@@ -60,7 +42,6 @@ reference/             # External reference code
 ├── ddb-importer/     # DDB Importer reference
 ├── ddb-proxy/        # DDB Proxy reference
 └── foundryvtt-dnd5e/ # FoundryVTT D&D 5e reference
-```
 
 ## File Naming Conventions
 

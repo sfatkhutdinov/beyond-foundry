@@ -19,7 +19,7 @@ services:
     image: ghcr.io/mrprimate/ddb-proxy:latest
     restart: "unless-stopped"
     ports:
-      - "${DDB_PROXY_PORT:-3100}:3000"  # DDB Proxy port mapping
+      - "${DDB_PROXY_PORT:-4000}:4000"  # DDB Proxy port mapping
 
 networks:
   default:

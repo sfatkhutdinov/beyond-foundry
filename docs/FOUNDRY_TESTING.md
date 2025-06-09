@@ -164,6 +164,25 @@ This guide walks through testing the Beyond Foundry module in a live FoundryVTT 
    🎉 Full system test passed!
    ```
 
+---
+
+## Endpoint Test Coverage
+
+Beyond Foundry provides robust endpoint test coverage for all major API routes. Each endpoint is tested for:
+- Successful import with valid data
+- Error handling for invalid or missing data
+- Authentication and authorization checks
+- Data integrity and schema compliance
+
+### Tested Endpoints
+- `/import/character` (character import)
+- `/import/spell` (spell import)
+- `/import/item` (equipment/item import)
+- `/import/monster` (monster import)
+- `/import/bulk` (bulk import)
+
+See [testing.md](testing.md) for detailed endpoint test cases, usage examples, and troubleshooting tips.
+
 ## Troubleshooting
 
 ### Module Won't Load

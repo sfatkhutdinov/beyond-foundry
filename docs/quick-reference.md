@@ -2,7 +2,7 @@
 
 ## URLs
 - Proxy (external): http://localhost:4000
-- Proxy (internal): http://ddb-proxy:3000
+- Proxy (internal): http://ddb-proxy:4000
 
 ## Commands
 - `npm run build`

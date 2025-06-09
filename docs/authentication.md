@@ -5,7 +5,7 @@ Beyond Foundry uses a proxy server (like ddb-proxy) to authenticate D&D Beyond u
 ## Options:
 - Cobalt cookie via settings
 - Custom proxy backend
-- Docker network internal access (ddb-proxy:3000)
+- Docker network internal access (ddb-proxy:4000)
 
 ## Troubleshooting
 - **Invalid Token:** Ensure your CobaltSession cookie is current and copied correctly from D&D Beyond
