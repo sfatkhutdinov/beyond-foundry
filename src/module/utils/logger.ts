@@ -6,7 +6,11 @@ import { MODULE_ID } from '../constants.js';
 export class Logger {
   private static moduleId = MODULE_ID;
 
-  static log(message: string, level: 'info' | 'warn' | 'error' | 'debug' = 'info', data?: unknown): void {
+  static log(
+    message: string,
+    level: 'info' | 'warn' | 'error' | 'debug' = 'info',
+    data?: unknown
+  ): void {
     const prefix = `${this.moduleId} |`;
 
     switch (level) {

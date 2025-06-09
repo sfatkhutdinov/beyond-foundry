@@ -7,15 +7,23 @@ export class FeatureParser {
    * Utility: Convert array of objects with 'definition' to DDBFeature[]
    */
   private static toDDBFeatureArray(arr: Record<string, unknown>[]): DDBFeature[] {
-    return (arr || []).map((obj) => {
-      if (obj && typeof obj === 'object' && 'definition' in obj && obj.definition && typeof obj.definition === 'object') {
-        return {
-          ...obj,
-          id: (obj.definition as { id?: number }).id,
-        } as DDBFeature;
-      }
-      return undefined;
-    }).filter(Boolean) as DDBFeature[];
+    return (arr || [])
+      .map(obj => {
+        if (
+          obj &&
+          typeof obj === 'object' &&
+          'definition' in obj &&
+          obj.definition &&
+          typeof obj.definition === 'object'
+        ) {
+          return {
+            ...obj,
+            id: (obj.definition as { id?: number }).id,
+          } as DDBFeature;
+        }
+        return undefined;
+      })
+      .filter(Boolean) as DDBFeature[];
   }
 
   /**
@@ -26,19 +34,33 @@ export class FeatureParser {
       const features: FoundryItem[] = [];
       // Parse class features
       if (Array.isArray(ddbCharacter.classFeatures) && ddbCharacter.classFeatures.length > 0) {
-        const classFeatures = FeatureParser.toDDBFeatureArray(ddbCharacter.classFeatures as Record<string, unknown>[]);
+        const classFeatures = FeatureParser.toDDBFeatureArray(
+          ddbCharacter.classFeatures as Record<string, unknown>[]
+        );
         features.push(...(await this.parseClassFeatures(classFeatures)));
       }
-      if (Array.isArray(ddbCharacter.race?.racialTraits) && ddbCharacter.race.racialTraits.length > 0) {
-        const raceFeatures = FeatureParser.toDDBFeatureArray(ddbCharacter.race.racialTraits as Record<string, unknown>[]);
+      if (
+        Array.isArray(ddbCharacter.race?.racialTraits) &&
+        ddbCharacter.race.racialTraits.length > 0
+      ) {
+        const raceFeatures = FeatureParser.toDDBFeatureArray(
+          ddbCharacter.race.racialTraits as Record<string, unknown>[]
+        );
         features.push(...(await this.parseRacialFeatures(raceFeatures)));
       }
       if (Array.isArray(ddbCharacter.feats) && ddbCharacter.feats.length > 0) {
-        const feats = FeatureParser.toDDBFeatureArray(ddbCharacter.feats as Record<string, unknown>[]);
+        const feats = FeatureParser.toDDBFeatureArray(
+          ddbCharacter.feats as Record<string, unknown>[]
+        );
         features.push(...(await this.parseFeats(feats)));
       }
-      if (Array.isArray(ddbCharacter.background?.customBackground?.featuresBackground) && ddbCharacter.background.customBackground.featuresBackground.length > 0) {
-        const backgroundFeatures = FeatureParser.toDDBFeatureArray(ddbCharacter.background.customBackground.featuresBackground as Record<string, unknown>[]);
+      if (
+        Array.isArray(ddbCharacter.background?.customBackground?.featuresBackground) &&
+        ddbCharacter.background.customBackground.featuresBackground.length > 0
+      ) {
+        const backgroundFeatures = FeatureParser.toDDBFeatureArray(
+          ddbCharacter.background.customBackground.featuresBackground as Record<string, unknown>[]
+        );
         features.push(...(await this.parseBackgroundFeatures(backgroundFeatures)));
       }
       Logger.info(`Parsed ${features.length} features from character`);
@@ -62,7 +84,9 @@ export class FeatureParser {
           features.push(foundryFeature);
         }
       } catch (error) {
-        Logger.warn(`Failed to parse class feature ${feature.definition?.name}: ${getErrorMessage(error)}`);
+        Logger.warn(
+          `Failed to parse class feature ${feature.definition?.name}: ${getErrorMessage(error)}`
+        );
       }
     }
 
@@ -82,7 +106,9 @@ export class FeatureParser {
           features.push(foundryFeature);
         }
       } catch (error) {
-        Logger.warn(`Failed to parse racial trait ${trait.definition?.name}: ${getErrorMessage(error)}`);
+        Logger.warn(
+          `Failed to parse racial trait ${trait.definition?.name}: ${getErrorMessage(error)}`
+        );
       }
     }
 
@@ -122,7 +148,9 @@ export class FeatureParser {
           features.push(foundryFeature);
         }
       } catch (error) {
-        Logger.warn(`Failed to parse background feature ${feature.definition?.name}: ${getErrorMessage(error)}`);
+        Logger.warn(
+          `Failed to parse background feature ${feature.definition?.name}: ${getErrorMessage(error)}`
+        );
       }
     }
 
@@ -141,7 +169,9 @@ export class FeatureParser {
       }
       const definition = ddbFeature.definition;
       // Ensure a unique id for the FoundryItem (required by FoundryFeature)
-      const id = definition.id ? String(definition.id) : `${type}-${Math.random().toString(36).substr(2, 9)}`;
+      const id = definition.id
+        ? String(definition.id)
+        : `${type}-${Math.random().toString(36).substr(2, 9)}`;
       return {
         id,
         name: definition.name || 'Unknown Feature',
@@ -150,19 +180,24 @@ export class FeatureParser {
         system: {
           type: {
             value: type,
-            subtype: this.getFeatureSubtype(ddbFeature, type)
+            subtype: this.getFeatureSubtype(ddbFeature, type),
           },
           description: {
             value: this.parseDescription(definition),
             chat: this.parseChatDescription(definition),
-            unidentified: ''
+            unidentified: '',
           },
           source: this.parseSource(definition),
           activation: this.parseActivation(definition) ?? { type: '', cost: 0, condition: '' },
           duration: this.parseDuration(definition) ?? { value: null, units: '' },
           target: this.parseTarget(definition) ?? { value: null, width: null, units: '', type: '' },
           range: this.parseRange(definition) ?? { value: null, long: null, units: '' },
-          uses: this.parseUses(definition, ddbFeature) ?? { value: null, max: '', per: null, recovery: '' },
+          uses: this.parseUses(definition, ddbFeature) ?? {
+            value: null,
+            max: '',
+            per: null,
+            recovery: '',
+          },
           consume: { type: '', target: '', amount: 0 },
           ability: this.parseAbility(definition),
           actionType: this.parseActionType(definition),
@@ -170,7 +205,7 @@ export class FeatureParser {
           chatFlavor: definition.snippet || '',
           critical: {
             threshold: null,
-            damage: ''
+            damage: '',
           },
           damage: this.parseDamage(definition) ?? { parts: [], versatile: '' },
           formula: this.parseFormula(definition),
@@ -188,8 +223,8 @@ export class FeatureParser {
             levelScale: ddbFeature.levelScale || null,
             classId: ddbFeature.classId || null,
             componentId: ddbFeature.componentId || null,
-            componentTypeId: ddbFeature.componentTypeId || null
-          }
+            componentTypeId: ddbFeature.componentTypeId || null,
+          },
         },
         toObject() {
           // Return a plain object representation for FoundryItemData
@@ -199,9 +234,9 @@ export class FeatureParser {
             type: this.type,
             img: this.img || '',
             system: this.system,
-            flags: this.flags || {}
+            flags: this.flags || {},
           };
-        }
+        },
       };
     } catch (error) {
       Logger.error(`Feature parsing error: ${getErrorMessage(error)}`);
@@ -214,7 +249,9 @@ export class FeatureParser {
    * TODO: Add support for batch feature enhancements and error aggregation
    */
   static parseFeatureArray(features: DDBFeature[], type: string): FoundryItem[] {
-    return features.map((feature) => this.parseFeature(feature, type)).filter(Boolean) as FoundryItem[];
+    return features
+      .map(feature => this.parseFeature(feature, type))
+      .filter(Boolean) as FoundryItem[];
   }
 
   /**
@@ -249,10 +286,10 @@ export class FeatureParser {
    */
   static getFeatureIcon(type: string): string {
     const iconMap: Record<string, string> = {
-      'class': 'icons/skills/melee/blade-tips-triple-steel.webp',
-      'race': 'icons/environment/people/group.webp',
-      'feat': 'icons/skills/trades/academics-study-reading.webp',
-      'background': 'icons/skills/social/diplomacy-handshake.webp'
+      class: 'icons/skills/melee/blade-tips-triple-steel.webp',
+      race: 'icons/environment/people/group.webp',
+      feat: 'icons/skills/trades/academics-study-reading.webp',
+      background: 'icons/skills/social/diplomacy-handshake.webp',
     };
 
     return iconMap[type] || 'icons/skills/trades/academics-study-reading.webp';
@@ -303,12 +340,14 @@ export class FeatureParser {
   /**
    * Parse activation requirements
    */
-  static parseActivation(definition: DDBFeature['definition']): FoundryItemSystemData['activation'] | undefined {
+  static parseActivation(
+    definition: DDBFeature['definition']
+  ): FoundryItemSystemData['activation'] | undefined {
     if (!definition.activation) return undefined;
     return {
       type: this.getActivationType(definition),
       cost: this.getActivationCost(definition),
-      condition: (definition as { activationCondition?: string }).activationCondition || ''
+      condition: (definition as { activationCondition?: string }).activationCondition || '',
     };
   }
 
@@ -323,7 +362,7 @@ export class FeatureParser {
         3: 'reaction',
         4: 'minute',
         5: 'hour',
-        6: 'day'
+        6: 'day',
       };
       return typeMap[definition.activation.activationType] || 'none';
     }
@@ -340,12 +379,14 @@ export class FeatureParser {
   /**
    * Parse duration
    */
-  static parseDuration(definition: DDBFeature['definition']): (FoundryItemSystemData['duration'] & { concentration?: boolean }) | undefined {
+  static parseDuration(
+    definition: DDBFeature['definition']
+  ): (FoundryItemSystemData['duration'] & { concentration?: boolean }) | undefined {
     if (!definition.duration) return undefined;
     return {
       value: definition.duration.durationInterval ?? null,
       units: this.getDurationUnits(definition.duration.durationType),
-      concentration: definition.concentration || false
+      concentration: definition.concentration || false,
     };
   }
 
@@ -360,7 +401,7 @@ export class FeatureParser {
       3: 'round',
       4: 'minute',
       5: 'hour',
-      6: 'day'
+      6: 'day',
     };
     return unitMap[durationType] || 'inst';
   }
@@ -368,13 +409,15 @@ export class FeatureParser {
   /**
    * Parse target information
    */
-  static parseTarget(definition: DDBFeature['definition']): FoundryItemSystemData['target'] | undefined {
+  static parseTarget(
+    definition: DDBFeature['definition']
+  ): FoundryItemSystemData['target'] | undefined {
     if (!definition.range) return undefined;
     return {
       value: definition.range.aoeType ?? null,
       width: null,
       units: '',
-      type: this.getTargetType(definition)
+      type: this.getTargetType(definition),
     };
   }
 
@@ -387,7 +430,7 @@ export class FeatureParser {
         1: 'self',
         2: 'creature',
         3: 'ally',
-        4: 'enemy'
+        4: 'enemy',
       };
       return typeMap[definition.range.aoeType] || 'self';
     }
@@ -397,19 +440,24 @@ export class FeatureParser {
   /**
    * Parse range information
    */
-  static parseRange(definition: DDBFeature['definition']): FoundryItemSystemData['range'] | undefined {
+  static parseRange(
+    definition: DDBFeature['definition']
+  ): FoundryItemSystemData['range'] | undefined {
     if (!definition.range) return undefined;
     return {
       value: definition.range.range ?? null,
       long: definition.range.longRange ?? null,
-      units: definition.range.origin === 1 ? 'self' : 'ft'
+      units: definition.range.origin === 1 ? 'self' : 'ft',
     };
   }
 
   /**
    * Parse uses/resources
    */
-  static parseUses(definition: DDBFeature['definition'], _ddbFeature: DDBFeature): FoundryItemSystemData['uses'] | undefined {
+  static parseUses(
+    definition: DDBFeature['definition'],
+    _ddbFeature: DDBFeature
+  ): FoundryItemSystemData['uses'] | undefined {
     // Remove unused parameter warning
     void _ddbFeature;
     const limitedUse = definition.limitedUse;
@@ -420,7 +468,7 @@ export class FeatureParser {
       value: limitedUse.maxUses ?? null,
       max: limitedUse.maxUses ?? '',
       per: this.getUsePeriod(limitedUse.resetType),
-      recovery: ''
+      recovery: '',
     };
   }
 
@@ -430,10 +478,10 @@ export class FeatureParser {
   static getUsePeriod(resetType?: number): string {
     if (resetType === undefined) return '';
     const periodMap: Record<number, string> = {
-      1: 'sr',   // Short rest
-      2: 'lr',   // Long rest
-      3: 'day',  // Daily
-      4: 'charges' // Charges
+      1: 'sr', // Short rest
+      2: 'lr', // Long rest
+      3: 'day', // Daily
+      4: 'charges', // Charges
     };
     return periodMap[resetType] || '';
   }
@@ -445,7 +493,7 @@ export class FeatureParser {
     return {
       type: '',
       target: '',
-      amount: 0
+      amount: 0,
     };
   }
 
@@ -453,7 +501,9 @@ export class FeatureParser {
    * Parse ability modifier
    */
   static parseAbility(definition: DDBFeature['definition']): string | null {
-    return definition.spellCastingAbilityId ? this.getAbilityFromId(definition.spellCastingAbilityId) : null;
+    return definition.spellCastingAbilityId
+      ? this.getAbilityFromId(definition.spellCastingAbilityId)
+      : null;
   }
 
   /**
@@ -467,7 +517,7 @@ export class FeatureParser {
       3: 'con',
       4: 'int',
       5: 'wis',
-      6: 'cha'
+      6: 'cha',
     };
     return abilityMap[abilityId] || 'str';
   }
@@ -508,21 +558,26 @@ export class FeatureParser {
     }
     return {
       parts,
-      versatile: ''
+      versatile: '',
     };
   }
 
   /**
    * Build dice string from damage data
    */
-  static buildDiceString(damage: { diceCount?: number; diceValue?: number; fixedValue?: number }): string {
+  static buildDiceString(damage: {
+    diceCount?: number;
+    diceValue?: number;
+    fixedValue?: number;
+  }): string {
     let diceString = '';
     if (damage.diceCount && damage.diceValue) {
       diceString += `${damage.diceCount}d${damage.diceValue}`;
     }
     if (damage.fixedValue !== undefined) {
       if (diceString) {
-        diceString += damage.fixedValue >= 0 ? ` + ${damage.fixedValue}` : ` - ${Math.abs(damage.fixedValue)}`;
+        diceString +=
+          damage.fixedValue >= 0 ? ` + ${damage.fixedValue}` : ` - ${Math.abs(damage.fixedValue)}`;
       } else {
         diceString = String(damage.fixedValue);
       }
@@ -548,7 +603,7 @@ export class FeatureParser {
       10: 'psychic',
       11: 'radiant',
       12: 'slashing',
-      13: 'thunder'
+      13: 'thunder',
     };
     return damageMap[damageTypeId] || 'bludgeoning';
   }
@@ -568,13 +623,13 @@ export class FeatureParser {
       return {
         ability: '',
         dc: null,
-        scaling: 'spell'
+        scaling: 'spell',
       };
     }
     return {
       ability: this.getAbilityFromId(definition.saveType),
       dc: definition.saveDc ?? null,
-      scaling: 'spell'
+      scaling: 'spell',
     };
   }
 
@@ -596,7 +651,7 @@ export class FeatureParser {
     // Always return a valid recharge object, never undefined
     return {
       value: null,
-      charged: true
+      charged: true,
     };
   }
 

@@ -5,7 +5,6 @@ import { Logger, getErrorMessage } from '../../module/utils/logger.ts';
  * Parser for D&D Beyond items and equipment
  */
 export class ItemParser {
-  
   /**
    * Parse an array of D&D Beyond items to Foundry format
    */
@@ -58,13 +57,12 @@ export class ItemParser {
             ddbId: ddbItem.id,
             sourceId: ddbItem.definition.id,
             origin: 'D&D Beyond',
-            itemType: ddbItem.definition.type
-          }
-        }
+            itemType: ddbItem.definition.type,
+          },
+        },
       };
 
       return foundryItem;
-
     } catch (error) {
       Logger.error(`Item parsing error: ${getErrorMessage(error)}`);
       return null;
@@ -76,7 +74,7 @@ export class ItemParser {
    */
   private static getFoundryItemType(ddbItem: DDBItem): string {
     const ddbType = ddbItem.definition?.type?.toLowerCase();
-    
+
     switch (ddbType) {
       case 'weapon':
         return 'weapon';
@@ -115,19 +113,19 @@ export class ItemParser {
       description: {
         value: ddbItem.definition?.description || '',
         chat: '',
-        unidentified: ''
+        unidentified: '',
       },
       source: ddbItem.definition?.sourceBook || '',
       quantity: ddbItem.quantity || 1,
       weight: ddbItem.definition?.weight || 0,
       price: {
         value: (ddbItem.definition?.cost?.quantity || 0) / 100, // DDB stores in copper
-        denomination: 'gp'
+        denomination: 'gp',
       },
       attunement: this.parseAttunement(ddbItem),
       equipped: ddbItem.equipped || false,
       rarity: this.parseRarity(ddbItem),
-      identified: true
+      identified: true,
     };
 
     switch (itemType) {
@@ -152,13 +150,13 @@ export class ItemParser {
     return {
       type: {
         value: ItemParser.getWeaponType(weaponData),
-        baseItem: weaponData?.baseItem || ''
+        baseItem: weaponData?.baseItem || '',
       },
       properties: ItemParser.parseWeaponProperties(weaponData),
       proficient: true, // Assume proficient for now
       damage: ItemParser.parseWeaponDamage(weaponData),
       range: ItemParser.parseWeaponRange(weaponData),
-      actionType: weaponData?.attackType === 1 ? 'mwak' : 'rwak'
+      actionType: weaponData?.attackType === 1 ? 'mwak' : 'rwak',
     };
   }
 
@@ -170,10 +168,10 @@ export class ItemParser {
     return {
       type: {
         value: ItemParser.getEquipmentType(equipData),
-        baseItem: equipData?.baseItem || ''
+        baseItem: equipData?.baseItem || '',
       },
       armor: ItemParser.parseArmorData(equipData),
-      proficient: true
+      proficient: true,
     };
   }
 
@@ -184,10 +182,10 @@ export class ItemParser {
     return {
       type: {
         value: 'tool',
-        baseItem: ''
+        baseItem: '',
       },
       proficient: 0, // 0 = not proficient, 1 = proficient, 2 = expert
-      ability: 'int' // Default ability
+      ability: 'int', // Default ability
     };
   }
 
@@ -198,14 +196,14 @@ export class ItemParser {
     return {
       type: {
         value: ItemParser.getConsumableType(ddbItem),
-        subtype: ''
+        subtype: '',
       },
       uses: {
         value: ddbItem.quantity || 1,
         max: ddbItem.quantity || 1,
         per: null,
-        autoDestroy: true
-      }
+        autoDestroy: true,
+      },
     };
   }
 
@@ -225,7 +223,10 @@ export class ItemParser {
   /**
    * TODO: Parse magic item attunement and advanced attunement states
    */
-  private static parseAdvancedAttunement(_ddbItem: DDBItem): number { void _ddbItem; return 0; }
+  private static parseAdvancedAttunement(_ddbItem: DDBItem): number {
+    void _ddbItem;
+    return 0;
+  }
 
   /**
    * Parse container relationships (bags, packs, parent-child)
@@ -247,50 +248,93 @@ export class ItemParser {
   private static parseHomebrewFlags(ddbItem: DDBItem): Record<string, unknown> {
     // DDB items may have isHomebrew or similar flags
     // Use type-safe access (isHomebrew is not always present)
-    return { isHomebrew: Boolean(ddbItem.definition && 'isHomebrew' in ddbItem.definition ? (ddbItem.definition as { isHomebrew?: boolean }).isHomebrew : false) };
+    return {
+      isHomebrew: Boolean(
+        ddbItem.definition && 'isHomebrew' in ddbItem.definition
+          ? (ddbItem.definition as { isHomebrew?: boolean }).isHomebrew
+          : false
+      ),
+    };
   }
 
   /**
    * TODO: Enhanced property parsing (weapon/armor/tool/consumable types, filterType, etc.)
    */
-  private static parseEnhancedProperties(_ddbItem: DDBItem): Record<string, unknown> { void _ddbItem; return {}; }
+  private static parseEnhancedProperties(_ddbItem: DDBItem): Record<string, unknown> {
+    void _ddbItem;
+    return {};
+  }
 
   /**
    * TODO: Add support for weight multipliers, default icons, and additional Foundry flags
    */
-  private static parseAdditionalSystemFields(_ddbItem: DDBItem): Record<string, unknown> { void _ddbItem; return {}; }
+  private static parseAdditionalSystemFields(_ddbItem: DDBItem): Record<string, unknown> {
+    void _ddbItem;
+    return {};
+  }
 
   // Helper methods for parsing specific data
   private static getItemImage(ddbItem: DDBItem): string {
-    return ddbItem.definition?.avatarUrl || 
-           ddbItem.definition?.largeAvatarUrl || 
-           'icons/svg/item-bag.svg';
+    return (
+      ddbItem.definition?.avatarUrl ||
+      ddbItem.definition?.largeAvatarUrl ||
+      'icons/svg/item-bag.svg'
+    );
   }
-  private static getWeaponType(_weaponData: unknown): string { void _weaponData; return 'simpleM'; }
-  private static parseWeaponProperties(_weaponData: unknown): Record<string, boolean> { void _weaponData; return {}; }
-  private static parseWeaponDamage(_weaponData: unknown): Record<string, unknown> { void _weaponData; return { parts: [], versatile: '' }; }
-  private static parseWeaponRange(_weaponData: unknown): Record<string, unknown> { void _weaponData; return { value: 5, long: null, units: 'ft' }; }
-  private static getEquipmentType(_equipData: unknown): string { void _equipData; return 'clothing'; }
-  private static parseArmorData(_equipData: unknown): Record<string, unknown> { void _equipData; return { type: 'clothing', value: 10, dex: null }; }
+  private static getWeaponType(_weaponData: unknown): string {
+    void _weaponData;
+    return 'simpleM';
+  }
+  private static parseWeaponProperties(_weaponData: unknown): Record<string, boolean> {
+    void _weaponData;
+    return {};
+  }
+  private static parseWeaponDamage(_weaponData: unknown): Record<string, unknown> {
+    void _weaponData;
+    return { parts: [], versatile: '' };
+  }
+  private static parseWeaponRange(_weaponData: unknown): Record<string, unknown> {
+    void _weaponData;
+    return { value: 5, long: null, units: 'ft' };
+  }
+  private static getEquipmentType(_equipData: unknown): string {
+    void _equipData;
+    return 'clothing';
+  }
+  private static parseArmorData(_equipData: unknown): Record<string, unknown> {
+    void _equipData;
+    return { type: 'clothing', value: 10, dex: null };
+  }
   private static getConsumableType(ddbItem: DDBItem): string {
     const type = ddbItem.definition?.type?.toLowerCase();
     switch (type) {
-      case 'potion': return 'potion';
-      case 'scroll': return 'scroll';
-      case 'ammunition': return 'ammo';
-      default: return 'trinket';
+      case 'potion':
+        return 'potion';
+      case 'scroll':
+        return 'scroll';
+      case 'ammunition':
+        return 'ammo';
+      default:
+        return 'trinket';
     }
   }
   private static parseRarity(ddbItem: DDBItem): string {
     const rarity = ddbItem.definition?.rarity?.toLowerCase();
     switch (rarity) {
-      case 'common': return 'common';
-      case 'uncommon': return 'uncommon';
-      case 'rare': return 'rare';
-      case 'very rare': return 'veryRare';
-      case 'legendary': return 'legendary';
-      case 'artifact': return 'artifact';
-      default: return 'common';
+      case 'common':
+        return 'common';
+      case 'uncommon':
+        return 'uncommon';
+      case 'rare':
+        return 'rare';
+      case 'very rare':
+        return 'veryRare';
+      case 'legendary':
+        return 'legendary';
+      case 'artifact':
+        return 'artifact';
+      default:
+        return 'common';
     }
   }
 }

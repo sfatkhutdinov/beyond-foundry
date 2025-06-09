@@ -20,7 +20,7 @@ export class FeatParser {
    * TODO: Add support for batch feat parsing and error aggregation
    */
   public static parseFeatArray(feats: DDBFeat[]): unknown[] {
-    return feats.map((feat) => this.parseFeat(feat));
+    return feats.map(feat => this.parseFeat(feat));
   }
 
   /**
