@@ -6,6 +6,7 @@ import type {
   ImportOptions,
   DDBSpell,
   FoundrySpell,
+  DDBItem,
 } from '../../types/index.js';
 import { getModuleSettings } from '../utils/settings.js';
 import { Logger, getErrorMessage } from '../utils/logger.js';
@@ -227,6 +228,11 @@ export class BeyondFoundryAPI {
       // Parse character data to FoundryVTT format
       const actorData = CharacterParser.parseCharacter(ddbCharacter);
 
+      // Remove inventory items from actorData.items (will be handled via compendium linking)
+      actorData.items = actorData.items.filter(
+        (item: any) => item.type !== 'weapon' && item.type !== 'equipment' && item.type !== 'loot' && item.type !== 'consumable' && item.type !== 'tool'
+      );
+
       // Check if character already exists
       const existingActor = game.actors?.find(
         actor => actor.getFlag('beyond-foundry', 'ddbCharacterId') === ddbCharacter.id
@@ -263,6 +269,17 @@ export class BeyondFoundryAPI {
       }
 
       const warnings: string[] = [];
+
+      // --- Canonical item compendium linking ---
+      if (importOptions.importItems !== false && ddbCharacter.inventory && ddbCharacter.inventory.length > 0) {
+        try {
+          const importedCount = await this.addItemsToActor(actor, ddbCharacter.inventory, importOptions);
+          Logger.info(`Linked/embedded ${importedCount} inventory items for character: ${actor.name}`);
+        } catch (itemError) {
+          Logger.warn(`Item import failed: ${getErrorMessage(itemError)}`);
+          warnings.push(`Item import failed: ${getErrorMessage(itemError)}`);
+        }
+      }
 
       // Import spells if the character has any
       if (importOptions.importSpells && ddbCharacter.spells) {
@@ -310,6 +327,61 @@ export class BeyondFoundryAPI {
         endpoint: 'importCharacter',
       };
     }
+  }
+
+  /**
+   * Add inventory items to actor, linking to compendium if available
+   */
+  private async addItemsToActor(
+    actor: Actor,
+    ddbItems: DDBItem[],
+    options: Partial<ImportOptions>
+  ): Promise<number> {
+    const compendiumName = options.itemCompendiumName || 'beyondfoundry.items';
+    const { ItemParser } = await import('../../parsers/items/ItemParser.js');
+    // Use 'as any' for Foundry dynamic API compatibility
+    const packs = (game as any).packs as any;
+    const pack = packs.get(compendiumName) as any;
+    const compendiumIndex: { [ddbId: number]: string } = {};
+    if (pack) {
+      await pack.getIndex();
+      for (const entry of pack.index) {
+        if (!entry._id) continue;
+        const doc = await pack.getDocument(entry._id);
+        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        if (typeof ddbId === 'number') compendiumIndex[ddbId] = entry._id;
+      }
+    }
+    let importedCount = 0;
+    for (const ddbItem of ddbItems) {
+      try {
+        let compendiumEntry: { name?: string; id?: string; type?: string } | null = null;
+        const compendiumId = pack && compendiumIndex[ddbItem.definition.id];
+        if (pack && compendiumId) {
+          const doc = await pack.getDocument(compendiumId);
+          compendiumEntry = doc as { name?: string; id?: string; type?: string };
+        }
+        if (compendiumEntry && compendiumEntry.name && compendiumEntry.id) {
+          await actor.createEmbeddedDocuments('Item', [{
+            name: compendiumEntry.name,
+            type: compendiumEntry.type || 'loot',
+            flags: { 'beyond-foundry': { ddbId: ddbItem.definition.id, compendiumId: compendiumEntry.id } },
+            compendium: compendiumName,
+            _id: compendiumEntry.id
+          }]);
+          Logger.debug(`Linked item from compendium: ${compendiumEntry.name}`);
+        } else {
+          const foundryItem = ItemParser.parseItem(ddbItem);
+          if (!foundryItem) continue;
+          await Item.create(foundryItem, { parent: actor });
+          Logger.debug(`Embedded item: ${foundryItem.name}`);
+        }
+        importedCount++;
+      } catch (itemError) {
+        Logger.warn(`Failed to import item ${ddbItem.definition?.name}: ${getErrorMessage(itemError)}`);
+      }
+    }
+    return importedCount;
   }
 
   /**
@@ -638,134 +710,16 @@ export class BeyondFoundryAPI {
     // Explain character testing
     Logger.info('\n💡 Character Testing:');
     Logger.info('Character list is not available through ddb-proxy.');
-    Logger.info('To test character import:');
+    Logger.info('To test character fetching:');
     Logger.info('1. Get character ID from D&D Beyond URL: dndbeyond.com/characters/{ID}');
-    Logger.info(
-      '2. Use: game.modules.get("beyond-foundry").api.quickTest("cobalt-token", "character-id")'
-    );
+    Logger.info('2. Use getCharacter(characterId) to fetch character data');
+    Logger.info('3. Use importCharacter(characterId) to import character to Foundry');
 
-    Logger.info('Connection test complete');
-  }
-
-  /**
-   * Quick authentication and character test
-   * @param cobaltToken - Your D&D Beyond CobaltSession cookie value
-   * @param characterId - Optional specific character ID to test with
-   */
-  public async quickTest(cobaltToken: string, characterId?: string): Promise<void> {
-    Logger.info('Running quick authentication test...');
-
-    try {
-      // Test authentication
-      const authResult = await this.authenticate(cobaltToken);
-      if (!authResult.success) {
-        ui.notifications.error(`Authentication failed: ${authResult.message}`);
-        return;
-      }
-
-      ui.notifications.info('✅ Authentication successful!');
-      Logger.info(`✅ Authenticated as user ID: ${authResult.userId}`);
-
-      // Test character retrieval if ID provided
-      if (characterId) {
-        Logger.info(`Testing character retrieval for ID: ${characterId}...`);
-        const character = await this.getCharacter(characterId);
-
-        if (character) {
-          ui.notifications.info(`✅ Character found: ${character.name}`);
-          Logger.info(`✅ Character Details:`);
-          Logger.info(`  - Name: ${character.name}`);
-          Logger.info(`  - Race: ${character.race?.fullName || 'Unknown'}`);
-          Logger.info(
-            `  - Classes: ${character.classes?.map(c => `${c.definition?.name} ${c.level}`).join(', ') || 'Unknown'}`
-          );
-          Logger.info(`  - Background: ${character.background?.definition?.name || 'Unknown'}`);
-          Logger.info(`  - HP: ${character.baseHitPoints || 'Unknown'}`);
-
-          Logger.info(`\n💡 To import this character, run:`);
-          Logger.info(`game.modules.get("beyond-foundry").api.importCharacter("${characterId}")`);
-        } else {
-          ui.notifications.warn(`❌ Failed to retrieve character with ID: ${characterId}`);
-          Logger.warn('Make sure the character ID is correct and accessible with your account');
-        }
-      } else {
-        // Explain how to get character IDs
-        Logger.info('\n📋 To test character import:');
-        Logger.info('1. Go to dndbeyond.com/characters');
-        Logger.info('2. Click on a character');
-        Logger.info('3. Copy the ID from the URL: dndbeyond.com/characters/{ID}');
-        Logger.info(
-          '4. Run: game.modules.get("beyond-foundry").api.quickTest("your-cobalt-token", "character-id")'
-        );
-      }
-    } catch (error) {
-      ui.notifications.error(`Quick test failed: ${getErrorMessage(error)}`);
-      Logger.error(`Quick test error: ${getErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Development testing interface - comprehensive system test
-   * Tests all major functionality in sequence
-   */
-  public async runFullSystemTest(): Promise<void> {
-    Logger.info('🧪 Starting comprehensive system test...');
-
-    try {
-      // Test 1: Proxy Connection
-      Logger.info('📡 Test 1: Proxy Connection');
-      const proxyOk = await this.testProxyConnection();
-      if (proxyOk) {
-        Logger.info('✅ Proxy connection: PASS');
-      } else {
-        Logger.error('❌ Proxy connection: FAIL');
-        return;
-      }
-
-      // Test 2: Settings validation
-      Logger.info('⚙️  Test 2: Settings Validation');
-      const settings = getModuleSettings();
-      Logger.info(`Proxy URL: ${settings.proxyUrl}`);
-      Logger.info(`Debug Mode: ${settings.debugMode}`);
-      
-      if (!settings.cobaltToken) {
-        Logger.warn('⚠️  No cobalt token configured - authentication tests will be skipped');
-        Logger.info('Set token in module settings or run: api.quickTest("your-token")');
-      }
-
-      // Test 3: Authentication (if token available)
-      if (settings.cobaltToken) {
-        Logger.info('🔐 Test 3: Authentication');
-        const authResult = await this.authenticate();
-        if (authResult.success) {
-          Logger.info(`✅ Authentication: PASS (User ID: ${authResult.userId || 'Unknown'})`);
-        } else {
-          Logger.error(`❌ Authentication: FAIL (${authResult.message})`);
-          return;
-        }
-      }
-
-      // Test 4: Parser functionality
-      Logger.info('🔧 Test 4: Parser Functionality Available');
-      Logger.info('✅ CharacterParser: Ready');
-      Logger.info('✅ SpellParser: Ready');
-
-      // Test 5: UI Components
-      Logger.info('🖥️  Test 5: UI Components');
-      Logger.info('✅ Character Import Dialog: Available');
-      Logger.info('✅ Auth Dialog: Available');
-      Logger.info('✅ Settings Interface: Available');
-
-      // Summary
-      Logger.info('\n🎉 System test completed!');
-      Logger.info('\n📋 Next Steps:');
-      Logger.info('1. Configure cobalt token in settings if not done');
-      Logger.info('2. Test character import: api.importCharacter("character-id")');
-      Logger.info('3. Open import dialog: new CharacterImportDialog().render(true)');
-
-    } catch (error) {
-      Logger.error(`System test failed: ${getErrorMessage(error)}`);
-    }
+    // Example character ID for testing
+    const testCharacterId = '123456789';
+    Logger.info(`\n📋 Example Test:`);
+    Logger.info(`1. Fetch character: api.getCharacter("${testCharacterId}")`);
+    Logger.info(`2. Import character: api.importCharacter("${testCharacterId}")`);
   }
 
   /**
@@ -941,6 +895,80 @@ export class BeyondFoundryAPI {
       return imported;
     } catch (error) {
       Logger.error(`Bulk spell import failed: ${getErrorMessage(error)}`);
+      return 0;
+    }
+  }
+
+  /**
+   * Bulk import all D&D Beyond items into a FoundryVTT compendium
+   * @param cobaltToken - D&D Beyond session token
+   * @param compendiumName - The compendium to populate (default: 'beyondfoundry.items')
+   */
+  public async bulkImportItemsToCompendium(cobaltToken: string, compendiumName = 'beyondfoundry.items'): Promise<number> {
+    try {
+      Logger.info(`Starting bulk item import to compendium: ${compendiumName}`);
+      const response = await fetch(`${this.proxyEndpoint}/proxy/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cobalt: cobaltToken })
+      });
+      if (!response.ok) throw new Error(`Failed to fetch items: ${response.status}`);
+      const data = await response.json();
+      if (!data.success || !Array.isArray(data.data)) throw new Error('Invalid item data response');
+      const items: DDBItem[] = data.data;
+      if (!items.length) throw new Error('No items returned from proxy');
+
+      const { ItemParser } = await import('../../parsers/items/ItemParser.js');
+      // Use 'as any' for Foundry dynamic API compatibility
+      const packs = (game as any).packs as any;
+      let pack = packs.get(compendiumName) as any;
+      if (!pack) {
+        Logger.info(`Compendium ${compendiumName} not found, creating...`);
+        await CompendiumCollection.createCompendium({
+          label: 'Beyond Foundry Items',
+          name: compendiumName.split('.')[1] || 'items',
+          type: 'Item',
+        });
+        pack = packs.get(compendiumName) as any;
+      }
+      if (!pack) throw new Error(`Failed to access compendium: ${compendiumName}`);
+
+      await pack.getIndex();
+      // Build ddbId index by fetching ItemDocuments for flags
+      const index: Record<number, string> = {};
+      for (const entry of pack.index) {
+        if (!entry._id) continue;
+        const doc = await pack.getDocument(entry._id);
+        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        if (typeof ddbId === 'number') index[ddbId] = entry._id;
+      }
+
+      let imported = 0;
+      for (const ddbItem of items) {
+        const foundryItem = await ItemParser.parseItem(ddbItem);
+        if (!foundryItem) continue;
+        const existingId = index[ddbItem.id];
+        if (existingId) {
+          if (typeof pack.updateEntity === 'function') {
+            await pack.updateEntity({ _id: existingId, ...foundryItem });
+          } else if (typeof pack.update === 'function') {
+            await pack.update({ _id: existingId, ...foundryItem });
+          }
+          Logger.debug(`Updated item in compendium: ${foundryItem.name}`);
+        } else {
+          if (typeof pack.createEntity === 'function') {
+            await pack.createEntity(foundryItem);
+          } else if (typeof pack.create === 'function') {
+            await pack.create(foundryItem);
+          }
+          Logger.debug(`Created item in compendium: ${foundryItem.name}`);
+        }
+        imported++;
+      }
+      Logger.info(`Bulk item import complete: ${imported} items processed.`);
+      return imported;
+    } catch (error) {
+      Logger.error(`Bulk item import failed: ${getErrorMessage(error)}`);
       return 0;
     }
   }

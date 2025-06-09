@@ -1,5 +1,5 @@
 import type { DDBCharacter, DDBItem } from '../../types/index.js';
-import { Logger, getErrorMessage } from '../../module/utils/logger.js';
+import { Logger, getErrorMessage } from '../../module/utils/logger.ts';
 
 /**
  * Parser for D&D Beyond items and equipment
@@ -210,44 +210,55 @@ export class ItemParser {
   }
 
   /**
+   * Parse magic item attunement and advanced attunement states (ddb-importer parity)
+   * 0 = not attunable, 1 = attunable (not attuned), 2 = attuned
+   */
+  private static parseAttunement(ddbItem: DDBItem): number {
+    const requiresAttunement = ddbItem.definition?.requiresAttunement || false;
+    if (requiresAttunement) {
+      if (ddbItem.isAttuned) return 2; // Attuned
+      return 1; // Attunable, not attuned
+    }
+    return 0; // Not attunable
+  }
+
+  /**
    * TODO: Parse magic item attunement and advanced attunement states
    */
-  private static parseAdvancedAttunement(_ddbItem: DDBItem): number {
-    // TODO: Implement advanced attunement logic (ddb-importer parity)
-    return 0;
-  }
+  private static parseAdvancedAttunement(_ddbItem: DDBItem): number { void _ddbItem; return 0; }
 
   /**
-   * TODO: Parse container relationships (e.g., bags, packs, parent-child)
+   * Parse container relationships (bags, packs, parent-child)
+   * Returns an object with parentId if the item is inside a container
    */
-  private static parseContainerInfo(_ddbItem: DDBItem): Record<string, unknown> {
-    // TODO: Implement container relationship parsing
+  private static parseContainerInfo(ddbItem: DDBItem): Record<string, unknown> {
+    void ddbItem;
+    // TODO: Implement full container logic (ddb-importer parity)
+    // Example: if ddbItem.containerId exists, return { parentId: ddbItem.containerId }
+    if ('containerId' in ddbItem && typeof ddbItem.containerId === 'number') {
+      return { parentId: ddbItem.containerId };
+    }
     return {};
   }
 
   /**
-   * TODO: Parse homebrew and custom item flags
+   * Parse homebrew and custom item flags
    */
-  private static parseHomebrewFlags(_ddbItem: DDBItem): Record<string, unknown> {
-    // TODO: Implement homebrew/custom item detection and flagging
-    return {};
+  private static parseHomebrewFlags(ddbItem: DDBItem): Record<string, unknown> {
+    // DDB items may have isHomebrew or similar flags
+    // Use type-safe access (isHomebrew is not always present)
+    return { isHomebrew: Boolean(ddbItem.definition && 'isHomebrew' in ddbItem.definition ? (ddbItem.definition as { isHomebrew?: boolean }).isHomebrew : false) };
   }
 
   /**
    * TODO: Enhanced property parsing (weapon/armor/tool/consumable types, filterType, etc.)
    */
-  private static parseEnhancedProperties(_ddbItem: DDBItem): Record<string, unknown> {
-    // TODO: Implement enhanced property parsing for ddb-importer parity
-    return {};
-  }
+  private static parseEnhancedProperties(_ddbItem: DDBItem): Record<string, unknown> { void _ddbItem; return {}; }
 
   /**
    * TODO: Add support for weight multipliers, default icons, and additional Foundry flags
    */
-  private static parseAdditionalSystemFields(_ddbItem: DDBItem): Record<string, unknown> {
-    // TODO: Implement additional system fields (weightMultiplier, defaultIcon, etc.)
-    return {};
-  }
+  private static parseAdditionalSystemFields(_ddbItem: DDBItem): Record<string, unknown> { void _ddbItem; return {}; }
 
   // Helper methods for parsing specific data
   private static getItemImage(ddbItem: DDBItem): string {
@@ -255,40 +266,20 @@ export class ItemParser {
            ddbItem.definition?.largeAvatarUrl || 
            'icons/svg/item-bag.svg';
   }
-  private static getWeaponType(_weaponData: unknown): string {
-    return 'simpleM';
-  }
-  private static parseWeaponProperties(_weaponData: unknown): Record<string, boolean> {
-    return {};
-  }
-  private static parseWeaponDamage(_weaponData: unknown): Record<string, unknown> {
-    return {
-      parts: [],
-      versatile: ''
-    };
-  }
-  private static parseWeaponRange(_weaponData: unknown): Record<string, unknown> {
-    return {
-      value: 5,
-      long: null,
-      units: 'ft'
-    };
-  }
-  private static getEquipmentType(_equipData: unknown): string {
-    return 'clothing';
-  }
-  private static parseArmorData(_equipData: unknown): Record<string, unknown> {
-    return {
-      type: 'clothing',
-      value: 10,
-      dex: null
-    };
-  }
-  private static parseAttunement(ddbItem: DDBItem): number {
-    if (ddbItem.definition?.requiresAttunement) {
-      return ddbItem.isAttuned ? 2 : 1;
+  private static getWeaponType(_weaponData: unknown): string { void _weaponData; return 'simpleM'; }
+  private static parseWeaponProperties(_weaponData: unknown): Record<string, boolean> { void _weaponData; return {}; }
+  private static parseWeaponDamage(_weaponData: unknown): Record<string, unknown> { void _weaponData; return { parts: [], versatile: '' }; }
+  private static parseWeaponRange(_weaponData: unknown): Record<string, unknown> { void _weaponData; return { value: 5, long: null, units: 'ft' }; }
+  private static getEquipmentType(_equipData: unknown): string { void _equipData; return 'clothing'; }
+  private static parseArmorData(_equipData: unknown): Record<string, unknown> { void _equipData; return { type: 'clothing', value: 10, dex: null }; }
+  private static getConsumableType(ddbItem: DDBItem): string {
+    const type = ddbItem.definition?.type?.toLowerCase();
+    switch (type) {
+      case 'potion': return 'potion';
+      case 'scroll': return 'scroll';
+      case 'ammunition': return 'ammo';
+      default: return 'trinket';
     }
-    return 0;
   }
   private static parseRarity(ddbItem: DDBItem): string {
     const rarity = ddbItem.definition?.rarity?.toLowerCase();
@@ -300,15 +291,6 @@ export class ItemParser {
       case 'legendary': return 'legendary';
       case 'artifact': return 'artifact';
       default: return 'common';
-    }
-  }
-  private static getConsumableType(ddbItem: DDBItem): string {
-    const type = ddbItem.definition?.type?.toLowerCase();
-    switch (type) {
-      case 'potion': return 'potion';
-      case 'scroll': return 'scroll';
-      case 'ammunition': return 'ammo';
-      default: return 'trinket';
     }
   }
 }
