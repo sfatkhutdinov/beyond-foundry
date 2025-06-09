@@ -353,10 +353,12 @@ export class BeyondFoundryAPI {
     options: Partial<ImportOptions>
   ): Promise<number> {
     // Use correct property or update ImportOptions if needed
-    const compendiumName = (options as { itemCompendiumName?: string }).itemCompendiumName || 'beyondfoundry.items';
+    const compendiumName =
+      (options as { itemCompendiumName?: string }).itemCompendiumName || 'beyondfoundry.items';
     const { ItemParser } = await import('../../parsers/items/ItemParser.js');
-    // Safely access packs for Foundry dynamic API
-    const packs = (game as any)['packs'];
+    // Use a type assertion for packs to match FoundryVTT's dynamic API
+    type PacksType = { get: (id: string) => any; find: (predicate: (pack: any) => boolean) => any };
+    const packs = (game.packs as unknown as PacksType);
     const pack = packs.get(compendiumName);
     const compendiumIndex: { [ddbId: number]: string } = {};
     if (pack && typeof pack.getIndex === 'function') {
@@ -364,7 +366,9 @@ export class BeyondFoundryAPI {
       for (const entry of pack.index) {
         if (!entry._id) continue;
         const doc = await pack.getDocument(entry._id);
-        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        // Use a type assertion for doc.getFlag
+        type DocWithGetFlag = { getFlag?: (scope: string, key: string) => unknown };
+        const ddbId = (doc as DocWithGetFlag)?.getFlag?.('beyond-foundry', 'ddbId');
         if (typeof ddbId === 'number') compendiumIndex[ddbId] = entry._id;
       }
     }
@@ -929,7 +933,7 @@ export class BeyondFoundryAPI {
         if (!entry._id) continue;
         const doc = await pack.getDocument(entry._id);
         // Type assertion for Foundry ItemDocument
-        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        const ddbId = (doc as { getFlag?: (scope: string, key: string) => unknown })?.getFlag?.('beyond-foundry', 'ddbId');
         if (typeof ddbId === 'number') index[ddbId] = entry._id;
       }
 
@@ -1005,7 +1009,7 @@ export class BeyondFoundryAPI {
       for (const entry of pack.index) {
         if (!entry._id) continue;
         const doc = await pack.getDocument(entry._id);
-        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        const ddbId = (doc as { getFlag?: (scope: string, key: string) => unknown })?.getFlag?.('beyond-foundry', 'ddbId');
         if (typeof ddbId === 'number') index[ddbId] = entry._id;
       }
 
@@ -1057,7 +1061,7 @@ export class BeyondFoundryAPI {
         for (const entry of pack.index) {
           if (!entry._id) continue;
           const doc = await pack.getDocument(entry._id);
-          const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+          const ddbId = (doc as { getFlag?: (scope: string, key: string) => unknown })?.getFlag?.('beyond-foundry', 'ddbId');
           if (typeof ddbId === 'number') compendiumIndex[ddbId] = entry._id;
         }
       }
@@ -1066,7 +1070,9 @@ export class BeyondFoundryAPI {
           let compendiumEntry: { name?: string; id?: string } | null = null;
           const compendiumId = pack && compendiumIndex[ddbSpell.definition.id];
           if (pack && compendiumId && typeof compendiumId === 'string') {
-            const doc = await (pack as { getDocument: (id: string) => Promise<unknown> }).getDocument(compendiumId);
+            const doc = await (
+              pack as { getDocument: (id: string) => Promise<unknown> }
+            ).getDocument(compendiumId);
             compendiumEntry = doc as { name?: string; id?: string };
           }
           if (compendiumEntry && compendiumEntry.name && compendiumEntry.id) {

@@ -45,6 +45,7 @@
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
     "eslint": "^9.28.0",
+    "jsdom": "^26.1.0",
     "prettier": "^3.4.2",
     "rollup": "^4.42.0",
     "tslib": "^2.8.1",
