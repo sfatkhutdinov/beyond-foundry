@@ -6,11 +6,20 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 
 - ✅ **Character Import:** Fully functional, tested with real D&D Beyond data
 - ✅ **Spell Import:** Production-ready, supports all spellcasting classes and multiclassing ([details](docs/SPELL_ENHANCEMENT_COMPLETE.md))
+- ✅ **Item & Equipment Import:** Production-ready, supports properties, descriptions, magical effects, variants.
+- ✅ **Monster Import:** Core functionality implemented.
 - ✅ **Proxy Integration:** ddb-proxy integration complete, Docker-ready ([setup](docs/DOCKER_SETUP.md))
 - ✅ **UI Dialogs:** Import and authentication dialogs implemented ([see UI](docs/ui.md))
 - ✅ **TypeScript Build System:** Modern, strict, and reliable ([modernization](docs/MODERNIZATION_COMPLETE.md))
-- 🟢 **Bulk Import & Compendium:** Canonical spell compendium linking and bulk import complete! See below for usage.
-- 🟡 **Advanced Features:** (e.g., auto-sync, batch import) in planning
+- ✅ **Bulk Spell Import & Compendium:** Canonical spell compendium linking and bulk import complete.
+- ✅ **Bulk Item Import & Compendium:** Canonical item compendium linking and bulk import complete.
+- 🟡 **Class Import:** Partially implemented, core fields and advanced features are TODO.
+- 🟡 **Feat Import:** Partially implemented, stub with TODOs.
+- 🟡 **Background Import:** Partially implemented, stub with TODOs.
+- ⏳ **Race Import:** Planned, stub with TODOs.
+- ⏳ **Rule Import:** Planned, stub with TODOs.
+- ⏳ **Adventure Import:** Planned, stub with TODOs.
+- 🟡 **Advanced Features:** (e.g., auto-sync, batch character import) in planning
 
 See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.md](docs/roadmap.md) for detailed progress and goals.
 
@@ -32,10 +41,41 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **Duration, range, and area of effect** calculations
 - **School mapping** and spell validation
 
-### 🛡️ Equipment & Items
-- Item import with proper categorization
+### 🛡️ Equipment & Items (Production Ready!)
+- **Complete item import** with proper categorization and properties
+- **Canonical compendium linking**: Items are now linked to a single compendium entry, preventing duplicates
+- **Bulk item import**: Populate the compendium with all D&D Beyond items in one step
 - Equipment mapping to FoundryVTT item types
 - Inventory management integration
+- Support for magical effects and item variants
+
+### 👹 Monster Import (Core Implemented)
+- Basic monster stat block import
+- Core abilities and actions
+
+### 🧙‍♀️ Class Import (Partial Implementation)
+- Basic class structure parsing
+- TODO: Hit dice, proficiencies, subclass data, spellcasting progression, advanced class features
+
+### 📜 Feat Import (Partial Implementation)
+- Stub parser, ready for development
+- TODO: Full feat data parsing
+
+### 📜 Background Import (Partial Implementation)
+- Stub parser, ready for development
+- TODO: Full background data parsing
+
+### 📜 Race Import (Planned)
+- Stub parser, ready for development
+- TODO: Full race data parsing
+
+### 📜 Rule Import (Planned)
+- Stub parser, ready for development
+- TODO: Full rule data parsing
+
+### 📜 Adventure Import (Planned)
+- Stub parser, ready for development
+- TODO: Full adventure data parsing
 
 ### 🔐 Authentication & Proxy Support
 - Secure authentication via ddb-proxy

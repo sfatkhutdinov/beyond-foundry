@@ -1143,43 +1143,95 @@ export class BeyondFoundryAPI {
   }
 
   /**
+     /**
    * Import a class from D&D Beyond to FoundryVTT
-   * @param classId - The D&D Beyond class ID
-   * @param options - Import options
+   * NOTE: Since ddb-proxy doesn't have a standalone /proxy/class endpoint,
+   * this method requires a character ID that has the desired class.
+   * 
+   * @param characterId - The D&D Beyond character ID that has the desired class
+   * @param classDefinitionId - Optional: The class definition ID to extract (if character has multiple classes)
+   * @param _options - Import options (currently unused)
    */
   public async importClass(
-    classId: string,
-    options: Partial<ImportOptions> = {}
+    characterId: string,
+    classDefinitionId?: string,
+    _options: Partial<ImportOptions> = {}
   ): Promise<Record<string, unknown> | null> {
     try {
-      Logger.info(`Starting class import for ID: ${classId}`);
+      Logger.info(`Starting class import from character ID: ${characterId}${classDefinitionId ? ` (class ID: ${classDefinitionId})` : ''}`);
+      
       const cobaltToken = getModuleSettings().cobaltToken;
       if (!cobaltToken) {
         Logger.error('No authentication token available. Please authenticate first.');
         return null;
       }
-      // Fetch class data from ddb-proxy
-      const response = await fetch(`${this.proxyEndpoint}/proxy/class`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          cobalt: cobaltToken,
-          classId: parseInt(classId),
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success || !data.ddb?.class) {
-        Logger.warn(`Failed to retrieve class: ${data.message || 'Unknown error'}`);
+
+      // Fetch character data using the existing working endpoint
+      const ddbCharacter = await this.getCharacter(characterId);
+      if (!ddbCharacter) {
+        Logger.error('Failed to retrieve character data from D&D Beyond');
         return null;
       }
-      const ddbClass = data.ddb.class as import('../../types/index.js').DDBClass;
+
+      // Check if character has classes
+      if (!ddbCharacter.classes || ddbCharacter.classes.length === 0) {
+        Logger.warn('Character has no classes available for import');
+        return null;
+      }
+
+      // Find the specific class to import
+      let targetClass: import('../../types/index.js').DDBClass;
+      
+      if (classDefinitionId) {
+        // Look for specific class by definition ID
+        const classId = parseInt(classDefinitionId);
+        const foundClass = ddbCharacter.classes.find(cls => cls.definition.id === classId);
+        
+        if (!foundClass) {
+          Logger.warn(`Class with definition ID ${classDefinitionId} not found in character. Available classes: ${ddbCharacter.classes.map(c => `${c.definition.name} (ID: ${c.definition.id})`).join(', ')}`);
+          return null;
+        }
+        targetClass = foundClass;
+      } else {
+        // If no specific class ID provided, use the first class (or primary class)
+        const firstClass = ddbCharacter.classes[0];
+        if (!firstClass) {
+          Logger.warn('Character has no classes available for import');
+          return null;
+        }
+        targetClass = firstClass;
+        Logger.info(`No class ID specified, using first available class: ${targetClass.definition.name} (ID: ${targetClass.definition.id})`);
+      }
+
+      // Parse the class using existing ClassParser
       const { ClassParser } = await import('../../parsers/ClassParser.js');
-      const foundryClass = ClassParser.parseClass(ddbClass);
-      // Optionally, create in compendium or as embedded item
-      // For now, just return the parsed structure
-      Logger.info(`Successfully parsed class: ${foundryClass.name}`);
+      const foundryClass = ClassParser.parseClass(targetClass);
+      
+      // Add additional metadata about the source character
+      const existingFlags = (foundryClass.flags as Record<string, unknown>) || {};
+      const existingBeyondFlags = (existingFlags['beyond-foundry'] as Record<string, unknown>) || {};
+      
+      foundryClass.flags = {
+        ...existingFlags,
+        'beyond-foundry': {
+          ...existingBeyondFlags,
+          ddbId: targetClass.id,
+          sourceCharacterId: ddbCharacter.id,
+          classDefinitionId: targetClass.definition.id,
+          importedFrom: 'character',
+        },
+      };
+
+      Logger.info(`Successfully parsed class: ${foundryClass.name} (Level ${targetClass.level})`);
+      
+      // Log available information about the class
+      if (targetClass.subclassDefinition) {
+        Logger.info(`  Subclass: ${targetClass.subclassDefinition.name}`);
+      }
+      if (targetClass.classFeatures && targetClass.classFeatures.length > 0) {
+        Logger.info(`  Class Features: ${targetClass.classFeatures.length}`);
+      }
+      
       return foundryClass;
     } catch (error) {
       Logger.error(`Class import error: ${getErrorMessage(error)}`);

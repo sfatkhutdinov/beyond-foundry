@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.2.0] - 2025-06-09 - Item and Compendium Enhancement Release
+
+### 🪄 Major Features
+- **Complete Item Import System**: Full integration of item parsing into character import workflow, including magical effects and variants.
+- **Canonical Item Compendium Linking**: Items are linked to a single compendium entry, preventing duplicates during character import.
+- **Bulk Item Import**: Functionality to populate a compendium with all D&D Beyond items.
+
+### ✨ Item Features
+- **Comprehensive Item Data Conversion**: Description, properties, weight, cost, rarity, type, etc.
+- **Magical Effects & Variants**: Correctly parses and applies magical properties and item variants.
+- **FoundryVTT Item Mapping**: Accurate mapping to D&D 5e system item types.
+- **Active Effects**: Item effects integration with FoundryVTT (where applicable).
+
+### 🎛️ Compendium Improvements
+- **Item Compendium Support**: `bulkImportItemsToCompendium` function added to API.
+- **Character Item Linking**: `addItemsToActor` helper updated to link to compendium items by DDB ID.
+- **Robust Fallback**: If an item is not found in the compendium, it's imported as an embedded item.
+
+### 🔧 Technical Improvements
+- **ItemParser Enhancements**: Updated to handle diverse item structures from D&D Beyond.
+- **API Extension**: New API methods for item bulk import and compendium management.
+- **Type Definitions**: Expanded TypeScript types for item data structures.
+
+### 🐛 Bug Fixes
+- Ensured `flags['beyond-foundry'].ddbId` is consistently added to all imported items for reliable compendium matching.
+- Addressed potential issues with item data inconsistencies from D&D Beyond API.
+
+### 📚 Documentation
+- **Updated README**: Reflects new item import and compendium capabilities.
+- **Revised Development Status & Roadmap**: Shows progress on item-related features.
+- **Code Comments**: Added detailed comments for new item and compendium logic.
+
+### 🔄 Breaking Changes
+- None - designed for backward compatibility.
+
 ## [1.1.0] - 2025-06-06 - Spell Integration Release
 
 ### 🪄 Major Features

@@ -14,7 +14,8 @@
 - [x] Advanced equipment mapping (magic items, variants)
 - [x] Compendium support (import to compendium, canonical spell linking)
 - [x] Bulk spell import
-- [ ] Bulk character import
+- [x] Bulk item import
+- [ ] Bulk character import (linking to compendium spells/items)
 - [ ] Error handling and user feedback improvements
 - [ ] UI polish and accessibility
 

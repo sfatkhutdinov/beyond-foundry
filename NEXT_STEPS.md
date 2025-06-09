@@ -1,6 +1,6 @@
 # Beyond Foundry - Next Steps
 
-## Status: ✅ READY FOR FOUNDRY INTEGRATION
+## Status: ✅ READY FOR PRODUCTION USE
 
 ### Character 147552172 (Korterrend) Analysis Complete
 - **Type**: Level 20 Lizardfolk Sorcerer
@@ -14,14 +14,16 @@
 ### Option A: Development Symlink (Recommended)
 ```bash
 # Link entire project for live development
-ln -s "/Users/macbook-pro/Documents/Programming/beyond-foundry" \
+# Replace /path/to/your/foundrydata with your actual Foundry Data path
+ln -s "$(pwd)" \
       "/path/to/your/foundrydata/Data/modules/beyond-foundry"
 ```
 
 ### Option B: Copy Development Package
 ```bash
 # Copy built files only
-cp -r "/Users/macbook-pro/Documents/Programming/beyond-foundry/foundry-dev-package" \
+# Replace /path/to/your/foundrydata with your actual Foundry Data path
+cp -r "$(pwd)/foundry-dev-package" \
       "/path/to/your/foundrydata/Data/modules/beyond-foundry"
 ```
 
@@ -56,11 +58,17 @@ game.modules.get("beyond-foundry").api.runFullSystemTest()
 // Get fresh cobalt token from D&D Beyond cookies
 const api = game.modules.get("beyond-foundry").api;
 
-// Test authentication (replace with your token)
-await api.authenticate("YOUR_COBALT_TOKEN_HERE");
+// Test authentication (replace with your token if not using baked-in cookie)
+// await api.authenticate("YOUR_COBALT_TOKEN_HERE"); // Only needed if COBALT_COOKIE not set in proxy
 
 // Import character 147552172 (Korterrend)
 await api.importCharacter("147552172");
+
+// Test Bulk Spell Import to Compendium (optional - creates/updates 'beyondfoundry.spells')
+// await api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+
+// Test Bulk Item Import to Compendium (optional - creates/updates 'beyondfoundry.items')
+// await api.bulkImportItemsToCompendium("beyondfoundry.items");
 ```
 
 ---
@@ -82,8 +90,8 @@ await api.importCharacter("147552172");
 ```
 ✅ Character imported: Korterrend
 ✅ Level 20 Lizardfolk Sorcerer
-✅ 6 spells imported
-✅ 10 equipment items imported
+✅ 6 spells imported (linked or embedded)
+✅ 10 equipment items imported (linked or embedded)
 ```
 
 ---
@@ -91,10 +99,10 @@ await api.importCharacter("147552172");
 ## STEP 5: Development Priorities
 
 ### If FoundryVTT Testing Works:
-1. **UI Polish**: Character selection dialog
-2. **Bulk Import**: Multiple characters
-3. **Spell Compendium**: Import all spells
-4. **Monster Import**: Creature stat blocks
+1. **Bulk Character Import**: Implement UI and logic for importing multiple characters, linking to existing compendium spells/items.
+2. **Monster Import**: Design and implement monster parsing and import.
+3. **Adventure Import**: Plan and begin implementation for adventure content.
+4. **UI Polish**: Enhance user experience for all import dialogs and settings.
 
 ### If Issues Found:
 1. **Debug Module Loading**: Check module.json compatibility
@@ -108,22 +116,26 @@ await api.importCharacter("147552172");
 
 ### Check Proxy Status
 ```bash
-curl http://localhost:3100/ping  # Should return "pong"
+# Assumes proxy is running on default port 4000 locally
+curl http://localhost:4000/ping  # Should return "pong"
+# If using internal Docker network name (e.g., from another container):
+# curl http://ddb-proxy:3000/ping
 ```
 
 ### Rebuild Module (if changes made)
 ```bash
-cd /Users/macbook-pro/Documents/Programming/beyond-foundry
+cd "$(pwd)"
 npm run build
 ```
 
 ### Re-analyze Character (if needed)
 ```bash
-node scripts/analyze-character.js YOUR_COBALT_TOKEN
+# Ensure COBALT_COOKIE is set in your environment or .env file for the proxy
+node scripts/analyze-character.js 147552172 # Example character ID
 ```
 
 ---
 
 ## Ready for Production Use! 🎉
 
-The module is functionally complete and ready for real-world testing in FoundryVTT.
+The module's core features (Character, Spell, Item import with Compendium support) are functionally complete and ready for real-world testing and use in FoundryVTT.
