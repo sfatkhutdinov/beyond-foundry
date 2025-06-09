@@ -85,7 +85,7 @@ public async importCharacterSpells(actor, ddbCharacter, options) {
 ## 🧪 Testing & Validation
 
 ### Automated Testing
-✅ **Proxy Connectivity** - ddb-proxy running on localhost:3100  
+✅ **Proxy Connectivity** - ddb-proxy running on localhost:4000  
 ✅ **Module Integration** - All 7 enhanced methods confirmed in build  
 ✅ **Character Data** - Level 20 Druid test character validated  
 ✅ **Spell Workflow** - Complete import logic tested  

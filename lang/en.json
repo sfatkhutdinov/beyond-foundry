@@ -7,7 +7,7 @@
       },
       "useDockerProxy": {
         "name": "Use Docker Proxy",
-        "hint": "Enable if using ddb-proxy in Docker environment (sets URL to http://ddb-proxy:3000)"
+        "hint": "Enable if using ddb-proxy in Docker environment (sets URL to http://ddb-proxy:4000)"
       },
       "apiEndpoint": {
         "name": "API Endpoint", 

@@ -7,7 +7,7 @@ This guide provides multiple methods to import character data from https://www.d
 This method uses the existing ddb-proxy infrastructure for complete character data.
 
 ### Prerequisites
-- ddb-proxy running on localhost:3100 ✅ (already running)
+- ddb-proxy running on localhost:4000 ✅ (already running)
 - Valid D&D Beyond Cobalt Session token
 - Access to the character (public or owned by your account)
 

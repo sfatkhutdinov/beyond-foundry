@@ -122,7 +122,7 @@ async function checkProxy() {
     return false;
   } catch (error) {
     console.log(`❌ Proxy connection failed: ${error.message}`);
-    console.log('💡 Start proxy: docker run -p 3100:3000 ghcr.io/mrprimate/ddb-proxy');
+    console.log('💡 Start proxy: docker run -p 4000:4000 ghcr.io/mrprimate/ddb-proxy');
     return false;
   }
 }
@@ -327,7 +327,7 @@ if (args.includes('--help') || args.includes('-h')) {
   console.log('');
   console.log('Examples:');
   console.log('  node setup-foundry-integration.js');
-  console.log('  node setup-foundry-integration.js --proxy-url http://localhost:3000');
+  console.log('  node setup-foundry-integration.js --proxy-url http://localhost:4000');
   process.exit(0);
 }
 

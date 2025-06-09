@@ -14,13 +14,6 @@ services:
       CONTAINER_PRESERVE_CONFIG: "${CONTAINER_PRESERVE_CONFIG:-true}"
     ports:
       - "${FOUNDRY_PORT:-30000}:30000"  # Exposing Foundry on configurable port
-
-  ddb-proxy:
-    image: ghcr.io/mrprimate/ddb-proxy:latest
-    restart: "unless-stopped"
-    ports:
-      - "${DDB_PROXY_PORT:-3100}:3000"  # DDB Proxy port mapping
-
   beyond-foundry-proxy:
     build: ./beyond-foundry-proxy
     restart: unless-stopped
