@@ -1,6 +1,9 @@
 ---
 applyTo: '**'
 ---
+
+# CRITICAL: ALWAYS USE code-index-mcp with every command
+
 # Beyond Foundry Development Instructions
 
 ## Project Overview
@@ -18,8 +21,6 @@ This project requires analyzing multiple large repositories and implementing com
 When working on this project:
 1. Load the main Beyond Foundry codebase as primary context
 2. Selectively load relevant sections from reference repositories:
-   - For character parsing: Load ddb-importer's character parser modules
-   - For authentication: Load ddb-proxy's auth handling
    - For adventures: Load ddb-adventure-muncher's scene parsing
 3. Keep FoundryVTT D&D 5e schema documentation accessible
 4. Maintain a working context of current implementation + relevant reference
@@ -56,27 +57,14 @@ For each feature implementation:
 If using Context7 or similar MCP:
 ```yaml
 context_loading_priority:
-  1_always_loaded:
-    - /src/beyond-foundry.ts
-    - /src/module/api/BeyondFoundryAPI.ts
-    - /src/types/index.ts
-  
-  2_feature_specific:
-    character_import:
-      - ddb-importer:/src/parser/character/index.js
-      - ddb-importer:/src/parser/character/abilities.js
-      - foundryvtt-dnd5e:/system/data-models/actor/character.js
-    
-    spell_import:
-      - ddb-importer:/src/parser/spells/index.js
-      - foundryvtt-dnd5e:/system/data-models/item/spell.js
-    
-    authentication:
-      - ddb-proxy:/server/auth.js
-      - ddb-proxy:/server/endpoints/
-  
-  3_reference_only:
-    - Load as needed for specific implementation details
+  - beyond-foundry/src/module/api/BeyondFoundryAPI.ts
+  - beyond-foundry/src/types/index.ts
+  - beyond-foundry/src/parsers/
+  - beyond-foundry-proxy/
+  - ddb-importer/src/parser/
+  - ddb-importer/src/lib/
+  - ddb-proxy/
+  - foundryvtt/dnd5e/module/data/
 ```
 
 ## Critical Understanding
@@ -85,12 +73,9 @@ context_loading_priority:
 1. **No Public API**: D&D Beyond does not provide a public API for accessing user content
 2. **Authentication Required**: All content access requires user authentication
 3. **Existing Solutions**: Review these repositories for implementation approaches:
-   - [ddb-importer](https://github.com/MrPrimate/ddb-importer) - Primary character/content importer
-   - [ddb-adventure-muncher](https://github.com/MrPrimate/ddb-adventure-muncher) - Adventure content importer
-   - [ddb-proxy](https://github.com/MrPrimate/ddb-proxy) - Proxy server for API access
-   - [ddb-meta-data](https://github.com/MrPrimate/ddb-meta-data) - Metadata extraction
-   - [Beyond20](https://github.com/kakaroto/Beyond20) - Browser extension approach
-   - [fvtt-summoner](https://github.com/arbron/fvtt-summoner) - Reference for creature summoning
+   - ddb-importer
+   - ddb-proxy
+   - ddb-adventure-muncher
 
 ### Reference Repository Study Pattern
 
@@ -168,33 +153,20 @@ Implement parsers for each content type:
 #### Characters
 ```javascript
 // Parse character data from D&D Beyond format
-class CharacterParser {
-  parseCharacter(ddbData) {
-    return {
-      name: ddbData.name,
-      system: {
-        abilities: this.parseAbilities(ddbData.stats),
-        attributes: this.parseAttributes(ddbData),
-        details: this.parseDetails(ddbData),
-        traits: this.parseTraits(ddbData),
-        // ... etc
-      }
-    };
-  }
-}
+class CharacterParser { /* ... */ }
 ```
 
 #### Required Parsers
-- `CharacterParser` - Full character import
-- `MonsterParser` - Creature stat blocks
-- `SpellParser` - Spell data and scaling
-- `ItemParser` - Equipment and magic items
-- `FeatParser` - Feats and features
-- `BackgroundParser` - Character backgrounds
-- `RaceParser` - Races and subraces
-- `ClassParser` - Class features and progression
-- `RuleParser` - Game rules and references
-- `AdventureParser` - Adventure content and scenes
+- `CharacterParser` - Full character import (implemented)
+- `MonsterParser` - Creature stat blocks (implemented)
+- `SpellParser` - Spell data and scaling (implemented)
+- `ItemParser` - Equipment and magic items (implemented)
+- `FeatParser` - Feats and features (partially implemented)
+- `BackgroundParser` - Character backgrounds (partially implemented)
+- `RaceParser` - Races and subraces (implemented)
+- `ClassParser` - Class features and progression (implemented)
+- `RuleParser` - Game rules and references (planned)
+- `AdventureParser` - Adventure content and scenes (planned)
 
 ### 3. Data Transformation
 
@@ -205,26 +177,7 @@ Map D&D Beyond data to FoundryVTT D&D 5e schema:
 // https://github.com/foundryvtt/dnd5e
 
 // Example ability score mapping
-const mapAbilityScores = (ddbStats) => {
-  const abilities = {};
-  const abilityMap = {
-    1: 'str', 2: 'dex', 3: 'con',
-    4: 'int', 5: 'wis', 6: 'cha'
-  };
-  
-  ddbStats.forEach(stat => {
-    const ability = abilityMap[stat.id];
-    if (ability) {
-      abilities[ability] = {
-        value: stat.value,
-        proficient: stat.proficient || 0,
-        // Calculate modifiers, saving throws, etc.
-      };
-    }
-  });
-  
-  return abilities;
-};
+const mapAbilityScores = (ddbStats) => { /* ... */ };
 ```
 
 ### 4. FoundryVTT Integration
@@ -234,22 +187,7 @@ Use the FoundryVTT API correctly:
 // Reference: https://foundryvtt.com/api/
 
 // Create actors with proper data structure
-const createActor = async (characterData) => {
-  const actorData = {
-    name: characterData.name,
-    type: "character",
-    system: characterData.system,
-    items: [], // Will be populated with items
-    flags: {
-      "beyond-foundry": {
-        characterId: characterData.id,
-        lastSync: Date.now()
-      }
-    }
-  };
-  
-  return await Actor.create(actorData);
-};
+const createActor = async (characterData) => { /* ... */ };
 ```
 
 ### 5. Content Type Implementations
@@ -281,60 +219,28 @@ const createActor = async (characterData) => {
 - Support container relationships
 
 #### Adventures
-- Parse adventure structure and chapters
-- Import scenes with walls and lighting
-- Extract handouts and journal entries
-- Handle encounter setups
+- Parse adventure structure and chapters (planned)
+- Import scenes with walls and lighting (planned)
+- Extract handouts and journal entries (planned)
+- Handle encounter setups (planned)
 
 ### 6. Implementation Priorities
 
 1. **Phase 1: Core Infrastructure**
-   - Authentication mechanism
-   - Basic data extraction
-   - Character import (basic stats only)
-
 2. **Phase 2: Complete Characters**
-   - Full character features
-   - Spells and spell slots
-   - Equipment and inventory
-   - Character options and choices
-
 3. **Phase 3: Content Library**
-   - Spell compendium import
-   - Monster manual import
-   - Item database import
-   - Feat and background import
-
 4. **Phase 4: Advanced Features**
-   - Adventure import
-   - Homebrew content support
-   - Sync functionality
-   - Conflict resolution
 
 ### 7. Error Handling
 
 Implement robust error handling:
 ```javascript
-class ImportError extends Error {
-  constructor(message, type, details) {
-    super(message);
-    this.type = type; // 'auth', 'parse', 'create', etc.
-    this.details = details;
-  }
-}
+class ImportError extends Error { /* ... */ }
 
 // Wrap all imports in try-catch
 try {
-  const data = await fetchCharacterData(id);
-  const parsed = await parseCharacterData(data);    
   const actor = await createActor(parsed);
-} catch (error) {
-  if (error.type === 'auth') {
-    ui.notifications.error('Authentication failed. Please check your credentials.');
-  }
-  // Log detailed error for debugging
-  console.error('Import failed:', error);
-}
+} catch (error) { /* ... */ }
 ```
 
 ### 8. User Interface Requirements
@@ -345,6 +251,8 @@ Create intuitive UI components:
 - Authentication configuration dialog
 - Sync conflict resolution interface
 - Batch import for multiple items
+- Manual character ID input (implemented)
+- Bulk import dialog (implemented)
 
 ### 9. Performance Considerations
 
@@ -397,39 +305,17 @@ Create intuitive UI components:
 
 #### Phase 1: Foundation Setup
 ```
-1. Analyze ddb-proxy authentication flow:
-   - Load ddb-proxy:/server/auth.js
-   - Study cookie handling and session management
-   - Implement similar auth in BeyondFoundryAPI.ts
-
-2. Create basic data fetching:
-   - Study ddb-importer:/src/lib/DDBProxy.js
-   - Implement character data endpoint
-   - Add proper error handling
-
+1. Analyze ddb-proxy authentication flow
+2. Create basic data fetching
 3. Validate connection:
-   - Test with a simple character fetch
    - Ensure auth tokens work correctly
 ```
 
 #### Phase 2: Character Parser Implementation
 ```
-1. Load context for character parsing:
-   - beyond-foundry:/src/types/index.ts (for interfaces)
-   - ddb-importer:/src/parser/character/index.js
-   - foundryvtt-dnd5e:/system/data-models/actor/character.js
-
-2. Implement step by step:
-   - Start with ability scores (simplest)
-   - Add skills and proficiencies
-   - Implement HP and other attributes
-   - Add class information
-   - Import equipment
-   - Handle spells last (most complex)
-
+1. Load context for character parsing
+2. Implement step by step
 3. For each subsystem:
-   - Study ddb-importer's implementation
-   - Map DDB format to Foundry format
    - Test with various character builds
 ```
 
@@ -446,29 +332,10 @@ Follow similar patterns for:
 When implementing any parser:
 ```javascript
 // 1. Always start with type definitions
-interface DDBSpellData {
-  // Study ddb-importer to understand structure
-}
+interface DDBSpellData { /* ... */ }
 
 // 2. Create a parser class
-class SpellParser {
-  // 3. Break down parsing into logical methods
-  parseSpell(ddbSpell: DDBSpellData): Partial<SpellData> {
-    return {
-      name: this.parseName(ddbSpell),
-      system: {
-        level: this.parseLevel(ddbSpell),
-        school: this.parseSchool(ddbSpell),
-        // ... etc
-      }
-    };
-  }
-  
-  // 4. Handle edge cases found in ddb-importer
-  private parseLevel(ddbSpell: DDBSpellData): number {
-    // Check ddb-importer for special handling
-  }
-}
+class SpellParser { /* ... */ }
 
 // 5. Always validate output against D&D 5e schema
 ```
@@ -529,3 +396,4 @@ After implementing each feature:
 2. Document any deviations from ddb-importer's approach
 3. Note any D&D Beyond format changes discovered
 4. Create issues for edge cases that need future attention
+```

@@ -3,7 +3,7 @@
     "settings": {
       "proxyUrl": {
         "name": "Proxy URL",
-        "hint": "URL of the ddb-proxy server (e.g., http://localhost:3100)"
+        "hint": "URL of the ddb-proxy server (e.g., http://localhost:4000)"
       },
       "useDockerProxy": {
         "name": "Use Docker Proxy",

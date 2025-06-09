@@ -8,6 +8,10 @@ yarn-error.log*
 dist/
 build/
 *.tsbuildinfo
+# Build outputs (more explicit)
+beyond-foundry.js
+beyond-foundry.js.map
+foundry-dev-package/beyond-foundry.js*
 
 # Debug and temporary files
 debug/
@@ -16,6 +20,7 @@ temp/
 
 # Analysis results (optional - comment out if you want to track these)
 # analysis/
+analysis/
 
 # Test outputs
 test-results/
@@ -88,3 +93,19 @@ temp/
 
 # Docker files
 docker-compose.yml
+
+# Reference implementations (too large for git)
+reference/foundryvtt-dnd5e/
+
+# Cache directories
+.rollup.cache/
+
+# Reference implementations (too large for git)
+reference/
+
+# Cache directories
+.rollup.cache/
+
+
+# Code Index MCP cache directory
+.code_indexer/

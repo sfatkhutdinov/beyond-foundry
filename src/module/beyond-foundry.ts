@@ -2,6 +2,7 @@ import { MODULE_ID, MODULE_NAME } from './constants.js';
 import { registerSettings } from './utils/settings.js';
 import { Logger } from './utils/logger.js';
 import { BeyondFoundryAPI } from './api/BeyondFoundryAPI.js';
+import { ModuleRegistration } from './api/ModuleRegistration.js';
 import { CharacterImportDialog } from './apps/CharacterImportDialog.js';
 
 /**
@@ -9,6 +10,9 @@ import { CharacterImportDialog } from './apps/CharacterImportDialog.js';
  *
  * This module allows importing purchased D&D Beyond content into FoundryVTT
  * with support for characters, spells, items, and more.
+ * 
+ * Enhanced with RESTful API endpoints and Foundry VTT integration
+ * as specified in the endpoint conversion strategy.
  */
 
 // Initialize module when Foundry is ready
@@ -18,31 +22,41 @@ Hooks.once('init', async () => {
   // Register module settings
   registerSettings();
 
-  // Initialize API
+  // Initialize core API
   const api = BeyondFoundryAPI.getInstance();
-
-  // Expose API globally for console access and other modules
-  (game as any).modules.get(MODULE_ID).api = api;
+  
+  // Store core API reference for basic access
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (game as any).modules.get(MODULE_ID)!.api = api;
 
   Logger.info(`${MODULE_NAME} initialized successfully`);
 });
 
-// Setup module when ready
+// Setup module when ready - Enhanced Registration
 Hooks.once('ready', async () => {
-  Logger.info(`${MODULE_NAME} ready`);
+  Logger.info(`${MODULE_NAME} ready - Setting up enhanced endpoints...`);
 
   // Initialize API with current settings
   const api = BeyondFoundryAPI.getInstance();
   api.init();
 
+  // Enhanced Module Registration with endpoint conversion strategy
+  const moduleRegistration = new ModuleRegistration();
+  moduleRegistration.register();
+
   // Add console message for developers
-  Logger.info('Access the API via: game.modules.get("beyond-foundry").api');
+  Logger.info('🚀 Beyond Foundry API ready!');
+  Logger.info('💡 Access via: game.beyondFoundry');
+  Logger.info('📚 Documentation: game.beyondFoundry.docs');
+  Logger.info('🎯 Examples: game.beyondFoundry.examples');
+  Logger.info('🔧 WebSocket updates enabled via Socket.io');
 });
 
 // Add character sheet header button for import
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 Hooks.on('getActorSheetHeaderButtons', (app: any, buttons: any[]) => {
   // Only add to character sheets in D&D 5e system
-  if (app.actor.type !== 'character' || game.system.id !== 'dnd5e') {
+  if (app.actor?.type !== 'character' || game.system.id !== 'dnd5e') {
     return;
   }
 
@@ -58,6 +72,7 @@ Hooks.on('getActorSheetHeaderButtons', (app: any, buttons: any[]) => {
 });
 
 // Add actor directory context menu option
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 Hooks.on('getActorDirectoryEntryContext', (html: any, options: any[]) => {
   options.push({
     name: 'Import from D&D Beyond',
@@ -79,3 +94,4 @@ Hooks.once('ready', () => {
 });
 
 Logger.info(`${MODULE_NAME} module loaded`);
+export { CharacterParser } from '../parsers/character/CharacterParser';

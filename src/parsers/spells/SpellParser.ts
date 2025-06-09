@@ -69,12 +69,12 @@ export class SpellParser {
         'beyond-foundry': {
           ddbId: definition.id,
           sourceId: ddbSpell.id,
-          spellListId: ddbSpell.spellListId,
-          prepared: ddbSpell.prepared || false,
-          alwaysPrepared: ddbSpell.alwaysPrepared || false,
+          ...(typeof ddbSpell.spellListId === 'number' ? { spellListId: ddbSpell.spellListId } : {}),
+          prepared: !!ddbSpell.prepared,
+          alwaysPrepared: typeof ddbSpell.alwaysPrepared === 'boolean' ? ddbSpell.alwaysPrepared : false,
           usesSpellSlot: ddbSpell.usesSpellSlot !== false,
-          castAtLevel: ddbSpell.castAtLevel || null,
-          restriction: ddbSpell.restriction || null,
+          castAtLevel: typeof ddbSpell.castAtLevel === 'number' ? ddbSpell.castAtLevel : null,
+          restriction: typeof ddbSpell.restriction === 'string' ? ddbSpell.restriction : (ddbSpell.restriction == null ? null : String(ddbSpell.restriction)),
         },
       },
     };
