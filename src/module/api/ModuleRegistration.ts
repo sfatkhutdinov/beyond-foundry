@@ -112,14 +112,14 @@ export class ModuleRegistration {
         },
 
         // Safe URL encoding using Foundry's utility
-        encodeURL: (path: string): string => {
+        encodeURL: (_path: string): string => {
           // Use Foundry's built-in utility if available
           const foundryUtils = (foundry as unknown as { utils?: { encodeURL?: (path: string) => string } }).utils;
           if (foundryUtils?.encodeURL) {
-            return foundryUtils.encodeURL(path);
+            return foundryUtils.encodeURL(_path);
           } else {
             // Fallback to standard encoding
-            return encodeURIComponent(path);
+            return encodeURIComponent(_path);
           }
         },
 
@@ -170,8 +170,8 @@ export class ModuleRegistration {
           findInCompendium: async (name: string, type: string): Promise<unknown | null> => {
             try {
               // Use global 'game' object, cast packs to expected type
-              const pack = (game.packs as unknown as { find: (predicate: (p: unknown) => boolean) => unknown }).find((p: any) => {
-                const packObj = p as { metadata?: { type?: string; system?: string } };
+              const pack = (game.packs as unknown as { find: (_predicate: (_p: unknown) => boolean) => unknown }).find((_p: unknown) => {
+                const packObj = _p as { metadata?: { type?: string; system?: string } };
                 return packObj.metadata?.type === type && packObj.metadata?.system === 'dnd5e';
               });
               if (!pack) return null;
@@ -240,7 +240,7 @@ export class ModuleRegistration {
         class: 'beyond-foundry-update',
         icon: 'fas fa-sync',
         onclick: async () => {
-          const item = (app as { item?: { getFlag: (namespace: string, key: string) => unknown } }).item;
+          const item = (app as { item?: { getFlag: (_namespace: string, _key: string) => unknown } }).item;
           if (item) {
             const ddbId = item.getFlag('beyond-foundry', 'ddbId');
             if (ddbId) {

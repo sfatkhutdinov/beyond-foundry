@@ -231,7 +231,7 @@ export class BeyondFoundryAPI {
       // Remove inventory items from actorData.items (will be handled via compendium linking)
       if (actorData.items) {
         actorData.items = actorData.items.filter(
-          (item: any) => item.type !== 'weapon' && item.type !== 'equipment' && item.type !== 'loot' && item.type !== 'consumable' && item.type !== 'tool'
+          (item: { type?: string }) => item.type !== 'weapon' && item.type !== 'equipment' && item.type !== 'loot' && item.type !== 'consumable' && item.type !== 'tool'
         );
       }
 
@@ -341,8 +341,10 @@ export class BeyondFoundryAPI {
   ): Promise<number> {
     const compendiumName = options.itemCompendiumName || 'beyondfoundry.items';
     const { ItemParser } = await import('../../parsers/items/ItemParser.js');
-    // Use 'as any' for Foundry dynamic API compatibility
+    // Use eslint-disable for Foundry dynamic API compatibility - this is a known limitation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const packs = (game as any).packs as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pack = packs.get(compendiumName) as any;
     const compendiumIndex: { [ddbId: number]: string } = {};
     if (pack) {
@@ -1065,7 +1067,7 @@ export class BeyondFoundryAPI {
    */
   public async importClass(
     classId: string,
-    options: Partial<ImportOptions> = {}
+    _options: Partial<ImportOptions> = {}
   ): Promise<Record<string, unknown> | null> {
     try {
       Logger.info(`Starting class import for ID: ${classId}`);
