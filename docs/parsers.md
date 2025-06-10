@@ -81,3 +81,7 @@ Beyond Foundry's equipment and item import system supports basic weapons, armor,
 - **Enhanced Properties**: Future support for advanced magic item properties, custom effects, and system-specific fields.
 
 For implementation status, mapping details, and known issues, see [equipment.md](equipment.md).
+
+## Feat Parser (`src/parsers/FeatParser.ts`)
+
+Status: Beta. Parses prerequisites, descriptions, and common mechanical effects (e.g., ASIs, granted features/actions). Complex or uniquely worded effects might still need review after import.

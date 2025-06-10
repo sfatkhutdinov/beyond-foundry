@@ -14,21 +14,19 @@ describe('Compendium Management', () => {
   });
 
   it('bulk imports spells to compendium', async () => {
-    const items = await api.bulkImportSpells();
-    expect(Array.isArray(items)).toBe(true);
-    expect(items.length).toBeGreaterThan(0);
-    for (const item of items) {
-      expect(item.type).toBe('spell');
-    }
+    const cobaltToken = COBALT_TOKEN;
+    const importedCount = await api.bulkImportSpellsToCompendium(cobaltToken);
+    expect(typeof importedCount).toBe('number');
+    expect(importedCount).toBeGreaterThan(0);
   });
-  it.skip('bulk imports monsters to compendium - PLANNED FEATURE', async () => {
-    // NOTE: bulkImportMonsters API method not yet implemented
-    const actors = await api.bulkImportMonsters();
-    expect(Array.isArray(actors)).toBe(true);
-    expect(actors.length).toBeGreaterThan(0);
-    for (const actor of actors) {
-      expect(actor.type).toBe('npc');
-    }
+  it.skip('bulk imports monsters to compendium - NOT YET IMPLEMENTED', async () => {
+    // NOTE: bulkImportMonstersToCompendium API method is not yet implemented
+    // This would be the expected signature when implemented:
+    // const cobaltToken = COBALT_TOKEN;
+    // const importedCount = await api.bulkImportMonstersToCompendium(cobaltToken);
+    // expect(typeof importedCount).toBe('number');
+    // expect(importedCount).toBeGreaterThan(0);
+    expect(true).toBe(true); // Placeholder test
   });
   it('links imported content canonically', async () => {
     // TODO: Implement test using real Beyond Foundry import capabilities and real D&D Beyond data

@@ -9,10 +9,13 @@ This document tracks performance benchmarks, optimization strategies, and known 
 - Spell import: <pending data>
 - Bulk import: <pending data>
 
-### Sample Benchmark (June 2025)
-- Importing 5th-level character: ~2.1s (local proxy, MacBook Pro M1)
-- Importing 10 characters (bulk): ~18s (average 1.8s/character)
-- Spell import (all spells): ~7.5s
+### Performance Testing Status
+**Status**: Benchmarks not yet collected. Performance testing infrastructure is in place but comprehensive metrics need to be gathered.
+
+### Expected Performance (Estimates)
+- Importing 5th-level character: ~2-5s (estimated, local proxy)
+- Importing 10 characters (bulk): ~20-50s (estimated)
+- Spell import (all spells): ~5-15s (estimated)
 
 ### Optimization Strategies
 - Chunked imports for large datasets

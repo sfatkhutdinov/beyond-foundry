@@ -26,8 +26,11 @@ This document covers compendium management, bulk import/export, and canonical li
 To import all spells into a compendium:
 
 ```typescript
-await api.bulkImportSpells({ compendium: 'beyond.spells' });
+const cobaltToken = "your_cobalt_session_token_here";
+await api.bulkImportSpellsToCompendium(cobaltToken, 'beyondfoundry.spells');
 ```
+
+**Note**: This requires a valid D&D Beyond Cobalt session token.
 
 ---
 

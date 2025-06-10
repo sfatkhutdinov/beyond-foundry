@@ -15,10 +15,10 @@ The Beyond Foundry module is now production-ready, with all core features implem
 | Proxy Integration (ddb-proxy)        | ✅ Complete    | Docker-ready, see [Docker Setup](DOCKER_SETUP.md) |
 | UI Dialogs (Import/Auth)             | ✅ Complete    | See [UI Components](ui.md)                      |
 | TypeScript Build System              | ✅ Modern      | See [Modernization](MODERNIZATION_COMPLETE.md)  |
-| Equipment & Items                    | 🟡 In Progress | Basic import complete, advanced mapping (attunement, containers, homebrew) [planned, see Equipment section in parsers.md] |
-| Monster Import                       | ⏳ Planned     | Parser stub exists, not implemented, see [Parsers](parsers.md) |
-| Bulk Import & Compendium             | ✅ Complete    | Canonical spell compendium linking, bulk spell import |
-| Bulk Character Import                | ⏳ Planned     | Not yet implemented, see [Roadmap](roadmap.md)  |
+| Equipment & Items                    | 🟡 Partial     | Basic import complete, compendium linking implemented; advanced features (attunement, containers, homebrew) planned |
+| Monster Import                       | ❌ Not Started | Parser stub exists, actual implementation not started |
+| Bulk Import & Compendium             | ✅ Complete    | Spell and item bulk import with compendium linking (requires cobalt token) |
+| Bulk Character Import                | ❌ Not Started | Not yet implemented, see [Roadmap](roadmap.md)  |
 | Endpoint Tests                       | ✅ Complete    | All endpoints tested, robust error handling, see [Testing Guide](FOUNDRY_TESTING.md) |
 | Docker Deployment                    | ✅ Complete    | Build, run, and test via Docker                 |
 | Code Cleanup & Modernization         | ✅ Complete    | Legacy stubs removed, strict type safety        |

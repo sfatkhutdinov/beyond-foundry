@@ -190,10 +190,13 @@ api.openAuthDialog();
 1. Open the FoundryVTT console (F12).
 2. Run:
    ```javascript
-   // Replace 'beyondfoundry.spells' with your compendium name if needed
-   await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+   // Replace with your actual cobalt token and compendium name
+   const cobaltToken = "your_cobalt_session_token_here";
+   await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium(cobaltToken, "beyondfoundry.spells");
    ```
 3. Wait for the import to complete. All D&D Beyond spells will be available in the compendium.
+
+**Important**: You must provide your D&D Beyond Cobalt session token as the first parameter.
 
 ### How Spell Import Works
 - When importing a character, Beyond Foundry checks the compendium for each spell (by DDB ID or name).
@@ -214,10 +217,13 @@ api.openAuthDialog();
 1. Open the FoundryVTT console (F12).
 2. Run:
    ```javascript
-   // Replace 'beyondfoundry.items' with your compendium name if needed
-   await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium("beyondfoundry.items");
+   // Replace with your actual cobalt token and compendium name
+   const cobaltToken = "your_cobalt_session_token_here";
+   await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium(cobaltToken, "beyondfoundry.items");
    ```
 3. Wait for the import to complete. All D&D Beyond items will be available in the compendium.
+
+**Important**: You must provide your D&D Beyond Cobalt session token as the first parameter.
 
 ### How Item Import Works
 - When importing a character, Beyond Foundry checks the compendium for each item (by DDB ID).
@@ -341,7 +347,7 @@ api.openAuthDialog();
 #### Issue: "Spell not found in compendium"
 **Symptoms:** Imported character spells are duplicated as embedded items
 **Solutions:**
-1. Re-run bulk import: `await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");`
+1. Re-run bulk import: `await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium(cobaltToken, "beyondfoundry.spells");`
 2. Check compendium name in settings
 3. Verify spell existence in D&D Beyond
 

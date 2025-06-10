@@ -197,7 +197,8 @@ try {
 ### Bulk Spell Import Usage
 ```javascript
 // In FoundryVTT console
-await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+const cobaltToken = "your_cobalt_session_token_here";
+await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium(cobaltToken, "beyondfoundry.spells");
 ```
 
 ### Spell Linking Workflow

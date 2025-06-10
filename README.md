@@ -13,12 +13,14 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 
 - ✅ **Character Import:** Fully functional, tested with real D&D Beyond data
 - ✅ **Spell Import:** Production-ready, supports all spellcasting classes and multiclassing ([details](docs/SPELL_ENHANCEMENT_COMPLETE.md))
-- ✅ **Proxy Integration:** ddb-proxy integration complete, Docker-ready ([setup](docs/DOCKER_SETUP.md))
+- ✅ **Proxy Integration:** ddb-proxy integration complete, Docker-ready
 - ✅ **UI Dialogs:** Import and authentication dialogs implemented ([see UI](docs/ui.md))
 - ✅ **TypeScript Build System:** Modern, strict, and reliable ([modernization](docs/MODERNIZATION_COMPLETE.md))
-- ✅ **Bulk Import & Compendium:** Canonical spell compendium linking and bulk spell import complete!
-- ✅ **Endpoint Tests & Docker:** All endpoints tested, robust error handling, Docker deployment validated
-- 🟡 **Advanced Features:** (e.g., auto-sync, batch import) in planning
+- ✅ **Bulk Import & Compendium:** Spell and item bulk import with canonical compendium linking (requires cobalt token)
+- ✅ **Equipment & Items:** Basic import with compendium linking (advanced features planned)
+- 🟡 **Advanced Features:** Auto-sync, batch import, selective import in planning
+- ❌ **Monster Import:** Not yet implemented (parser stub exists)
+- ❌ **Bulk Character Import:** Not yet implemented
 
 See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.md](docs/roadmap.md) for detailed progress and goals.
 
@@ -126,13 +128,18 @@ Beyond Foundry now uses a canonical compendium for all spells:
 
 ### How to Bulk Import Spells to a Compendium
 
+**Note**: This feature requires a valid Cobalt session token.
+
 1. Open the FoundryVTT console (F12).
 2. Run:
    ```javascript
-   // Replace 'beyondfoundry.spells' with your compendium name if needed
-   await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium("beyondfoundry.spells");
+   // Replace with your actual cobalt token and compendium name
+   const cobaltToken = "your_cobalt_session_token_here";
+   await game.modules.get("beyond-foundry").api.bulkImportSpellsToCompendium(cobaltToken, "beyondfoundry.spells");
    ```
 3. Wait for the import to complete. All D&D Beyond spells will be available in the compendium.
+
+**Important**: You must provide your D&D Beyond Cobalt session token as the first parameter.
 
 ### How Character Spell Import Works Now
 - When importing a character, Beyond Foundry checks the compendium for each spell (by DDB ID or name).
@@ -154,13 +161,18 @@ Beyond Foundry now uses a canonical compendium for all items, mirroring the spel
 
 ### How to Bulk Import Items to a Compendium
 
+**Note**: This feature requires a valid Cobalt session token.
+
 1. Open the FoundryVTT console (F12).
 2. Run:
    ```javascript
-   // Replace 'beyondfoundry.items' with your compendium name if needed
-   await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium("beyondfoundry.items");
+   // Replace with your actual cobalt token and compendium name
+   const cobaltToken = "your_cobalt_session_token_here";
+   await game.modules.get("beyond-foundry").api.bulkImportItemsToCompendium(cobaltToken, "beyondfoundry.items");
    ```
 3. Wait for the import to complete. All D&D Beyond items will be available in the compendium.
+
+**Important**: You must provide your D&D Beyond Cobalt session token as the first parameter.
 
 ### How Character Item Import Works Now
 - When importing a character, Beyond Foundry checks the compendium for each item (by DDB ID).
