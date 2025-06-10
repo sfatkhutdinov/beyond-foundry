@@ -23,7 +23,6 @@ fi
 echo -e "${BLUE}📋 This script will guide you through setting up integrations for:${NC}"
 echo "   - Codecov (Code Coverage)"
 echo "   - SonarCloud (Code Quality)"
-echo "   - Snyk (Security Scanning)"
 echo "   - Discord/Slack (Notifications)"
 echo ""
 
@@ -63,7 +62,6 @@ echo -e "${BLUE}🔍 Checking current secret configuration...${NC}"
 # Check existing secrets
 check_secret "CODECOV_TOKEN"
 check_secret "SONAR_TOKEN"
-check_secret "SNYK_TOKEN"
 check_secret "PROJECT_TOKEN"
 check_secret "NPM_TOKEN"
 check_secret "DISCORD_WEBHOOK_URL"
@@ -90,15 +88,6 @@ if ! check_secret "SONAR_TOKEN"; then
     echo "3. Create a new project for beyond-foundry"
     echo "4. Generate a token in User Settings > Security"
     set_secret "SONAR_TOKEN" "SonarCloud token for code quality analysis"
-fi
-
-# Snyk setup (optional)
-if ! check_secret "SNYK_TOKEN"; then
-    echo -e "${BLUE}🛡️ Snyk Setup (Optional)${NC}"
-    echo "1. Visit https://snyk.io"
-    echo "2. Sign up and connect GitHub"
-    echo "3. Get your API token from Account Settings"
-    set_secret "SNYK_TOKEN" "Snyk API token for security scanning (optional)"
 fi
 
 # Project token setup

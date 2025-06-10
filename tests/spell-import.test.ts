@@ -22,16 +22,27 @@ const SAMPLE_DDB_SPELLS = {
       ritual: false,
       concentration: false,
       description: "<p>You hurl a mote of fire at a creature or object within range...</p>",
-      range: { origin: "Ranged", rangeValue: 120, aoeType: null, aoeValue: null },
-      components: [1, 2], // Verbal, Somatic
-      duration: { durationType: "Instantaneous", durationInterval: null },
-      activation: { activationType: 1, activationTime: 1 },
-      attackType: 4, // Ranged spell attack
-      damageTypes: ["Fire"],
-      dice: [{ diceCount: 1, diceValue: 10, fixedValue: null }],
-      sources: [{ sourceId: 1, pageNumber: 242, sourceType: 1 }]
+      castingTime: "1 action",
+      duration: {
+        durationInterval: 1,
+        durationUnit: "Instantaneous",
+        durationType: "Instantaneous"
+      },
+      range: { 
+        origin: "Ranged", 
+        rangeValue: 120, 
+        aoeType: undefined, 
+        aoeSize: undefined 
+      },
+      components: {
+        verbal: true,
+        somatic: true,
+        material: false
+      },
+      sources: [{ sourceId: 1, pageNumber: 242, sourceType: "1" }]
     },
     prepared: true,
+    countsAsKnownSpell: false,
     usesSpellSlot: false,
     spellCastingAbilityId: 4
   }
@@ -78,9 +89,10 @@ describe('Spell Import (Real Data)', () => {
       const result = SpellParser.parseSpell(SAMPLE_DDB_SPELLS.fireBolt);
       
       expect(result.flags['beyond-foundry']).toBeDefined();
-      expect(result.flags['beyond-foundry'].ddbId).toBe(172);
-      expect(result.flags['beyond-foundry'].prepared).toBe(true);
-      expect(result.flags['beyond-foundry'].usesSpellSlot).toBe(false);
+      const beyondFoundryFlags = result.flags['beyond-foundry'];
+      expect(beyondFoundryFlags?.ddbId).toBe(172);
+      expect(beyondFoundryFlags?.prepared).toBe(true);
+      expect(beyondFoundryFlags?.usesSpellSlot).toBe(false);
     });
   });
 

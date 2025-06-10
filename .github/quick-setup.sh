@@ -83,7 +83,6 @@ main() {
     echo "1. Set up third-party integrations manually:"
     echo "   - Codecov: https://codecov.io"
     echo "   - SonarCloud: https://sonarcloud.io"
-    echo "   - Snyk: https://snyk.io"
     echo ""
     echo "2. Configure branch protection via GitHub web interface:"
     echo "   - Visit: https://github.com/$(gh repo view --json owner,name -q '.owner.login + "/" + .name')/settings/branches"

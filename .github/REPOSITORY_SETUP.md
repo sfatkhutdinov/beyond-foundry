@@ -68,7 +68,6 @@ Required secrets to add:
 - PROJECT_TOKEN: GitHub project management token
 - NPM_TOKEN: NPM publishing token (if publishing to NPM)
 - SLACK_WEBHOOK_URL: Slack notifications (optional)
-- SNYK_TOKEN: Snyk security scanning token
 
 ## Pages
 - Source: Deploy from a branch

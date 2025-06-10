@@ -90,11 +90,6 @@ Create a test pull request to verify:
 2. Create project
 3. Add token as `SONAR_TOKEN` secret
 
-### Snyk (Optional)
-1. Visit [snyk.io](https://snyk.io)
-2. Get API token
-3. Add as `SNYK_TOKEN` secret
-
 ## 🎊 ACHIEVEMENT UNLOCKED
 
 ### **Enterprise-Grade Repository** 🏆

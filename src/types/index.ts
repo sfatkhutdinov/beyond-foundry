@@ -603,6 +603,7 @@ export interface ImportOptions {
   createCompendiumItems: boolean;
   spellPreparationMode?: 'prepared' | 'pact' | 'always' | 'atwill' | 'innate';
   spellCompendiumName?: string; // Added for compendium spell linking
+  itemCompendiumName?: string; // Added for compendium item linking
 }
 
 // API response types

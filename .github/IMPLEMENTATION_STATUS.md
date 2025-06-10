@@ -137,7 +137,6 @@ Required secrets for full automation:
 - `PROJECT_TOKEN` - GitHub Projects automation
 
 #### Optional but Recommended
-- `SNYK_TOKEN` - Security vulnerability scanning
 - `NPM_TOKEN` - Package publishing (if needed)
 - `DISCORD_WEBHOOK_URL` - Discord notifications
 - `SLACK_WEBHOOK_URL` - Slack notifications
@@ -155,12 +154,6 @@ Required secrets for full automation:
 2. Create project for repository
 3. Generate API token
 4. Add as `SONAR_TOKEN` secret
-
-#### Snyk (Security Scanning)
-1. Visit [snyk.io](https://snyk.io)
-2. Connect GitHub repository
-3. Get API token
-4. Add as `SNYK_TOKEN` secret
 
 ## 🧪 TESTING REQUIREMENTS
 

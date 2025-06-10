@@ -114,8 +114,9 @@ export class ModuleRegistration {
         // Safe URL encoding using Foundry's utility
         encodeURL: (path: string): string => {
           // Use Foundry's built-in utility if available
-          if ((foundry as unknown as { utils?: { encodeURL?: unknown } }).utils?.encodeURL) {
-            return (foundry as unknown as { utils?: { encodeURL?: unknown } }).utils.encodeURL(path);
+          const foundryUtils = (foundry as unknown as { utils?: { encodeURL?: (path: string) => string } }).utils;
+          if (foundryUtils?.encodeURL) {
+            return foundryUtils.encodeURL(path);
           } else {
             // Fallback to standard encoding
             return encodeURIComponent(path);
@@ -239,12 +240,15 @@ export class ModuleRegistration {
         class: 'beyond-foundry-update',
         icon: 'fas fa-sync',
         onclick: async () => {
-          const ddbId = (app as { item?: { getFlag: (namespace: string, key: string) => unknown } }).item.getFlag('beyond-foundry', 'ddbId');
-          if (ddbId) {
-            // Implement item update logic
-            ui.notifications?.info('Item update from D&D Beyond coming soon!');
-          } else {
-            ui.notifications?.warn('This item was not imported from D&D Beyond');
+          const item = (app as { item?: { getFlag: (namespace: string, key: string) => unknown } }).item;
+          if (item) {
+            const ddbId = item.getFlag('beyond-foundry', 'ddbId');
+            if (ddbId) {
+              // Implement item update logic
+              ui.notifications?.info('Item update from D&D Beyond coming soon!');
+            } else {
+              ui.notifications?.warn('This item was not imported from D&D Beyond');
+            }
           }
         }
       });
@@ -258,10 +262,11 @@ export class ModuleRegistration {
    */
   registerConsoleAPI(): void {
     // Add development shortcuts to console
-    (window as unknown as { beyondFoundry?: unknown; bfTest?: unknown }).beyondFoundry = (game as unknown).beyondFoundry;
+    const gameApi = (game as { beyondFoundry?: unknown }).beyondFoundry;
+    (window as unknown as { beyondFoundry?: unknown; bfTest?: unknown }).beyondFoundry = gameApi;
     
     // Add quick testing functions
-    (window as unknown as { bfTest?: { connection?: unknown; auth?: unknown; character?: unknown; diagnostic?: unknown } }).bfTest = {
+    (window as unknown as { bfTest?: { connection?: () => Promise<boolean>; auth?: (token?: string) => Promise<unknown>; character?: (id: string) => Promise<unknown>; diagnostic?: () => Promise<void> } }).bfTest = {
       connection: async () => await this.api.testProxyConnection(),
       auth: async (token?: string) => await this.api.authenticate(token),
       character: async (id: string) => await this.routeHandler.getCharacter(id),

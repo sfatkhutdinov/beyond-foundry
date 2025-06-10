@@ -229,9 +229,11 @@ export class BeyondFoundryAPI {
       const actorData = CharacterParser.parseCharacter(ddbCharacter);
 
       // Remove inventory items from actorData.items (will be handled via compendium linking)
-      actorData.items = actorData.items.filter(
-        (item: any) => item.type !== 'weapon' && item.type !== 'equipment' && item.type !== 'loot' && item.type !== 'consumable' && item.type !== 'tool'
-      );
+      if (actorData.items) {
+        actorData.items = actorData.items.filter(
+          (item: any) => item.type !== 'weapon' && item.type !== 'equipment' && item.type !== 'loot' && item.type !== 'consumable' && item.type !== 'tool'
+        );
+      }
 
       // Check if character already exists
       const existingActor = game.actors?.find(

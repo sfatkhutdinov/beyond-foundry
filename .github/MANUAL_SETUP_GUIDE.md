@@ -80,22 +80,7 @@ The GitHub CLI has compatibility issues with the current branch protection API f
    sonar.coverage.exclusions=**/*.test.js,**/*.spec.js,**/node_modules/**
    ```
 
-### 3. Snyk Setup (Security Scanning)
-
-1. **Visit Snyk**
-   - Go to: https://snyk.io
-   - Sign in with your GitHub account
-
-2. **Add Project**
-   - Import `sfatkhutdinov/beyond-foundry`
-   - Get your authentication token from account settings
-
-3. **Configure Secret**
-   ```bash
-   gh secret set SNYK_TOKEN --body "YOUR_SNYK_TOKEN"
-   ```
-
-### 4. GitHub Projects Token
+### 3. GitHub Projects Token
 
 1. **Create Personal Access Token**
    - Go to: https://github.com/settings/tokens

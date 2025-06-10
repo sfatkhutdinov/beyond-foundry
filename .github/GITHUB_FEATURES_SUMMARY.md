@@ -125,7 +125,6 @@ Add these secrets in your repository settings:
 - `PROJECT_TOKEN`: GitHub project management
 - `NPM_TOKEN`: Package publishing (optional)
 - `DISCORD_WEBHOOK_URL`: Community notifications (optional)
-- `SNYK_TOKEN`: Security scanning
 
 ### 3. **Enable Features**
 - ✅ Issues

@@ -59,7 +59,6 @@ gh secret set CODECOV_TOKEN --body "YOUR_CODECOV_TOKEN"
 gh secret set SONAR_TOKEN --body "YOUR_SONAR_TOKEN"
 
 # Optional but recommended
-gh secret set SNYK_TOKEN --body "YOUR_SNYK_TOKEN"
 gh secret set DISCORD_WEBHOOK_URL --body "YOUR_WEBHOOK"
 gh secret set SLACK_WEBHOOK_URL --body "YOUR_WEBHOOK"
 ```

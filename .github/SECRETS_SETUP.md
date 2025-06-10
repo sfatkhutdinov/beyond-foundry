@@ -19,32 +19,26 @@ SONAR_TOKEN=your_sonar_token_here
 SONAR_PROJECT_KEY=sfatkhutdinov_beyond-foundry  # Usually org_repo format
 ```
 
-### 3. Security Scanning - Snyk (Optional)
-```bash
-# Visit https://snyk.io and get your API token
-SNYK_TOKEN=your_snyk_token_here
-```
-
-### 4. Project Management Token
+### 3. Project Management Token
 ```bash
 # Create a GitHub Personal Access Token with project permissions
 # Required scopes: repo, project
 PROJECT_TOKEN=your_project_token_here
 ```
 
-### 5. Package Publishing (Optional)
+### 4. Package Publishing (Optional)
 ```bash
 # NPM publishing token if you want to publish to NPM registry
 NPM_TOKEN=your_npm_token_here
 ```
 
-### 6. Discord Notifications (Optional)
+### 5. Discord Notifications (Optional)
 ```bash
 # Discord webhook URL for notifications
 DISCORD_WEBHOOK_URL=your_discord_webhook_url_here
 ```
 
-### 7. Slack Notifications (Optional)
+### 6. Slack Notifications (Optional)
 ```bash
 # Slack webhook URL for notifications
 SLACK_WEBHOOK_URL=your_slack_webhook_url_here
@@ -94,12 +88,6 @@ You can add environment-specific secrets by:
 4. Choose "With GitHub Actions"
 5. Follow the setup instructions
 6. Add the token as `SONAR_TOKEN`
-
-### Snyk Setup (Optional)
-1. Visit [snyk.io](https://snyk.io)
-2. Sign up and connect GitHub
-3. Get your API token from settings
-4. Add as `SNYK_TOKEN` secret
 
 ## Verification
 
