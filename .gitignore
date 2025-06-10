@@ -107,7 +107,6 @@ tmp/
 temp/
 
 # Docker files
-docker-compose.yml
 
 # Reference implementations (too large for git)
 reference/foundryvtt-dnd5e/
@@ -116,7 +115,7 @@ reference/foundryvtt-dnd5e/
 .rollup.cache/
 
 # Reference implementations (too large for git)
-reference/
+references/
 
 # Cache directories
 .rollup.cache/
