@@ -158,7 +158,7 @@ class CharacterParser { /* ... */ }
 
 #### Required Parsers
 - `CharacterParser` - Full character import (implemented)
-- `MonsterParser` - Creature stat blocks (implemented)
+- `MonsterParser` - Creature stat blocks (planned - stub implementation)
 - `SpellParser` - Spell data and scaling (implemented)
 - `ItemParser` - Equipment and magic items (implemented)
 - `FeatParser` - Feats and features (partially implemented)

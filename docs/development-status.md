@@ -16,6 +16,7 @@ The Beyond Foundry module is now production-ready, with all core features implem
 | UI Dialogs (Import/Auth)             | ✅ Complete    | See [UI Components](ui.md)                      |
 | TypeScript Build System              | ✅ Modern      | See [Modernization](MODERNIZATION_COMPLETE.md)  |
 | Equipment & Items                    | 🟡 In Progress | Basic import complete, advanced mapping (attunement, containers, homebrew) [planned, see Equipment section in parsers.md] |
+| Monster Import                       | ⏳ Planned     | Parser stub exists, not implemented, see [Parsers](parsers.md) |
 | Bulk Import & Compendium             | ✅ Complete    | Canonical spell compendium linking, bulk spell import |
 | Bulk Character Import                | ⏳ Planned     | Not yet implemented, see [Roadmap](roadmap.md)  |
 | Endpoint Tests                       | ✅ Complete    | All endpoints tested, robust error handling, see [Testing Guide](FOUNDRY_TESTING.md) |

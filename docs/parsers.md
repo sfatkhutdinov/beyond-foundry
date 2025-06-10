@@ -13,7 +13,7 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 | SpellParser      | ✅ Complete    | All spellcasting classes, multiclass, components, scaling, metadata, **compendium linking** | Homebrew, rare edge cases      | [SPELL_ENHANCEMENT_COMPLETE.md](SPELL_ENHANCEMENT_COMPLETE.md) |
 | ItemParser       | ✅ Complete    | Weapons, armor, gear, basic magic items | Advanced magic, attunement, containers, homebrew, enhanced properties, system fields | [ddb-importer/items](../../reference/ddb-importer/src/parser/items/) |
 | FeatureParser    | 🟡 In Progress | Class, racial, background, feat features | Homebrew flags, enhanced properties, system fields, advanced effects | [ddb-importer/features](../../reference/ddb-importer/src/parser/features/) |
-| MonsterParser    | ✅ Complete    | Stat blocks, abilities, legendary actions | Advanced variants, homebrew    | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
+| MonsterParser    | ⏳ Planned      | -                               | All fields (stub implementation only) | [ddb-importer/monsters](../../reference/ddb-importer/src/parser/monsters/) |
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
 | BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
 | RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |

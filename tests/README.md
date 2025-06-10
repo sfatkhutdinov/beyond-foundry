@@ -7,7 +7,7 @@ This directory contains organized, named, and comprehensive tests for all Beyond
 - `character-import.test.ts` — Character import (all levels, classes, backgrounds, multiclass)
 - `spell-import.test.ts` — Spell import (all classes, upcasting, compendium linking)
 - `item-import.test.ts` — Equipment & item import (attunement, containers, homebrew)
-- `monster-import.test.ts` — Monster stat blocks, variants, spellcasting
+- `monster-import.test.ts` — Monster stat blocks, variants, spellcasting (PLANNED - tests currently skipped)
 - `feat-import.test.ts` — Feats and feature import (partial)
 - `background-import.test.ts` — Backgrounds (partial)
 - `compendium.test.ts` — Bulk import, compendium management

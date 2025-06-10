@@ -11,7 +11,7 @@ Beyond Foundry is a comprehensive FoundryVTT module that allows users to import 
 
 ### Content Import Types
 - **Characters**: Full stats, equipment, abilities, spells, backgrounds, features (implemented)
-- **Monsters**: Complete stat blocks, abilities, legendary actions, lair actions (implemented)
+- **Monsters**: Complete stat blocks, abilities, legendary actions, lair actions (planned - parser stub exists)
 - **Spells**: Descriptions, components, scaling, spell lists, class associations (implemented)
 - **Items & Equipment**: Properties, descriptions, magical effects, variants (implemented)
 - **Feats**: Prerequisites, benefits, feature interactions (partially implemented)
