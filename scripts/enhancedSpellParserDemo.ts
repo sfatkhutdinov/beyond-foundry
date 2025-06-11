@@ -10,20 +10,12 @@
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { SpellParser } from '../src/parsers/spells/SpellParser';
-import type { FoundrySpell } from '../src/types/index';
+import type { FoundrySpell, FoundryActivity } from '../src/types/index';
 
 interface EnhancedFoundrySpell extends FoundrySpell {
   system: FoundrySpell['system'] & {
-    activities?: Record<string, ActivityData>;
+    activities?: Record<string, FoundryActivity>;
   };
-}
-
-interface ActivityData {
-  _id: string;
-  type: 'attack' | 'save' | 'heal' | 'utility';
-  name: string;
-  sort: number;
-  description?: string;
 }
 
 /**
