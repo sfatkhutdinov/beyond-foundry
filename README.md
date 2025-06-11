@@ -72,6 +72,12 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **Batch character import** support (planned)
 - **Import option customization**
 
+### 📚 Class Import (NEW)
+- Import D&D Beyond class data (features, subclasses, spell lists) via the `/proxy/classes` endpoint
+- Uses ddb-proxy Docker setup for secure, authenticated extraction
+- Output is saved as canonical JSON (see `zzzOutputzzz/bard-class.json` for example)
+- See [docs/parsers.md](docs/parsers.md) for parser details and [FOUNDRY_TESTING.md](docs/FOUNDRY_TESTING.md) for proxy setup
+
 ## 🚀 Quick Start
 
 1. **Install Dependencies**

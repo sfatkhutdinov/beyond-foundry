@@ -17,7 +17,7 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
 | BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
 | RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |
-| ClassParser      | ✅ Complete    | -                               | All fields                    |                                    |
+| ClassParser      | ✅ Complete    | Features, subclasses, spell lists | All fields                    |                                    |
 | RuleParser       | ⏳ Planned     | -                               | All fields                    |                                    |
 | FeatParser       | 🟡 In Progress | -                               | All fields                    |                                    |
 
