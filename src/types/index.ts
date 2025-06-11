@@ -729,6 +729,8 @@ export interface FoundrySpell {
       formula: string;
     };
     properties: string[];
+    // Enhanced: Add activities for FoundryVTT D&D 5e Activity System
+    activities?: Record<string, FoundryActivity>;
   };
   effects: unknown[];
   flags: {
@@ -743,6 +745,126 @@ export interface FoundrySpell {
       restriction: string | null;
     };
     [key: string]: unknown;
+  };
+}
+
+// FoundryVTT D&D 5e Activity System types
+export interface FoundryActivity {
+  _id: string;
+  type: 'attack' | 'damage' | 'heal' | 'save' | 'check' | 'utility' | 'cast' | 'enchant';
+  name?: string;
+  img?: string;
+  sort: number;
+  activation?: {
+    type: string;
+    value: number | null;
+    condition: string;
+  };
+  consumption?: {
+    targets: Array<{
+      type: 'slots' | 'charges' | 'quantity';
+      target: string;
+      value: string;
+      scaling?: {
+        mode: 'level' | 'none';
+        formula: string;
+      };
+    }>;
+    scaling?: {
+      allowed: boolean;
+      max: string;
+    };
+  };
+  description?: {
+    chatFlavor: string;
+  };
+  duration?: {
+    value: string;
+    units: string;
+    special: string;
+    override: boolean;
+  };
+  effects?: Array<{
+    _id: string;
+    onSave: boolean;
+  }>;
+  range?: {
+    value: string;
+    units: string;
+    special: string;
+    override: boolean;
+  };
+  target?: {
+    template?: {
+      count: string;
+      contiguous: boolean;
+      type: string;
+      size: string;
+      width: string;
+      height: string;
+      units: string;
+    };
+    affects?: {
+      count: string;
+      type: string;
+      choice: boolean;
+      special: string;
+    };
+    override?: boolean;
+  };
+  uses?: {
+    spent: number;
+    max: string;
+    recovery: Array<{
+      period: string;
+      type: string;
+      formula: string;
+    }>;
+  };
+  // Activity-specific properties
+  attack?: {
+    ability: string;
+    bonus: string;
+    critical: { threshold: number | null };
+    flat: boolean;
+    type: {
+      value: 'melee' | 'ranged';
+      classification: 'spell' | 'weapon' | 'unarmed';
+    };
+  };
+  damage?: {
+    critical?: { bonus: string };
+    includeBase: boolean;
+    parts: Array<{
+      formula: string;
+      types: Set<string>;
+      scaling?: {
+        mode: 'level' | 'none';
+        formula: string;
+      };
+    }>;
+  };
+  save?: {
+    ability: Set<string>;
+    dc: {
+      calculation: string;
+      formula: string;
+    };
+  };
+  healing?: {
+    custom?: {
+      formula: string;
+      enabled: boolean;
+    };
+    scaling?: {
+      mode: 'level' | 'none';
+      formula: string;
+    };
+  };
+  roll?: {
+    formula: string;
+    ability: string;
+    dc?: number;
   };
 }
 

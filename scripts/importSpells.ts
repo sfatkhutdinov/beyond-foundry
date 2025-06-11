@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-import path from 'path';
-import { fileURLToPath } from 'url';
+import * as path from 'path';
 
 // Dynamic import for node-fetch
 const fetch = async (...args: Parameters<typeof import('node-fetch').default>) => {
@@ -9,8 +8,7 @@ const fetch = async (...args: Parameters<typeof import('node-fetch').default>) =
     return module.default(...args);
 };
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = process.cwd();
 
 // Configuration
 const PROXY_URL = process.env.PROXY_URL || 'http://localhost:4000';
@@ -80,40 +78,99 @@ async function main() {
         }
         ScriptLogger.success('Authentication successful');
         
-        // Fetch spells using the authenticated token
-        ScriptLogger.info('Fetching spells from proxy...');
-        const response = await fetch(`${PROXY_URL}/proxy/spells/spells`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                cobalt: authData.token
-            })
-        });
-
-        if (!response.ok) {
-            ScriptLogger.error(`Failed to fetch spells: ${response.status} ${response.statusText}`);
-            const text = await response.text();
-            ScriptLogger.error(`Response: ${text}`);
+        // Get proxy configuration to see all available classes
+        ScriptLogger.info('Getting proxy configuration...');
+        const configResponse = await fetch(`${PROXY_URL}/proxy/config`);
+        if (!configResponse.ok) {
+            ScriptLogger.error(`Failed to get proxy config: ${configResponse.status}`);
             process.exit(1);
         }
+        const config = await configResponse.json();
+        const classMap = config.classMap || [];
+        ScriptLogger.success(`Found ${classMap.length} classes: ${classMap.map((c: any) => c.name).join(', ')}`);
 
-        const spells = await response.json();
-        if (spells.success) {
-            ScriptLogger.success(`Successfully fetched ${spells.data.length} spells`);
+        // Fetch spells from all classes
+        ScriptLogger.info('Fetching spells from all classes...');
+        const allSpells = [];
+        const spellIds = new Set(); // To track unique spells
+
+        for (const classInfo of classMap) {
+            try {
+                ScriptLogger.info(`Fetching spells for ${classInfo.name}...`);
+                const classSpellResponse = await fetch(`${PROXY_URL}/proxy/spells/class/spells`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        className: classInfo.name,
+                        cobaltToken: authData.token
+                    })
+                });
+
+                if (!classSpellResponse.ok) {
+                    ScriptLogger.warn(`Failed to fetch spells for ${classInfo.name}: ${classSpellResponse.status}`);
+                    continue;
+                }
+
+                const classSpells = await classSpellResponse.json();
+                if (classSpells.success && classSpells.data) {
+                    let uniqueSpellsAdded = 0;
+                    for (const spell of classSpells.data) {
+                        const spellId = spell.definition?.id || spell.id;
+                        if (spellId && !spellIds.has(spellId)) {
+                            spellIds.add(spellId);
+                            allSpells.push({
+                                ...spell,
+                                _sourceClass: classInfo.name // Add source class for reference
+                            });
+                            uniqueSpellsAdded++;
+                        }
+                    }
+                    ScriptLogger.success(`${classInfo.name}: ${classSpells.data.length} total, ${uniqueSpellsAdded} unique spells added`);
+                } else {
+                    ScriptLogger.warn(`No spells returned for ${classInfo.name}`);
+                }
+            } catch (error) {
+                ScriptLogger.error(`Error fetching spells for ${classInfo.name}: ${error}`);
+            }
+        }
+
+        ScriptLogger.success(`Successfully collected ${allSpells.length} unique spells from all classes`);
+        
+        if (allSpells.length > 0) {
             ScriptLogger.info('Sample spells:');
-            spells.data.slice(0, 5).forEach((spell: any) => {
-                ScriptLogger.info(`- ${spell.definition?.name || 'Unknown spell'} (Level ${spell.definition?.level})`);
+            allSpells.slice(0, 5).forEach((spell: any) => {
+                ScriptLogger.info(`- ${spell.definition?.name || spell.name || 'Unknown spell'} (Level ${spell.definition?.level || spell.level || '?'}) [${spell._sourceClass}]`);
             });
             
             // Write raw data to file for inspection
             const fs = await import('fs/promises');
-            const outputPath = path.join(__dirname, '..', 'fetched-spells.json');
-            await fs.writeFile(outputPath, JSON.stringify(spells.data, null, 2));
-            ScriptLogger.success(`Raw spell data written to ${outputPath}`);
+            const outputPath = path.join(process.cwd(), 'zzzOutputzzz', 'imported_spells.json');
+            
+            // Ensure the directory exists
+            const outputDir = path.dirname(outputPath);
+            await fs.mkdir(outputDir, { recursive: true });
+            
+            await fs.writeFile(outputPath, JSON.stringify(allSpells, null, 2));
+            ScriptLogger.success(`All unique spells written to ${outputPath}`);
+
+            // Also write a summary by spell level
+            const spellsByLevel: Record<number, any[]> = {};
+            allSpells.forEach(spell => {
+                const level = spell.definition?.level ?? spell.level ?? 0;
+                if (!spellsByLevel[level]) spellsByLevel[level] = [];
+                spellsByLevel[level].push(spell);
+            });
+
+            ScriptLogger.info('\nSpells by level:');
+            for (let level = 0; level <= 9; level++) {
+                const spells = spellsByLevel[level] || [];
+                const levelName = level === 0 ? 'Cantrips' : `Level ${level}`;
+                ScriptLogger.info(`${levelName}: ${spells.length} spells`);
+            }
         } else {
-            ScriptLogger.error(`Spell fetch failed: ${spells.message}`);
+            ScriptLogger.error('No spells were collected');
         }
         
     } catch (error) {
