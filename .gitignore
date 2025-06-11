@@ -64,3 +64,5 @@ test-*.js
 debug-*.mjs
 zzzOutputzzz/147552172_raw.json
 zzzOutputzzz/147552172_transformed.json
+zzzOutputzzz/147726554_raw.json
+zzzOutputzzz/complete_char.json
