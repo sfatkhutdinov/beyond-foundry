@@ -31,7 +31,7 @@
     "build/beyond-foundry.js"
   ],
   "styles": [
-    "beyond-foundry.css"
+    "src/styles/beyond-foundry.css"
   ],
   "languages": [
     {

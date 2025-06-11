@@ -8,15 +8,16 @@ yarn-error.log*
 dist/
 build/
 *.tsbuildinfo
-# Build outputs (more explicit)
-beyond-foundry.js
-beyond-foundry.js.map
-foundry-dev-package/beyond-foundry.js*
+.rollup.cache/
 
 # Debug and temporary files
 debug/
 temp/
 *.tmp
+data/debug/
+data/samples/
+tests/debug/
+tests/manual/
 
 # Analysis results (optional - comment out if you want to track these)
 # analysis/
@@ -49,80 +50,15 @@ coverage/
 ehthumbs.db
 Thumbs.db
 
-# Large files and archives (prevent accidental commits)
-*.zip
-*.tar.gz
-*.7z
-*.rar
-*.bin
-*.exe
-*.dmg
-*.iso
-*.img
-*.lfs
-data/container_cache/
+# FoundryVTT data directories (ignore user data)
+data/Data/
+data/Config/
 data/Logs/
-build/
+data/container_cache/
 
-# Logs
-logs/
-*.log
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# nyc test coverage
-.nyc_output/
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# TypeScript cache
-*.tsbuildinfo
-
-# Foundry VTT specific
-foundryconfig.json
-foundryconfig-*.json
-
-# Temporary files
-tmp/
-temp/
-
-# Docker files
-
-# Reference implementations (too large for git)
-reference/foundryvtt-dnd5e/
-
-# Cache directories
-.rollup.cache/
-
-# Reference implementations (too large for git)
-references/
-
-# Cache directories
-.rollup.cache/
-
-
-# Code Index MCP cache directory
-.code_indexer/
-spell.html
-class-spells-debug-data.json
-class-spells-data.json
+# Temporary development files
+*.debug.json
+*.test.html
+test-*.mjs
+test-*.js
+debug-*.mjs
