@@ -134,3 +134,4 @@ The Enhanced SpellParser achieves **89.1% automation coverage** across 809 test 
 - 🛡️ **Save Spells**: 312 spells requiring saving throws  
 - 💚 **Healing Spells**: 89 spells with healing effects
 - 🔧 **Utility Spells**: 174 spells with non-combat effects
+
