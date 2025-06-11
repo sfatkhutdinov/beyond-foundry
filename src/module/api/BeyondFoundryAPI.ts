@@ -10,8 +10,8 @@ import type {
 } from '../../types/index.js';
 import { getModuleSettings } from '../utils/settings.js';
 import { Logger, getErrorMessage } from '../utils/logger.js';
-import { DEFAULT_IMPORT_OPTIONS } from '../constants.js';
-import { CharacterParser } from '../../parsers/character/CharacterParser.js';
+import { CharacterImportService } from '../../services/CharacterImportService.js';
+import { ContentImportService } from '../../services/ContentImportService.js';
 
 /**
  * Main API class for Beyond Foundry module
@@ -23,6 +23,10 @@ export class BeyondFoundryAPI {
   private apiEndpoint: string = '';
   private initialized: boolean = false;
   private bearerToken: string | null = null;
+
+  // New service instances for separated import workflows
+  private characterImportService: CharacterImportService | null = null;
+  private contentImportService: ContentImportService | null = null;
 
   private constructor() {}
 
@@ -37,7 +41,7 @@ export class BeyondFoundryAPI {
   }
 
   /**
-   * Initialize the API with current settings
+   * Initialize the API with current settings and setup separated import services
    */
   public init(): void {
     if (this.initialized) return;
@@ -47,11 +51,17 @@ export class BeyondFoundryAPI {
     this.apiEndpoint = settings.apiEndpoint;
     this.initialized = true;
 
-    Logger.info('BeyondFoundryAPI initialized');
+    // Initialize separated import services
+    this.characterImportService = new CharacterImportService(this.proxyEndpoint);
+    this.contentImportService = new ContentImportService(this.proxyEndpoint);
+
+    Logger.info('🔧 BeyondFoundryAPI initialized with separated import services');
+    Logger.debug('  • Character Import: API-first using rich character endpoint');
+    Logger.debug('  • Content Import: Scraping-based for maximum quality');
 
     // Test proxy connection on init
     this.testProxyConnection().catch(error => {
-      Logger.warn(`Initial proxy connection test failed: ${error.message}`);
+      Logger.warn(`Initial proxy connection test failed: ${getErrorMessage(error)}`);
     });
   }
 
@@ -117,6 +127,12 @@ export class BeyondFoundryAPI {
         if (data.token) {
           // Store the Bearer token for future API calls
           this.bearerToken = data.token;
+          
+          // Set the bearer token on the import services
+          if (this.characterImportService) {
+            this.characterImportService.setBearerToken(data.token);
+          }
+          
           Logger.info('Authentication successful - Bearer token obtained');
           return {
             success: true,
@@ -172,9 +188,15 @@ export class BeyondFoundryAPI {
    */
   public async getCharacter(characterId: string): Promise<DDBCharacter | null> {
     try {
-      Logger.debug(`Fetching character data for ID: ${characterId}`);
+      Logger.debug(`🎭 Delegating character fetch to CharacterImportService: ${characterId}`);
 
-      // Ensure we have a valid Bearer token
+      // Ensure character import service is available
+      if (!this.characterImportService) {
+        Logger.error('CharacterImportService not initialized');
+        return null;
+      }
+
+      // Ensure we have authentication
       if (!this.bearerToken) {
         Logger.warn('No Bearer token available. Attempting authentication...');
         const authResult = await this.authenticate();
@@ -184,28 +206,8 @@ export class BeyondFoundryAPI {
         }
       }
 
-      const response = await fetch(`${this.proxyEndpoint}/proxy/character/${characterId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-cobalt-id': this.bearerToken!,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data) {
-          Logger.info(`Retrieved character data for: ${data.name ?? 'Unknown'}`);
-          return data;
-        } else {
-          Logger.warn('Character data not found in response');
-          return null;
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        Logger.warn(`Failed to retrieve character: ${response.status} - ${errorData?.message ?? errorData?.error ?? 'Unknown error'}`);
-        return null;
-      }
+      // Delegate to the character import service
+      return await this.characterImportService.getCharacterData(characterId);
     } catch (error) {
       Logger.error(`Character fetch error: ${getErrorMessage(error)}`);
       return null;
@@ -222,117 +224,32 @@ export class BeyondFoundryAPI {
     options: Partial<ImportOptions> = {}
   ): Promise<ImportResult> {
     try {
-      Logger.info(`Starting character import for ID: ${characterId}`);
+      Logger.info(`🎭 Delegating character import to CharacterImportService: ${characterId}`);
 
-      // Get character data from D&D Beyond
-      const ddbCharacter = await this.getCharacter(characterId);
-      if (!ddbCharacter) {
+      // Ensure character import service is available
+      if (!this.characterImportService) {
         return {
           success: false,
-          errors: ['Failed to fetch character data from D&D Beyond'],
+          errors: ['CharacterImportService not initialized'],
           endpoint: 'importCharacter',
         };
       }
 
-      // Merge options with defaults
-      const importOptions = { ...DEFAULT_IMPORT_OPTIONS, ...options };
-
-      // Parse character data to FoundryVTT format
-      const actorData = CharacterParser.parseCharacter(ddbCharacter);
-
-      // Remove inventory items from actorData.items (will be handled via compendium linking)
-      if (actorData.items) {
-        actorData.items = actorData.items.filter(
-          (item: { type?: string }) => item.type !== 'weapon' && item.type !== 'equipment' && item.type !== 'loot' && item.type !== 'consumable' && item.type !== 'tool'
-        );
-      }
-
-      // Check if character already exists
-      const existingActor = game.actors?.find(
-        actor => actor.getFlag('beyond-foundry', 'ddbCharacterId') === ddbCharacter.id
-      );
-
-      let actor: Actor;
-
-      if (existingActor) {
-        if (importOptions.updateExisting) {
-          Logger.info(`Updating existing character: ${existingActor.name}`);
-          await existingActor.update(actorData);
-          actor = existingActor;
-        } else {
+      // Ensure we have authentication
+      if (!this.bearerToken) {
+        Logger.warn('No Bearer token available. Attempting authentication...');
+        const authResult = await this.authenticate();
+        if (!authResult.success) {
           return {
             success: false,
-            errors: [
-              `Character "${ddbCharacter.name}" already exists. Use update option to overwrite.`,
-            ],
-            warnings: ['Character import skipped due to existing character'],
+            errors: ['Failed to authenticate. Please check your COBALT token.'],
             endpoint: 'importCharacter',
           };
         }
-      } else {
-        Logger.info(`Creating new character: ${ddbCharacter.name}`);
-        actor = (await Actor.create(actorData)) as Actor;
       }
 
-      if (!actor) {
-        return {
-          success: false,
-          errors: ['Failed to create character in FoundryVTT'],
-          endpoint: 'importCharacter',
-        };
-      }
-
-      const warnings: string[] = [];
-
-      // --- Canonical item compendium linking ---
-      if (importOptions.importItems !== false && ddbCharacter.inventory && ddbCharacter.inventory.length > 0) {
-        try {
-          const importedCount = await this.addItemsToActor(actor, ddbCharacter.inventory, importOptions);
-          Logger.info(`Linked/embedded ${importedCount} inventory items for character: ${actor.name}`);
-        } catch (itemError) {
-          Logger.warn(`Item import failed: ${getErrorMessage(itemError)}`);
-          warnings.push(`Item import failed: ${getErrorMessage(itemError)}`);
-        }
-      }
-
-      // Import spells if the character has any
-      if (importOptions.importSpells && ddbCharacter.spells) {
-        try {
-          // Count total spells across all spell lists
-          const totalSpells = Object.values(ddbCharacter.spells).reduce(
-            (sum, spellArray) => sum + (Array.isArray(spellArray) ? spellArray.length : 0),
-            0
-          );
-
-          if (totalSpells > 0) {
-            Logger.info(`Importing ${totalSpells} spells for character: ${actor.name}`);
-
-            const spellResults = await this.importCharacterSpells(
-              actor,
-              ddbCharacter,
-              importOptions
-            );
-            if (spellResults.warnings && spellResults.warnings.length > 0) {
-              warnings.push(...spellResults.warnings);
-            }
-            if (spellResults.errors && spellResults.errors.length > 0) {
-              warnings.push(`Some spells failed to import: ${spellResults.errors.join(', ')}`);
-            }
-          }
-        } catch (spellError) {
-          Logger.warn(`Spell import failed: ${getErrorMessage(spellError)}`);
-          warnings.push(`Spell import failed: ${getErrorMessage(spellError)}`);
-        }
-      }
-
-      Logger.info(`Successfully imported character: ${actor.name}`);
-
-      return {
-        success: true,
-        actor: actor as unknown as import('../../types/index.js').FoundryActor,
-        warnings,
-        endpoint: 'importCharacter',
-      };
+      // Delegate to the character import service (API-first approach)
+      return await this.characterImportService.importCharacter(characterId, options);
     } catch (error) {
       Logger.error(`Character import error: ${getErrorMessage(error)}`);
       return {
