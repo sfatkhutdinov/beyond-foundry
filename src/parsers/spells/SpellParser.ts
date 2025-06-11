@@ -267,7 +267,7 @@ export class SpellParser {
   private static parseConsume(definition: any): any {
     return {
       type: 'slots',
-      target: `spell${definition.level || 1}`,
+      target: `spell${definition.level ?? 0}`,
       amount: 1,
       scale: false,
     };
@@ -406,12 +406,22 @@ export class SpellParser {
    * Parse spell components
    */
   private static parseComponents(definition: any): any {
-    const components = definition.components || [];
+    const components = definition.components || {};
 
-    // D&D Beyond uses numbers: 1=verbal, 2=somatic, 3=material
-    const hasVerbal = components.includes(1);
-    const hasSomatic = components.includes(2);
-    const hasMaterial = components.includes(3);
+    // Handle both array format (legacy) and object format (current)
+    let hasVerbal: boolean, hasSomatic: boolean, hasMaterial: boolean;
+    
+    if (Array.isArray(components)) {
+      // D&D Beyond legacy format uses numbers: 1=verbal, 2=somatic, 3=material
+      hasVerbal = components.includes(1);
+      hasSomatic = components.includes(2);
+      hasMaterial = components.includes(3);
+    } else {
+      // Current D&D Beyond format uses object with boolean properties
+      hasVerbal = components.verbal || false;
+      hasSomatic = components.somatic || false;
+      hasMaterial = components.material || false;
+    }
 
     return {
       vocal: hasVerbal,

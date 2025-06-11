@@ -23,6 +23,13 @@ const SAMPLE_DDB_SPELLS = {
       concentration: false,
       description: "<p>You hurl a mote of fire at a creature or object within range...</p>",
       castingTime: "1 action",
+      attackType: 4, // Ranged spell attack
+      damageTypes: ["Fire"],
+      dice: [{
+        diceCount: 1,
+        diceValue: 10,
+        fixedValue: 0
+      }],
       duration: {
         durationInterval: 1,
         durationUnit: "Instantaneous",
