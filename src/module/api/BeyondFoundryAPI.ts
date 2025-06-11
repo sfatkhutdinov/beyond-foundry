@@ -22,6 +22,7 @@ export class BeyondFoundryAPI {
   public proxyEndpoint: string = '';
   private apiEndpoint: string = '';
   private initialized: boolean = false;
+  private bearerToken: string | null = null;
 
   private constructor() {}
 
@@ -99,30 +100,42 @@ export class BeyondFoundryAPI {
 
       Logger.debug('Attempting authentication with D&D Beyond');
 
-      const response = await fetch(`${this.proxyEndpoint}/proxy/auth`, {
+      // Exchange COBALT_COOKIE for Bearer token
+      const response = await fetch(`${this.proxyEndpoint}/proxy/auth/token`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          id: 'foundry_user', // Identifier for caching
           cobalt: token,
         }),
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        Logger.info('Authentication successful');
-        return {
-          success: true,
-          userId: data.userId,
-          message: 'Authentication successful',
-        };
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          // Store the Bearer token for future API calls
+          this.bearerToken = data.token;
+          Logger.info('Authentication successful - Bearer token obtained');
+          return {
+            success: true,
+            userId: 'foundry_user',
+            message: 'Authentication successful',
+          };
+        } else {
+          Logger.warn('Authentication failed: No token in response');
+          return {
+            success: false,
+            message: 'No token received from auth service',
+          };
+        }
       } else {
-        Logger.warn(`Authentication failed: ${data.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        Logger.warn(`Authentication failed: ${response.status} - ${errorData.error || 'Unknown error'}`);
         return {
           success: false,
-          message: data.message || 'Authentication failed',
+          message: errorData.error || `Authentication failed with status ${response.status}`,
         };
       }
     } catch (error) {
@@ -161,37 +174,36 @@ export class BeyondFoundryAPI {
     try {
       Logger.debug(`Fetching character data for ID: ${characterId}`);
 
-      const cobaltToken = getModuleSettings().cobaltToken;
-      if (!cobaltToken) {
-        Logger.error('No authentication token available. Please authenticate first.');
-        return null;
+      // Ensure we have a valid Bearer token
+      if (!this.bearerToken) {
+        Logger.warn('No Bearer token available. Attempting authentication...');
+        const authResult = await this.authenticate();
+        if (!authResult.success) {
+          Logger.error('Failed to authenticate. Please check your COBALT token.');
+          return null;
+        }
       }
 
-      const response = await fetch(`${this.proxyEndpoint}/proxy/character`, {
-        method: 'POST',
+      const response = await fetch(`${this.proxyEndpoint}/proxy/character/${characterId}`, {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'x-cobalt-id': this.bearerToken!,
         },
-        body: JSON.stringify({
-          cobalt: cobaltToken,
-          characterId: parseInt(characterId),
-        }),
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Character data is nested under ddb.character
-        const character = data.ddb?.character;
-        if (character) {
-          Logger.info(`Retrieved character data for: ${character.name || 'Unknown'}`);
-          return character;
+      if (response.ok) {
+        const data = await response.json();
+        if (data) {
+          Logger.info(`Retrieved character data for: ${data.name ?? 'Unknown'}`);
+          return data;
         } else {
           Logger.warn('Character data not found in response');
           return null;
         }
       } else {
-        Logger.warn(`Failed to retrieve character: ${data.message || 'Unknown error'}`);
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        Logger.warn(`Failed to retrieve character: ${response.status} - ${errorData?.message ?? errorData?.error ?? 'Unknown error'}`);
         return null;
       }
     } catch (error) {
@@ -527,7 +539,7 @@ export class BeyondFoundryAPI {
       }
 
       // Fetch class spells using ddb-proxy pattern
-      const spells = await this.extractSpells(classInfo, `${characterId}${cobaltToken}`);
+      const spells = await this.extractSpells(classInfo);
       
       Logger.info(`Fetched ${spells.length} spells for ${classInfo.name}`);
       return spells;
@@ -542,18 +554,27 @@ export class BeyondFoundryAPI {
    * Extract spells for a class (based on ddb-proxy extractSpells)
    */
   private async extractSpells(
-    classInfo: { id: number; name: string; spellLevelAccess: number; campaignId?: number },
-    cobaltId: string
+    classInfo: { id: number; name: string; spellLevelAccess: number; campaignId?: number }
   ): Promise<DDBSpell[]> {
     try {
-      const url = `${this.proxyEndpoint}/proxy/spells/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
+      // Ensure we have a valid Bearer token
+      if (!this.bearerToken) {
+        Logger.warn('No Bearer token available. Attempting authentication...');
+        const authResult = await this.authenticate();
+        if (!authResult.success) {
+          throw new Error('Failed to authenticate. Please check your COBALT token.');
+        }
+      }
+
+      const response = await fetch(`${this.proxyEndpoint}/proxy/spells/class/spells`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${cobaltId}`,
         },
+        body: JSON.stringify({
+          className: classInfo.name,
+          cobaltToken: this.bearerToken,
+        }),
       });
 
       if (!response.ok) {
@@ -563,7 +584,7 @@ export class BeyondFoundryAPI {
       const data = await response.json();
 
       if (!data.success || !data.data) {
-        throw new Error(data.message || 'Invalid spell data received');
+        throw new Error(data.message ?? 'Invalid spell data received');
       }
 
       // Filter spells by level access and exclude certain sources (like UA)

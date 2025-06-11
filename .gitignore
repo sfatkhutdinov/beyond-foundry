@@ -124,3 +124,5 @@ references/
 # Code Index MCP cache directory
 .code_indexer/
 spell.html
+class-spells-debug-data.json
+class-spells-data.json
