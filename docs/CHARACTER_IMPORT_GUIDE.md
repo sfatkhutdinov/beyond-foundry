@@ -191,8 +191,83 @@ After importing the character data:
    - Document any issues found
    - Update test cases as needed
 
-## Additional Resources
+# Beyond Foundry D&D Beyond Character Import: FoundryVTT Actor Schema Mapping
 
-- [D&D Beyond Character URL](https://www.dndbeyond.com/characters/147565858)
-- [ddb-proxy Documentation](https://github.com/MrPrimate/ddb-proxy)
-- [Beyond Foundry Testing Guide](../docs/development/TESTING.md)
+## Overview
+This document details the mapping between D&D Beyond character data and the FoundryVTT dnd5e actor schema, highlighting fields that are fully mapped, partially mapped, or missing, and provides guidance for future enhancements.
+
+---
+
+## 1. Core Actor Fields
+| Foundry Field                | DDB Source Field(s)                | Status         | Notes |
+|-----------------------------|-------------------------------------|----------------|-------|
+| name                        | name                                | ✔️ Full        | |
+| img                         | decorations.avatarUrl                | ✔️ Full        | |
+| type                        | 'character'                         | ✔️ Full        | |
+| system.abilities            | stats, bonusStats, overrideStats     | ✔️ Full        | Uses id mapping |
+| system.attributes.hp        | baseHitPoints, bonusHitPoints, overrideHitPoints, temporaryHitPoints | ✔️ Full | |
+| system.attributes.inspiration | inspiration                        | ✔️ Full        | Boolean in DDB, number in Foundry |
+| system.details.race         | race.fullName                        | ✔️ Full        | |
+| system.details.background   | background.definition.name            | ✔️ Full        | |
+| system.details.xp.value     | currentXp                            | ✔️ Full        | |
+| system.details.level        | classes                              | ✔️ Full        | Sum of class levels |
+| system.details.classes      | classes                              | ✔️ Full        | Parsed for class, subclass, level |
+| system.traits.size          | race.size                            | ✔️ Full        | Mapped via table |
+| system.currency             | currencies                           | ✔️ Full        | |
+| system.skills               | modifiers, classes                   | ✔️ Full        | Proficiencies from modifiers |
+| system.spells               | spells, classSpells                  | ✔️ Full        | Via SpellParser |
+| system.items                | inventory, feats, features, spells   | ✔️ Full        | |
+| flags['beyond-foundry']     | all                                  | ✔️ Full        | Original DDB data, sync info |
+
+---
+
+## 2. Advanced/Optional Fields (Enhancement Opportunities)
+| Foundry Field                        | DDB Source Field(s)         | Status         | Enhancement Plan |
+|--------------------------------------|-----------------------------|----------------|------------------|
+| system.attributes.death.success      | deathSaves.successes        | ❌ Missing      | Map if present   |
+| system.attributes.death.failure      | deathSaves.failures         | ❌ Missing      | Map if present   |
+| system.attributes.exhaustion         | exhaustion                  | ❌ Missing      | Map if present   |
+| system.details.gender                | gender                      | ❌ Missing      | Map if present   |
+| system.details.eyes                  | eyes                        | ❌ Missing      | Map if present   |
+| system.details.hair                  | hair                        | ❌ Missing      | Map if present   |
+| system.details.skin                  | skin                        | ❌ Missing      | Map if present   |
+| system.details.height                | height                      | ❌ Missing      | Map if present   |
+| system.details.weight                | weight                      | ❌ Missing      | Map if present   |
+| system.details.faith                 | faith                       | ❌ Missing      | Map if present   |
+| system.details.age                   | age                         | ❌ Missing      | Map if present   |
+| system.resources.primary/secondary/tertiary | class features/resources | ❌ Missing      | Derive from DDB if possible |
+| system.attributes.attunement.value   | inventory (isAttuned)       | ❌ Missing      | Sum attuned items |
+| system.traits.weaponProf.mastery     | weapon masteries            | ❌ Missing      | Map if present   |
+| system.favorites                     | favorites/starred           | ❌ Missing      | Map if present   |
+| system.traits.custom                 | notes.otherNotes            | ❌ Missing      | Map if present   |
+
+---
+
+## 3. Mapping Notes
+- All fields should be robust to missing/null data.
+- Advanced fields should be mapped if present in DDB, otherwise omitted.
+- Attunement is calculated by summing attuned items in inventory.
+- Resources (primary/secondary/tertiary) can be derived from class features (e.g., Sorcery Points, Channel Divinity) if exposed by DDB.
+- Personality/ideals/bonds/flaws can be mapped from notes or background if present.
+
+---
+
+## 4. Enhancement Checklist
+- [ ] Map death save counters if present
+- [ ] Map exhaustion if present
+- [ ] Map detailed appearance fields (gender, eyes, hair, skin, height, weight, faith, age)
+- [ ] Map attunement value
+- [ ] Map resources (primary/secondary/tertiary) if possible
+- [ ] Map custom traits/notes
+- [ ] Map weapon mastery and favorites if DDB exposes them
+
+---
+
+## 5. References
+- [FoundryVTT dnd5e actor schema](references/dnd5e/module/data/actor/character.mjs)
+- [D&D Beyond API structure](docs/api.md)
+- [Beyond Foundry CharacterParser](src/parsers/character/CharacterParser.ts)
+
+---
+
+This document should be updated as new fields are mapped or as DDB/Foundry schemas evolve.

@@ -84,6 +84,13 @@ export default [
     }
   },
   {
+    files: ['src/module/utils/logger.ts'],
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off'
+    }
+  },
+  {
     ignores: [
       'build/**/*',
       'reference/**/*',
