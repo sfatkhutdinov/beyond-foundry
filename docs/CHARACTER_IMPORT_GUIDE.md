@@ -1,5 +1,8 @@
 # Character Import Guide for D&D Beyond Character 147565858
 
+<!-- Enhancement Note (June 2025):
+Class import now uses full schema enrichment via ClassParser, including proxyData (HTML-scraped) enrichment and homebrew flag detection. All FoundryVTT class fields are mapped where possible. See docs/parsers.md for details. -->
+
 This guide provides multiple methods to import character data from https://www.dndbeyond.com/characters/147565858 and save it as `147565858.json` in the tests directory.
 
 ## Method 1: Using ddb-proxy (Recommended)

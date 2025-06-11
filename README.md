@@ -43,6 +43,7 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - Complete character data import from D&D Beyond
 - Comprehensive character sheet mapping to FoundryVTT D&D 5e system
 - Support for all character levels, classes, races, and backgrounds
+- **Enhanced class import:** All FoundryVTT class schema fields mapped, proxy enrichment, homebrew flag support
 
 ### 🧙‍♂️ Spell Integration (Production Ready!)
 - **Complete spell import** from character spell lists
@@ -114,6 +115,7 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **[Quick Reference](docs/quick-reference.md)** - Developer quick reference
 - **[UI Components](docs/ui.md)** - Import and authentication dialogs
 - **[Docker Setup](docs/DOCKER_SETUP.md)** - Running with Docker and ddb-proxy
+- See [docs/CHARACTER_IMPORT_GUIDE.md](docs/CHARACTER_IMPORT_GUIDE.md) for schema mapping and enrichment notes
 
 ## Documentation Index
 

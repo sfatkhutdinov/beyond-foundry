@@ -238,7 +238,7 @@ api.openAuthDialog();
 - [ ] All imported items have `flags['beyond-foundry'].ddbId`
 
 ### Developer Notes
-- The canonical item structure for FoundryVTT is more detailed than the analysis output and must include all required fields for compendium linking and Foundry integration.
+- The canonical item and class structure for FoundryVTT is now fully detailed and schema-compliant. Class import uses proxy enrichment and homebrew detection for maximum automation.
 - The analysis output (e.g., `comprehensive-analysis-*.json`) is for debugging/validation and is intentionally simpler than the final import structure.
 - See `src/module/api/BeyondFoundryAPI.ts` for the new `bulkImportItemsToCompendium` and `addItemsToActor` helpers.
 - This workflow has been validated with real D&D Beyond data (e.g., Alchemist's Supplies, ID 397).
@@ -280,6 +280,7 @@ api.openAuthDialog();
 - [ ] Equipment properties preserved
 - [ ] Racial traits and features imported
 - [ ] Background information included
+- [ ] **Class import: All FoundryVTT schema fields mapped, proxy enrichment, homebrew flags**
 
 ### ✅ Compendium Spell Linking
 - [ ] Spells are linked to compendium entries (not duplicated as embedded items)

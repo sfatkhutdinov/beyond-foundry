@@ -17,13 +17,14 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
 | BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
 | RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |
-| ClassParser      | ✅ Complete    | Features, subclasses, spell lists | All fields                    |                                    |
+| ClassParser      | ✅ Enhanced    | Full FoundryVTT schema, proxy enrichment, homebrew flags, spellLists, tags, prerequisites, source info | - | Enriches all fields, supports proxyData, homebrew detection |
 | RuleParser       | ⏳ Planned     | -                               | All fields                    |                                    |
 | FeatParser       | 🟡 In Progress | -                               | All fields                    |                                    |
 
 ---
 
 ## Implementation Notes
+- ClassParser now supports full FoundryVTT schema enrichment, including description, proficiencies, spellcasting, advancement, prerequisites, tags, starting equipment, spellLists, source info, and homebrew flags. It uses both DDBClass and proxyData (HTML-scraped output) for maximum coverage.
 - Parsers are located in `src/parsers/`
 - Each parser is modular and type-safe (TypeScript)
 - All major parsers (ItemParser, FeatureParser, etc.) now follow a consistent static interface: `parse<Type>`, `parse<Type>Array`, and have TODO stubs for advanced features (homebrew flags, enhanced properties, system fields, etc.)
@@ -85,3 +86,55 @@ For implementation status, mapping details, and known issues, see [equipment.md]
 ## Feat Parser (`src/parsers/FeatParser.ts`)
 
 Status: Beta. Parses prerequisites, descriptions, and common mechanical effects (e.g., ASIs, granted features/actions). Complex or uniquely worded effects might still need review after import.
+
+# Wizard Class Import: Current State and Enhancement Plan
+
+## Current State (as of 2025-06-11)
+
+- The Wizard class import pipeline successfully pulls and transforms class data from D&D Beyond via the Docker proxy.
+- The transformed output (`zzzOutputzzz/wizard-class_transformed.json`) includes:
+  - Core features (Proficiencies, Equipment, Spellcasting, Arcane Recovery, Arcane Tradition, Ability Score Improvement, Spell Mastery, Signature Spells, Additional Wizard Spells)
+  - Descriptions for each feature
+  - Starting equipment (duplicated in both advancement and startingEquipment fields)
+- The import covers all major FoundryVTT schema fields for class features, spellcasting, and equipment.
+- All linter and compile errors in the parser have been resolved.
+- Documentation and enrichment logic are up to date.
+
+## Gaps and Missing Data
+
+- **Progression Table**: No structured advancement table (level-by-level hit dice, spell slots, features, etc.)
+- **Subclasses**: No extraction or mapping of available subclasses (Arcane Traditions) or their features.
+- **Tags & Metadata**: No explicit tags, prerequisites, or source book references.
+- **Spell List Links**: No structured list or links to the wizard spell list; only a textual reference.
+- **Sidebar/Summary Data**: No extraction of sidebar blocks (e.g., "Your Spellbook") as structured data.
+- **Source Info**: No mapping of source book/page for the class or features.
+- **Homebrew Flags**: Not explicitly set for homebrew content (though logic exists).
+
+## Enhancement Plan
+
+1. **Proxy Enhancements**
+   - Extract structured progression tables (levels, spell slots, features per level).
+   - Extract subclass (Arcane Tradition) data and features.
+   - Extract tags, prerequisites, and source info from HTML.
+   - Extract and structure spell list links and sidebar/summary blocks.
+
+2. **Parser Enhancements**
+   - Map new proxy fields to FoundryVTT schema (advancement, subclasses, tags, prerequisites, source, spell lists).
+   - Ensure all new fields are type-checked and documented.
+   - Add robust error handling for missing/partial data.
+
+3. **Testing & Validation**
+   - Pull and transform Wizard class data with enhanced proxy/parser.
+   - Validate output in FoundryVTT and update documentation.
+
+---
+
+# Implementation: Proxy and Parser Enhancement (Step 1)
+
+Proceeding to implement proxy enhancements for structured extraction of:
+- Progression tables (levels, spell slots, features)
+- Subclass data
+- Tags, prerequisites, and source info
+- Spell list links and sidebar/summary blocks
+
+Will update the proxy extraction logic in `beyond-foundry-proxy/src/class.ts` to support these fields.
