@@ -8,10 +8,11 @@ Enhance the Beyond Foundry proxy and parser to extract and map all relevant stru
 ## 1. Current Gaps (as of June 2025)
 - **Progression Table**: Not extracted or mapped.
 - **Core Traits**: Not structured; only present as features.
-- **Subclasses/Domains**: No actual subclass/domain data extracted.
+- **Subclasses/Domains**: Partially extracted but needs quality improvements.
 - **Sidebars**: Not extracted.
 - ~~**Spell List Links**: Not extracted.~~ (✅ Now extracted and mapped)
-- ~~**Tags, Prerequisites, Source Info**: Not extracted.~~ (✅ Now extracted and mapped)
+- **Tags, Prerequisites**: Not extracted (CSS selectors broken).
+- **Source Info**: Poor quality extraction (extracts footer/CSS instead of actual source).
 
 ---
 
@@ -20,13 +21,13 @@ Enhance the Beyond Foundry proxy and parser to extract and map all relevant stru
 |----------------------|------------------------------|------------------------------|-----------------------|
 | Class Name/Slug      | Header                       | `slug`                       | ✅                    |
 | Features             | Feature headings/sections    | `features[]`                 | ✅                    |
-| Progression Table    | Progression table            | `progression[]`              | ⏳ (Proxy only)       |
-| Core Traits          | Sidebar/table                | `coreTraits{}`               | ⏳ (Proxy only)       |
-| Subclasses/Domains   | Subclass/domain sections     | `subclasses[]`               | ⏳ (Proxy only)       |
-| Sidebars             | Sidebar/aside elements       | `sidebars[]`                 | ⏳ (Proxy only)       |
+| Progression Table    | Progression table            | `progression[]`              | ❌ (Not extracted)    |
+| Core Traits          | Sidebar/table                | `coreTraits{}`               | ❌ (Not extracted)    |
+| Subclasses/Domains   | Subclass/domain sections     | `subclasses[]`               | 🟡 (Needs quality fix)|
+| Sidebars             | Sidebar/aside elements       | `sidebars[]`                 | ❌ (Not extracted)    |
 | Spell List Links     | Spell list links/buttons     | `spellLists[]`               | ✅                    |
-| Tags/Prerequisites   | Header/metadata              | `tags[]`, `prerequisites[]`  | ✅                    |
-| Source Info          | Header/footer                | `source`                     | ✅                    |
+| Tags/Prerequisites   | Header/metadata              | `tags[]`, `prerequisites[]`  | ❌ (Broken selectors) |
+| Source Info          | Header/footer                | `source`                     | ❌ (Poor quality)     |
 
 ---
 
@@ -71,9 +72,15 @@ Enhance the Beyond Foundry proxy and parser to extract and map all relevant stru
 ---
 
 ## 4. Milestones
-- [x] Proxy always extracts all target fields for spell lists, tags, prerequisites, and source info
-- [x] Parser maps all new proxy fields (spellLists, tags, prerequisites, source) to FoundryVTT schema
-- [ ] Proxy and parser fully support progression, core traits, subclasses, and sidebars for all classes
+- [x] Features extraction working well (17 features for druid)
+- [x] Spell list extraction working excellently (63+ spell links)
+- [ ] Fix broken CSS selectors for tags, prerequisites, and source info
+- [ ] Improve source info extraction quality (currently extracts footer/CSS)
+- [ ] Fix progression table extraction (currently empty)
+- [ ] Fix core traits extraction (currently empty)  
+- [ ] Fix sidebars extraction (currently empty)
+- [ ] Improve subclass extraction quality
+- [ ] Parser maps all working proxy fields to FoundryVTT schema
 - [ ] Output validated for at least 4 core classes
 - [ ] Documentation updated and coverage table complete
 
