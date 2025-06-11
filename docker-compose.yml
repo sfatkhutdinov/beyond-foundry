@@ -23,6 +23,8 @@ services:
       - default
     environment:
       - PORT=4000
+    volumes:
+      - ./zzzOutputzzz:/usr/src/zzzOutputzzz
 
 networks:
   default:
