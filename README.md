@@ -14,6 +14,22 @@
 > - **IMPORTANT:** The main branch is protected on GitHub. If you need to remove large files from history, you must temporarily disable branch protection to allow a force-push, or contact GitHub support for assistance. See NEXT_STEPS.md for details.
 > - To prevent future issues, ensure `.gitignore` excludes all large binary files and archives (see below).
 
+## 2025-06-12: Class Importer & Proxy Directory Overhaul
+
+- **Class Importer Overhaul:**
+  - The class importer now robustly parses D&D Beyond class HTML, extracting all core traits, features, progression tables, and subclasses with high fidelity.
+  - Extraction logic is tightly coupled to the actual HTML structure, ensuring reliable and future-proof imports.
+  - All outputs are now clean, canonical JSON—**no raw HTML is included in the output** (the `rawHtml` debug field has been removed).
+  - Subclass, feature, and progression extraction is now complete and type-safe.
+- **Proxy Directory Fix:**
+  - The `beyond-foundry-proxy` directory is now a regular, fully tracked directory in the main repository (not a broken submodule).
+  - All proxy code, including `src/class.ts`, is now versioned and tracked with the main repo, ensuring all updates are visible and shareable.
+  - Developers should now update, commit, and push changes to proxy code as with any other part of the repo.
+- **Recommended Workflow:**
+  - Make changes to proxy code in `beyond-foundry-proxy/` as needed.
+  - Rebuild the Docker container and test endpoints after any parser or proxy update.
+  - All changes will be tracked and versioned by git, and can be reviewed in PRs or via `git log`.
+
 Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond content. This README provides an overview of the project, its purpose, development status, and setup instructions.
 
 ## 🚦 Development Status (June 2025)
