@@ -1,0 +1,11 @@
+services:
+  proxy:
+    build: .
+    container_name: beyond-foundry-proxy
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - COBALT_COOKIE=${COBALT_COOKIE}
+    restart: unless-stopped

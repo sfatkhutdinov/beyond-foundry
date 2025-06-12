@@ -1,0 +1,32 @@
+{
+  "name": "beyond-foundry-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server for D&D Beyond content for FoundryVTT integration.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && node fix-imports.js",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@types/cookie-parser": "^1.4.9",
+    "ajv": "^8.17.1",
+    "cheerio": "^1.0.0-rc.12",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
+    "puppeteer": "^24.10.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "@types/ajv": "^0.0.5",
+    "@types/cheerio": "^0.22.35",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.15.30",
+    "@types/node-fetch": "^2.6.12",
+    "@types/winston": "^2.4.4",
+    "typescript": "^5.0.0"
+  }
+}
