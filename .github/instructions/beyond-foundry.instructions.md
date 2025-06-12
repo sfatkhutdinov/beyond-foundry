@@ -166,7 +166,7 @@ class CharacterParser { /* ... */ }
 - `FeatParser` - Feats and features (partially implemented)
 - `BackgroundParser` - Character backgrounds (partially implemented)
 - `RaceParser` - Races and subraces (implemented)
-- `ClassParser` - Class features and progression (implemented)
+- `ClassParser` - Class features and progression (implemented, enhanced with robust HTML parsing, complete feature/subclass/progression extraction)
 - `RuleParser` - Game rules and references (planned)
 - `AdventureParser` - Adventure content and scenes (planned)
 
@@ -228,10 +228,29 @@ const createActor = async (characterData) => { /* ... */ };
 
 ### 6. Implementation Priorities
 
-1. **Phase 1: Core Infrastructure**
-2. **Phase 2: Complete Characters**
-3. **Phase 3: Content Library**
-4. **Phase 4: Advanced Features**
+1. **Phase 1: Core Infrastructure** ✅
+   - Authentication system
+   - API client
+   - Basic data validation
+   - Proxy directory structure fix
+
+2. **Phase 2: Complete Characters** ✅
+   - Character import
+   - Class import with robust HTML parsing
+   - Spell import
+   - Item import
+
+3. **Phase 3: Content Library** 🟡
+   - Monster import
+   - Adventure import
+   - Rule import
+   - Enhanced class features
+
+4. **Phase 4: Advanced Features** ⏳
+   - Content synchronization
+   - Selective import
+   - Custom mapping
+   - Asset management
 
 ### 7. Error Handling
 

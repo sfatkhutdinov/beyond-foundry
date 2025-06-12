@@ -17,13 +17,18 @@ docker-compose up
 
 ### Common Docker Compose Services
 - **beyond-foundry**: Main app container
-- **ddb-proxy**: D&D Beyond proxy server
+- **beyond-foundry-proxy**: D&D Beyond proxy server
 - **db**: (Optional) Database for persistent storage
 
 ### Rebuilding After Code Changes
 ```sh
-docker-compose build beyond-foundry
-docker-compose restart beyond-foundry
+# For main app changes
+docker-compose build beyond-foundry-proxy
+docker-compose restart beyond-foundry-proxy
+
+# For proxy changes (especially class.ts)
+docker-compose build beyond-foundry-proxy
+docker-compose restart beyond-foundry-proxy
 ```
 
 ### Stopping and Cleaning Up
@@ -36,7 +41,7 @@ docker-compose down -v
 ## 2. Proxy Testing Workflow
 
 ### Local Proxy Setup
-- Ensure `ddb-proxy` service is running (see above).
+- Ensure `beyond-foundry-proxy` service is running (see above).
 - Configure Beyond Foundry to use the local proxy endpoint (see `docs/authentication.md`).
 - For manual testing, set browser D&D Beyond requests to point to the proxy (e.g., via browser extension or `/etc/hosts`).
 
@@ -53,7 +58,10 @@ curl http://localhost:PORT/import
   - Proxy logs for error messages
   - Authentication tokens (see `docs/authentication.md`)
   - Network/firewall settings
-- Restart containers if changes are made to proxy code or configuration.
+  - Proxy directory structure (should be a regular directory, not a submodule)
+- Restart containers if changes are made to proxy code or configuration
+- After modifying `class.ts`, always rebuild the proxy container
+- Check proxy logs for any HTML parsing or feature extraction errors
 
 ---
 
@@ -62,6 +70,7 @@ curl http://localhost:PORT/import
 - Use environment variables for secrets and configuration.
 - Clean up unused containers and volumes regularly.
 - Document any custom proxy rules or test cases.
+- After any changes to `class.ts`, rebuild the proxy container.
 
 ---
 

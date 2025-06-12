@@ -350,12 +350,14 @@ await api.testConnection();
 - [x] API client with error handling
 - [x] Data validation framework
 - [x] Logging and debugging tools
+- [x] Proxy directory structure fix
 
 ### Content Parsers
 - [x] Character parser with full stats
 - [x] Spell parser with all properties
 - [x] Monster parser with stat blocks
 - [x] Item parser with magical effects
+- [x] Class parser with robust HTML parsing, complete feature/subclass/progression extraction
 - [ ] Feat parser (partial)
 - [ ] Background parser (partial)
 - [ ] Adventure parser (planned)
@@ -382,6 +384,8 @@ await api.testConnection();
 4. **Performance**: Handle large imports efficiently
 5. **Compatibility**: Work with all FoundryVTT and D&D 5e versions
 6. **Extensibility**: Easy to add new content types
+7. **Robust Parsing**: Complete HTML parsing with no raw HTML in output
+8. **Clean Architecture**: Well-organized, maintainable codebase
 
 ## 🔍 Key Implementation Notes
 

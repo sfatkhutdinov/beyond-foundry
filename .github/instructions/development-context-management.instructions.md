@@ -51,6 +51,7 @@ module.exports = {
 - Character Import: beyond-foundry/src/module/api/BeyondFoundryAPI.ts, ddb-importer/src/parser/character/index.js, dnd5e/system/data-models/actor/character.js
 - Authentication: beyond-foundry/src/module/api/BeyondFoundryAPI.ts, ddb-proxy/server/auth.js, ddb-proxy/server/proxy-endpoints.js
 - Spell Implementation: beyond-foundry spell parser (when created), ddb-importer/src/parser/spells/, dnd5e/system/data-models/item/spell.js
+- Class Implementation: beyond-foundry-proxy/src/class.ts, ddb-importer/src/parser/class/, dnd5e/system/data-models/class/
 
 #### Context Switching Protocol
 1. Save current work and document insights/TODOs.
@@ -94,10 +95,14 @@ const ABILITY_MAP = { 1: 'str', 2: 'dex', 3: 'con', 4: 'int', 5: 'wis', 6: 'cha'
 - [ ] Tested with sample data
 - [ ] Handled edge cases
 - [ ] Updated documentation
+- [ ] Removed raw HTML from output (if applicable)
+- [ ] Added complete feature/subclass/progression extraction (if applicable)
 Notes:
 - DDB Format: [discoveries]
 - Edge Cases: [special handling]
 - TODO: [future improvements]
+- HTML Parsing: [specific parsing strategies]
+- Feature Extraction: [extraction patterns]
 ```
 
 ---
