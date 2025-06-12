@@ -14,6 +14,8 @@ interface ProxyClassData {
   progression?: Array<{ level?: number; features?: string[]; columns?: string[] }>;
   coreTraits?: Record<string, string>;
   sidebars?: string[];
+  name?: string; // Add name for proxy extraction
+  additionalTables?: unknown; // Add additionalTables for flags
 }
 
 export class ClassParser {
@@ -28,108 +30,171 @@ export class ClassParser {
     proxyData?: { data?: ProxyClassData }
   ): Record<string, unknown> {
     if (!ddbClass?.definition) throw new Error('Invalid DDBClass input');
-    // Extract from proxyData if available
     const proxy = proxyData?.data ?? {};
-    // Description: Prefer proxyData, fallback to empty string
-    const description = proxy.features?.find(f => f.name === 'Hit Points')?.description ?? '';
-    // Icon: Not available in DDBClass.definition, not in proxy, leave blank
-    const img = '';
-    // Proficiencies: Try to extract from proxyData
-    const proficiencies = proxy.features?.find(f => f.name === 'Proficiencies')?.description ?? '';
-    // Starting Equipment: Try to extract from proxyData
-    const startingEquipment = proxy.features?.find(f => f.name === 'Equipment')?.description ?? '';
-    // Spellcasting: Try to extract from proxyData
-    const spellcastingFeature = proxy.features?.find(f => f.name === 'Spellcasting');
-    const spellcasting = spellcastingFeature ? { description: spellcastingFeature.description } : {};
-    // Advancement: Map features to advancement array (level, name, description)
-    const advancement = (proxy.features ?? []).map(f => ({
-      name: f.name,
-      description: f.description,
-      level: hasRequiredLevel(f) ? f.requiredLevel : undefined // Level not available in proxyData
-    }));
-    // Prerequisites: Use proxy.prerequisites if available
-    const prerequisites: string[] = Array.isArray(proxy.prerequisites) ? proxy.prerequisites : [];
-    // Properties/tags: Use proxy.tags if available, else feature names
-    const properties = Array.isArray(proxy.tags) ? proxy.tags : (ddbClass.classFeatures ?? []).map(f => f.name);
-    // Homebrew flag: Heuristic - id > 1000 or 'homebrew' in name (case-insensitive)
-    const isHomebrew = ddbClass.id > 1000 || /homebrew/i.test(ddbClass.definition.name);
-    // Subclass: Prefer DDBClass.subclassDefinition?.name
-    const subclass = ddbClass.subclassDefinition?.name ?? '';
-    // Features: Map all features (proxy or DDBClass)
-    const features = (proxy.features ?? ddbClass.classFeatures ?? []).map(f => ({
-      name: f.name,
-      description: f.description,
-      level: hasRequiredLevel(f) ? f.requiredLevel : undefined // Type guard for requiredLevel
-    }));
-    // Subclass features: Map from proxyData or DDBClass.subclassDefinition
-    const subclassFeatures = (proxy.subclasses ?? ddbClass.subclassDefinition?.classFeatures ?? []).map(f => ({
-      name: f.name,
-      description: f.description,
-      level: hasRequiredLevel(f) ? f.requiredLevel : undefined // Type guard for requiredLevel
-    }));
-    // Spell lists: Use proxy.spellLists if available
-    const spellLists = Array.isArray(proxy.spellLists) ? proxy.spellLists : [];
-    // Source: Use proxy.source if available
+
+    // 1. Name: Prefer proxy (from <h1 class-heading>) if available, else DDB definition
+    const name = proxy.coreTraits?.Name ?? proxy.name ?? ddbClass.definition.name;
+
+    // 2. Description: Prefer a feature named 'Class Features', else first feature, else empty
+    const description = proxy.features?.find(f => f.name === 'Class Features')?.description
+      ?? proxy.features?.[0]?.description
+      ?? '';
+    // 3. Source, Tags, Prerequisites: Ensure correct types
     const source = typeof proxy.source === 'string' ? proxy.source : '';
-    // New: Progression, coreTraits, sidebars
-    const progression = Array.isArray(proxy.progression) ? proxy.progression : [];
-    const coreTraits = typeof proxy.coreTraits === 'object' && proxy.coreTraits !== null ? proxy.coreTraits : {};
+    const tags = Array.isArray(proxy.tags) ? proxy.tags : [];
+    const prerequisites = Array.isArray(proxy.prerequisites) ? proxy.prerequisites : [];
+
+    // 4. Core Traits: Ensure split into keys (Armor, Weapons, Tools, etc.)
+    let coreTraits: Record<string, string> = {};
+    if (proxy.coreTraits && typeof proxy.coreTraits === 'object') {
+      coreTraits = { ...proxy.coreTraits };
+    } else if (Array.isArray(proxy.coreTraits)) {
+      for (const row of proxy.coreTraits) {
+        const [key, ...rest] = row.split(':');
+        if (key && rest.length) coreTraits[key.trim()] = rest.join(':').trim();
+      }
+    }
+
+    // 5. Hit Dice
+    const hdDenomination = coreTraits["Hit Die"]?.replace(/^Hit Die:\s*/i, "") ?? "d8";
+    const hdAdditional = coreTraits["Unarmored Movement"] ?? "";
+    const hdSpent = 0;
+
+    // 6. Levels
+    const levels = ddbClass.level ?? 1;
+
+    // 7. Primary Abilities
+    const primAb = coreTraits["Primary Ability"] ?? "";
+    const primList = primAb.split(/\s+and\s+/i).map(s => s.trim()).filter(Boolean);
+    const primaryAbility = {
+      value: Array.from(new Set(primList)),
+      all: true
+    };
+
+    // 8. Advancement for Saves & Skills
+    type Advancement = {
+      type: string;
+      level: number;
+      configuration: Record<string, unknown>;
+      value: Record<string, unknown>;
+    };
+    const advancement: Advancement[] = [];
+    if (coreTraits["Saving Throws"]) {
+      const saves = coreTraits["Saving Throws"].split(/,\s*/);
+      advancement.push({
+        type: "Trait",
+        level: 1,
+        configuration: { grants: saves.map(s => `saves:${s}`) },
+        value: { chosen: saves.map(s => `saves:${s}`) }
+      });
+    }
+    if (coreTraits["Skill Proficiencies"]) {
+      const match = /choose (\d+)/i.exec(coreTraits["Skill Proficiencies"]);
+      const count = match ? parseInt(match[1]) : 0;
+      const optionsRaw = coreTraits["Skill Proficiencies"];
+      const optionsRegex = /\(([^)]+)\)/;
+      const optionsMatch = optionsRegex.exec(optionsRaw);
+      const options = optionsMatch ? optionsMatch[1].split(/,\s*/) : [];
+      advancement.push({
+        type: "Trait",
+        level: 1,
+        configuration: { choices: [{ count, pool: options.map(o => `skills:${o}`) }] },
+        value: { chosen: [] }
+      });
+    }
+
+    // 9. Spellcasting: Map all fields if present
+    let progression = 'none';
+    let spellLists: Array<{ name: string; url: string }> = [];
+    let spellcastingAbility = '';
+    if (coreTraits["Spellcasting"] ?? proxy.features?.some(f => f.name === 'Spellcasting')) {
+      const spellText = coreTraits["Spellcasting"] ?? proxy.features?.find(f => f.name === 'Spellcasting')?.description ?? '';
+      if (/full[- ]?caster/i.test(spellText)) progression = 'full';
+      else if (/half[- ]?caster/i.test(spellText)) progression = 'half';
+      else if (/third[- ]?caster/i.test(spellText)) progression = 'third';
+      else progression = 'full';
+      spellcastingAbility = coreTraits["Spellcasting Ability"]?.trim() ?? '';
+      if (Array.isArray(proxy.spellLists)) spellLists = proxy.spellLists;
+    }
+    const spellcasting = {
+      progression,
+      ability: spellcastingAbility,
+      spellLists
+    };
+
+    // 10. Features: Assign requiredLevel, group by level in progression
+    type Feature = { name: string; description: string; level?: number };
+    let features: Feature[] = [];
+    if (Array.isArray(proxy.features)) {
+      features = proxy.features.map(f => ({
+        name: f.name ?? '',
+        description: f.description ?? '',
+        level: typeof f.requiredLevel === 'number' ? f.requiredLevel : undefined
+      }));
+    }
+
+    // 11. Subclasses: Include per-level features and requiredLevel
+    type Subclass = { name: string; features: Feature[] };
+    let subclass: Subclass = { name: '', features: [] };
+    if (Array.isArray(proxy.subclasses) && proxy.subclasses.length > 0) {
+      const sub = proxy.subclasses[0];
+      subclass = {
+        name: sub.name ?? '',
+        features: sub.description ? [{
+          name: sub.name ?? '',
+          description: sub.description,
+          level: typeof sub.requiredLevel === 'number' ? sub.requiredLevel : undefined
+        }] : []
+      };
+    }
+
+    // 12. Progression: Validate as array of level objects
+    type ProgressionRow = { level?: number; features?: string[]; columns?: string[] };
+    const progressionArr: ProgressionRow[] = Array.isArray(proxy.progression) ? proxy.progression.map((row): ProgressionRow => ({
+      level: typeof row.level === 'number' ? row.level : undefined,
+      features: Array.isArray(row.features) ? row.features : [],
+      columns: Array.isArray(row.columns) ? row.columns : []
+    })) : [];
+
+    // 13. Sidebars: Pass through if present
     const sidebars = Array.isArray(proxy.sidebars) ? proxy.sidebars : [];
-    // Compose FoundryVTT class item
-    const foundryClass: Record<string, unknown> = {
-      name: ddbClass.definition.name,
-      type: 'class',
-      img,
+
+    // 14. Additional Tables: Store in flags if present
+    const additionalTables = proxy.additionalTables ?? undefined;
+
+    // 15. Compose FoundryVTT class item
+    return {
+      type: "class",
+      name,
+      img: "",
       system: {
-        description: { value: description },
+        description:    { value: description },
         source,
-        identifier: ddbClass.definition.id,
         hd: {
-          denomination: `d${ddbClass.definition.hitDie ?? 8}`,
-          spent: 0,
-          additional: '',
+          denomination: hdDenomination,
+          additional:   hdAdditional,
+          spent:        hdSpent
         },
-        levels: ddbClass.level ?? 1,
-        primaryAbility: {
-          value: new Set<string>(), // Not available
-          all: true,
-        },
-        properties: new Set(properties),
-        spellcasting,
-        advancement,
+        levels,
+        primaryAbility,
+        properties: Array.from(new Set(tags)),
         prerequisites,
-        subclass,
+        advancement,
+        spellcasting,
         features,
-        subclassFeatures,
-        proficiencies,
-        startingEquipment,
-        spellLists,
-        progression,
+        subclass,
+        progression: progressionArr,
         coreTraits,
         sidebars,
-        // Add any additional system fields as needed
       },
       flags: {
-        'beyond-foundry': {
-          ddbId: ddbClass.id,
-          isHomebrew,
+        "beyond-foundry": {
           originalDDB: ddbClass,
-          proxyEnrichment: !!proxyData,
-        },
-      },
-      _id: undefined, // Let Foundry assign
+          ...proxy,
+          ...(additionalTables ? { additionalTables } : {})
+        }
+      }
     };
-    // Log missing/partial data for debugging
-    if (!description) console.warn(`[ClassParser] Missing description for class: ${ddbClass.definition.name}`);
-    if (!proficiencies) console.warn(`[ClassParser] Missing proficiencies for class: ${ddbClass.definition.name}`);
-    if (!startingEquipment) console.warn(`[ClassParser] Missing starting equipment for class: ${ddbClass.definition.name}`);
-    if (!spellLists.length) console.warn(`[ClassParser] No spell lists found for class: ${ddbClass.definition.name}`);
-    if (!properties.length) console.warn(`[ClassParser] No tags/properties found for class: ${ddbClass.definition.name}`);
-    if (!source) console.warn(`[ClassParser] No source info found for class: ${ddbClass.definition.name}`);
-    if (!progression.length) console.warn(`[ClassParser] No progression found for class: ${ddbClass.definition.name}`);
-    if (!Object.keys(coreTraits).length) console.warn(`[ClassParser] No core traits found for class: ${ddbClass.definition.name}`);
-    if (!sidebars.length) console.warn(`[ClassParser] No sidebars found for class: ${ddbClass.definition.name}`);
-    return foundryClass;
   }
 
   /**
@@ -169,9 +234,4 @@ export class ClassParser {
     // Extend for advanced class support if needed
     return {};
   }
-}
-
-// Helper type guard for requiredLevel
-function hasRequiredLevel(f: unknown): f is { name: string; description: string; requiredLevel: number } {
-  return typeof f === 'object' && f !== null && 'requiredLevel' in f;
 }
