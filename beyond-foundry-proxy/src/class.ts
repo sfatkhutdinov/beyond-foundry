@@ -183,25 +183,41 @@ async function getClassData(classSlug: string, cobalt: string): Promise<ClassDat
     };
   }
 
-  // Merge API and HTML results, preferring API where present
+  // Merge API and HTML results, preferring API where present, but do a field-by-field merge for completeness
+  function isEmpty(val: any) {
+    if (val == null) return true;
+    if (typeof val === 'string') return val.trim() === '';
+    if (Array.isArray(val)) return val.length === 0;
+    if (typeof val === 'object') return Object.keys(val).length === 0;
+    return false;
+  }
+
+  function mergeSpellcasting(apiSpell: any, htmlSpell: any) {
+    return {
+      progression: !isEmpty(apiSpell?.progression) ? apiSpell.progression : htmlSpell?.progression || '',
+      ability: !isEmpty(apiSpell?.ability) ? apiSpell.ability : htmlSpell?.ability || '',
+      lists: !isEmpty(apiSpell?.lists) ? apiSpell.lists : htmlSpell?.lists || [],
+    };
+  }
+
   const merged: ProxyClassData = {
     id: classId,
     slug: classSlug,
-    name: apiResult?.name || htmlResult.name || 'Unknown Class',
-    description: apiResult?.description || htmlResult.description || '',
-    source: apiResult?.source || htmlResult.source || 'Player\'s Handbook',
-    tags: (apiResult?.tags?.length ? apiResult.tags : htmlResult.tags) || [],
-    prerequisites: (apiResult?.prerequisites?.length ? apiResult.prerequisites : htmlResult.prerequisites) || [],
-    coreTraits: (apiResult?.coreTraits && Object.keys(apiResult.coreTraits).length ? apiResult.coreTraits : htmlResult.coreTraits) || {},
-    progression: (apiResult?.progression?.length ? apiResult.progression : htmlResult.progression) || [],
-    features: (apiResult?.features?.length ? apiResult.features : htmlResult.features) || [],
-    subclasses: (apiResult?.subclasses?.length ? apiResult.subclasses : htmlResult.subclasses) || [],
-    spellcasting: apiResult?.spellcasting || htmlResult.spellcasting || { progression: '', ability: '', lists: [] },
-    sidebars: (apiResult?.sidebars?.length ? apiResult.sidebars : htmlResult.sidebars) || [],
-    additionalTables: htmlResult.additionalTables || [],
-    optionalFeatures: apiResult?.optionalFeatures || htmlResult.optionalFeatures || [],
+    name: !isEmpty(apiResult?.name) ? apiResult?.name : htmlResult.name || 'Unknown Class',
+    description: !isEmpty(apiResult?.description) ? apiResult?.description : htmlResult.description || '',
+    source: !isEmpty(apiResult?.source) ? apiResult?.source : htmlResult.source || 'Player\'s Handbook',
+    tags: !isEmpty(apiResult?.tags) ? apiResult.tags : htmlResult.tags || [],
+    prerequisites: !isEmpty(apiResult?.prerequisites) ? apiResult.prerequisites : htmlResult.prerequisites || [],
+    coreTraits: !isEmpty(apiResult?.coreTraits) ? apiResult.coreTraits : htmlResult.coreTraits || {},
+    progression: !isEmpty(apiResult?.progression) ? apiResult.progression : htmlResult.progression || [],
+    features: !isEmpty(apiResult?.features) ? apiResult.features : htmlResult.features || [],
+    subclasses: !isEmpty(apiResult?.subclasses) ? apiResult.subclasses : htmlResult.subclasses || [],
+    spellcasting: mergeSpellcasting(apiResult?.spellcasting, htmlResult.spellcasting),
+    sidebars: !isEmpty(apiResult?.sidebars) ? apiResult.sidebars : htmlResult.sidebars || [],
+    additionalTables: !isEmpty(apiResult?.additionalTables) ? apiResult.additionalTables : htmlResult.additionalTables || [],
+    optionalFeatures: !isEmpty(apiResult?.optionalFeatures) ? apiResult.optionalFeatures : htmlResult.optionalFeatures || [],
     schemaVersion: '2025-06-11',
-    advancement: (apiResult?.advancement && apiResult.advancement.length ? apiResult.advancement : htmlResult.advancement) || [],
+    advancement: !isEmpty(apiResult?.advancement) ? apiResult.advancement : htmlResult.advancement || [],
   };
 
   if (!validateClassData(merged)) {
