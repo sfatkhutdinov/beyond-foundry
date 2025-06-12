@@ -43,6 +43,8 @@ The Beyond Foundry module is now production-ready, with all core features implem
 - Robust endpoint implementation and error handling
 - Docker-based deployment and testing
 - **Basic equipment/item import** (advanced features planned)
+- **Class Importer Overhaul**: Robust HTML parsing, complete feature/subclass/progression extraction, no raw HTML in output
+- **Proxy Directory Fix**: beyond-foundry-proxy is now a regular, fully tracked directory in the main repository
 
 ## 🛠️ In Progress / Next Steps
 
@@ -55,6 +57,7 @@ The Beyond Foundry module is now production-ready, with all core features implem
 - API reference documentation (planned)
 - UI polish, screenshots, and walkthroughs (planned)
 - User feedback enhancements
+- **Further enhancements to class importer**: Additional subclass features, advanced progression tables, and integration with FoundryVTT class schema
 
 ## 🔗 Key Documentation
 

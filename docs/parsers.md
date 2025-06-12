@@ -17,7 +17,7 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
 | BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
 | RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |
-| ClassParser      | ✅ Enhanced    | Full FoundryVTT schema, proxy enrichment, homebrew flags, spellLists, tags, prerequisites, source info | - | Enriches all fields, supports proxyData, homebrew detection |
+| ClassParser      | ✅ Enhanced    | Full FoundryVTT schema, proxy enrichment, homebrew flags, spellLists, tags, prerequisites, source info, **robust HTML parsing, complete feature/subclass/progression extraction, no rawHtml in output** | - | Enriches all fields, supports proxyData, homebrew detection |
 | RuleParser       | ⏳ Planned     | -                               | All fields                    |                                    |
 | FeatParser       | 🟡 In Progress | -                               | All fields                    |                                    |
 
@@ -35,6 +35,8 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 - All endpoints are robust, TypeScript-compliant, and tested for error handling and data integrity.
 - Docker-based deployment and endpoint testing are fully supported.
 - Legacy stubs and broken chains have been removed; codebase is modernized and maintainable.
+- **Class Importer Overhaul**: The class importer now robustly parses D&D Beyond class HTML, extracting all core traits, features, progression tables, and subclasses with high fidelity. All outputs are now clean, canonical JSON—**no raw HTML is included in the output** (the `rawHtml` debug field has been removed).
+- **Proxy Directory Fix**: The `beyond-foundry-proxy` directory is now a regular, fully tracked directory in the main repository (not a broken submodule). All proxy code, including `src/class.ts`, is now versioned and tracked with the main repo, ensuring all updates are visible and shareable.
 
 ## Known Issues & TODOs
 - Homebrew content requires additional mapping and testing

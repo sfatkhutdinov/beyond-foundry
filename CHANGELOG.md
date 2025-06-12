@@ -44,3 +44,22 @@
 ## [1.0.0] - Initial release
 - Project structure and planning
 - Proxy communication setup
+
+## [1.2.0] - 2025-06-12 - Class Importer & Proxy Directory Overhaul
+
+### 🧙‍♂️ Class Importer Overhaul
+- **Robust HTML Parsing**: The class importer now fully parses D&D Beyond class HTML, extracting all core traits, features, progression tables, and subclasses with high fidelity.
+- **Clean Output**: All outputs are now clean, canonical JSON—**no raw HTML is included in the output** (the `rawHtml` debug field has been removed).
+- **Complete Extraction**: Subclass, feature, and progression extraction is now complete and type-safe.
+
+### 🔧 Repository Structure Fix
+- **Proxy Directory Fix**: The `beyond-foundry-proxy` directory is now a regular, fully tracked directory in the main repository (not a broken submodule).
+- **Improved Tracking**: All proxy code, including `src/class.ts`, is now versioned and tracked with the main repo, ensuring all updates are visible and shareable.
+- **Recommended Workflow**: Developers should now update, commit, and push changes to proxy code as with any other part of the repo.
+
+### 📚 Documentation
+- **Updated README**: Enhanced feature documentation with class importer and proxy directory overhaul highlights.
+- **Code Comments**: Extensive documentation of class parsing logic.
+
+### 🔄 Breaking Changes
+- None - fully backward compatible
