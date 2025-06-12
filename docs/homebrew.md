@@ -1,27 +1,202 @@
-# Beyond Foundry Homebrew & Custom Content
+# Beyond Foundry Homebrew Support
 
-## Status: In Progress
+## Overview
 
-This document describes support for homebrew and custom content in Beyond Foundry.
+This document outlines the homebrew content support in Beyond Foundry, including how to import, manage, and use homebrew content from D&D Beyond.
 
-### Supported Homebrew Types
-- Custom items (basic support)
-- Custom spells (basic support)
-- Custom races/classes (planned)
-- Custom backgrounds/feats (planned)
+## 🎯 Supported Homebrew Types
 
-### Importing Homebrew Content
-- Homebrew items and spells are imported if present in DDB data
-- Custom rules and adventures: planned
+### 1. Character Options
+- Custom Classes
+- Custom Subclasses
+- Custom Races
+- Custom Backgrounds
+- Custom Feats
 
-### Limitations
-- Some homebrew features may require manual adjustment after import
-- Not all DDB homebrew fields are mapped
+### 2. Game Content
+- Custom Spells
+- Custom Items
+- Custom Monsters
+- Custom Features
+- Custom Proficiencies
 
-### TODO
-- Expand mapping for custom features
-- Add user guide for homebrew workflows
-- Document known issues and workarounds
+## 🔧 Import Process
+
+### 1. Character Import with Homebrew
+```typescript
+// Example: Importing a character with homebrew content
+const character = await game.modules.get("beyond-foundry").api.importCharacter({
+  id: "character-id",
+  includeHomebrew: true,
+  homebrewOptions: {
+    includeCustomClasses: true,
+    includeCustomRaces: true,
+    includeCustomSpells: true
+  }
+});
+```
+
+### 2. Bulk Homebrew Import
+```typescript
+// Example: Bulk importing homebrew content
+await game.modules.get("beyond-foundry").api.importHomebrew({
+  types: ["spells", "items", "monsters"],
+  source: "ddb-homebrew-id"
+});
+```
+
+## 📦 Homebrew Management
+
+### 1. Storage
+- Homebrew content is stored in FoundryVTT compendiums
+- Each homebrew type has its own compendium
+- Content is linked to D&D Beyond sources
+
+### 2. Organization
+- Homebrew content is organized by type
+- Each piece of content includes source information
+- Content is tagged for easy filtering
+
+## 🔍 Homebrew Validation
+
+### 1. Content Validation
+- Validate against D&D 5e rules
+- Check for required fields
+- Verify balance and compatibility
+- Ensure proper formatting
+
+### 2. Error Handling
+- Log validation errors
+- Provide user feedback
+- Suggest fixes
+- Maintain error history
+
+## 🛠️ Development Guidelines
+
+### 1. Adding Homebrew Support
+```typescript
+// Example: Adding homebrew support to a parser
+class HomebrewParser extends BaseParser {
+  async parse(content: any): Promise<HomebrewContent> {
+    // Validate homebrew content
+    this.validate(content);
+    
+    // Parse content
+    const parsed = await this.parseContent(content);
+    
+    // Store in compendium
+    await this.storeInCompendium(parsed);
+    
+    return parsed;
+  }
+}
+```
+
+### 2. Homebrew Integration
+- Use the homebrew flag system
+- Implement proper validation
+- Handle errors gracefully
+- Provide user feedback
+
+## 📝 Homebrew Checklist
+
+### 1. Content Creation
+- [ ] Validate against D&D 5e rules
+- [ ] Check for required fields
+- [ ] Verify balance
+- [ ] Test compatibility
+- [ ] Document changes
+
+### 2. Import Process
+- [ ] Validate content
+- [ ] Parse content
+- [ ] Store in compendium
+- [ ] Link to sources
+- [ ] Update references
+
+### 3. User Experience
+- [ ] Provide clear feedback
+- [ ] Handle errors gracefully
+- [ ] Show progress
+- [ ] Allow customization
+- [ ] Support rollback
+
+## 🔄 Maintenance
+
+### 1. Regular Tasks
+- Update homebrew content
+- Validate existing content
+- Clean up unused content
+- Update documentation
+- Monitor usage
+
+### 2. User Support
+- Answer questions
+- Provide guidance
+- Fix issues
+- Update content
+- Gather feedback
+
+## 📚 Additional Resources
+
+### 1. Documentation
+- [D&D Beyond Homebrew Guide](https://www.dndbeyond.com/homebrew)
+- [FoundryVTT Compendium Guide](https://foundryvtt.com/article/compendium/)
+- [D&D 5e Rules](https://www.dndbeyond.com/sources)
+
+### 2. Tools
+- Homebrew Validator
+- Content Manager
+- Import Tool
+- Export Tool
+
+## 🚀 Future Plans
+
+### 1. Planned Features
+- Advanced homebrew validation
+- Custom homebrew creation
+- Homebrew sharing
+- Homebrew marketplace
+- Advanced customization
+
+### 2. Improvements
+- Better error handling
+- Enhanced validation
+- Improved user interface
+- Better documentation
+- More customization options
+
+## ⚠️ Known Issues
+
+### 1. Current Limitations
+- Limited homebrew validation
+- Basic error handling
+- Limited customization
+- Basic user interface
+- Limited documentation
+
+### 2. Planned Fixes
+- Enhanced validation
+- Better error handling
+- More customization
+- Improved interface
+- Better documentation
+
+## 📈 Usage Statistics
+
+### 1. Current Usage
+- Number of homebrew items
+- Popular homebrew types
+- Common issues
+- User feedback
+- Performance metrics
+
+### 2. Trends
+- Growing usage
+- Popular features
+- Common requests
+- User satisfaction
+- Performance trends
 
 ---
 
