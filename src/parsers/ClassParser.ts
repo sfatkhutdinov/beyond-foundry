@@ -11,6 +11,9 @@ interface ProxyClassData {
   tags?: string[];
   prerequisites?: string[];
   source?: string;
+  progression?: Array<{ level?: number; features?: string[]; columns?: string[] }>;
+  coreTraits?: Record<string, string>;
+  sidebars?: string[];
 }
 
 export class ClassParser {
@@ -68,6 +71,10 @@ export class ClassParser {
     const spellLists = Array.isArray(proxy.spellLists) ? proxy.spellLists : [];
     // Source: Use proxy.source if available
     const source = typeof proxy.source === 'string' ? proxy.source : '';
+    // New: Progression, coreTraits, sidebars
+    const progression = Array.isArray(proxy.progression) ? proxy.progression : [];
+    const coreTraits = typeof proxy.coreTraits === 'object' && proxy.coreTraits !== null ? proxy.coreTraits : {};
+    const sidebars = Array.isArray(proxy.sidebars) ? proxy.sidebars : [];
     // Compose FoundryVTT class item
     const foundryClass: Record<string, unknown> = {
       name: ddbClass.definition.name,
@@ -97,6 +104,9 @@ export class ClassParser {
         proficiencies,
         startingEquipment,
         spellLists,
+        progression,
+        coreTraits,
+        sidebars,
         // Add any additional system fields as needed
       },
       flags: {
@@ -116,6 +126,9 @@ export class ClassParser {
     if (!spellLists.length) console.warn(`[ClassParser] No spell lists found for class: ${ddbClass.definition.name}`);
     if (!properties.length) console.warn(`[ClassParser] No tags/properties found for class: ${ddbClass.definition.name}`);
     if (!source) console.warn(`[ClassParser] No source info found for class: ${ddbClass.definition.name}`);
+    if (!progression.length) console.warn(`[ClassParser] No progression found for class: ${ddbClass.definition.name}`);
+    if (!Object.keys(coreTraits).length) console.warn(`[ClassParser] No core traits found for class: ${ddbClass.definition.name}`);
+    if (!sidebars.length) console.warn(`[ClassParser] No sidebars found for class: ${ddbClass.definition.name}`);
     return foundryClass;
   }
 
