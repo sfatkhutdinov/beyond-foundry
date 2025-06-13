@@ -49,7 +49,7 @@ app.use('/proxy/adventures', adventuresRouter);
 app.use('/proxy/backgrounds', backgroundsRouter);
 app.use('/proxy/campaign', campaignRouter);
 app.use('/proxy/character', characterRouter);
-app.use('/proxy/classes', classRouter); // Register /proxy/classes endpoint for classRouter
+app.use('/proxy/classes', classRouter); // Now expects /proxy/classes/:classID-class_name
 app.use('/proxy/feats', featsRouter);
 app.use('/proxy/filterModifiers', filterModifiersRouter);
 app.use('/proxy/items', itemsRouter);

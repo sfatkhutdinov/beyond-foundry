@@ -17,7 +17,6 @@ const validateClassData = ajv.compile(classDataSchema);
 
 interface ClassDataRequestBody {
   cobalt: string;
-  classSlug: string;
 }
 
 type ProgressionRow = { level: number; columns: string[] };
@@ -85,11 +84,10 @@ function getClassIdFromSlug(slug: string): number | null {
 }
 
 // Entry point
-async function getClassData(classSlug: string, cobalt: string): Promise<ClassData> {
-  if (!getClassIdFromSlug(classSlug)) throw new Error(`Unknown classSlug: ${classSlug}`);
-
+async function getClassData(classID: number, className: string, cobalt: string): Promise<ClassData> {
+  // Use classID and className for all lookups and API calls
   // Get bearer token first
-  const token = await authentication.getBearerToken((getClassIdFromSlug(classSlug)).toString(), cobalt);
+  const token = await authentication.getBearerToken(classID.toString(), cobalt);
   if (!token) {
     throw new Error('Failed to get bearer token');
   }
@@ -100,7 +98,7 @@ async function getClassData(classSlug: string, cobalt: string): Promise<ClassDat
   let apiResult: ProxyClassData | null = null;
   try {
     // Try the unofficial class API endpoint
-    const classApiUrl = `https://www.dndbeyond.com/proxy/classes/${getClassIdFromSlug(classSlug)}`;
+    const classApiUrl = `https://www.dndbeyond.com/proxy/classes/${classID}`;
     console.log(`Trying API endpoint: ${classApiUrl}`);
     const apiResponse = await fetch(classApiUrl, {
       headers: {
@@ -115,8 +113,8 @@ async function getClassData(classSlug: string, cobalt: string): Promise<ClassDat
       apiData = await apiResponse.json();
       const apiCoreTraits = extractCoreTraitsFromAPI(apiData);
       apiResult = {
-        id: getClassIdFromSlug(classSlug),
-        slug: classSlug,
+        id: classID,
+        slug: `${classID}-${className}`,
         name: apiData.name || apiData.definition?.name || 'Unknown Class',
         description: apiData.description || apiData.definition?.description || '',
         source: apiData.source || '',
@@ -155,7 +153,7 @@ async function getClassData(classSlug: string, cobalt: string): Promise<ClassDat
 
   if (needHtml) {
     // Fetch the class HTML page
-    const htmlUrl = `https://www.dndbeyond.com/classes/${classSlug}`;
+    const htmlUrl = `https://www.dndbeyond.com/classes/${className}`;
     const htmlResponse = await fetch(htmlUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0',
@@ -204,8 +202,8 @@ async function getClassData(classSlug: string, cobalt: string): Promise<ClassDat
   }
 
   const merged: ProxyClassData = {
-    id: getClassIdFromSlug(classSlug),
-    slug: classSlug,
+    id: classID,
+    slug: `${classID}-${className}`,
     name: !isEmpty(apiResult?.name) ? apiResult?.name : htmlResult.name || 'Unknown Class',
     description: !isEmpty(apiResult?.description) ? apiResult?.description : htmlResult.description || '',
     source: !isEmpty(apiResult?.source) ? apiResult?.source : htmlResult.source || 'Player\'s Handbook',
@@ -963,23 +961,25 @@ function deepSanitize<T>(obj: T): T {
 /* *********************************** */
 
 const validateRequest = ajv.compile({
-  type: 'object', properties: { cobalt:{type:'string'}, classSlug:{type:'string'} }, additionalProperties:false, required:['cobalt','classSlug']
+  type: 'object', properties: { cobalt:{type:'string'} }, additionalProperties:false, required:['cobalt']
 });
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:classKey', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { cobalt, classSlug } = req.body as ClassDataRequestBody;
-    
-    // Add debug logging
-    console.log('Received request for class:', classSlug);
-    console.log('Cookie present:', !!cobalt);
-    
+    const { cobalt } = req.body as ClassDataRequestBody;
+    const { classKey } = req.params;
+    // classKey is expected to be {classID}-{class_name}
+    const match = classKey.match(/^(\d+)-([a-zA-Z0-9_-]+)$/);
+    if (!match) {
+      return res.status(400).json({ error: 'Invalid classKey format. Expected {classID}-{class_name}' });
+    }
+    const classID = parseInt(match[1], 10);
+    const className = match[2];
     if (!cobalt) {
-      console.log('No cobalt cookie provided');
       return res.status(401).json({ error: 'No cobalt cookie provided' });
     }
-
-    const data = await getClassData(classSlug, cobalt);
+    // Use classID and className for downstream logic
+    const data = await getClassDataByIdAndName(classID, className, cobalt);
     res.json(data);
   } catch (error) {
     console.error('Error in class endpoint:', error);
@@ -1188,4 +1188,9 @@ function extractAdvancementV1(coreTraits: Record<string, string>, subclasses: Su
   }
   
   return advancement;
+}
+
+// Update getClassDataByIdAndName to call the new getClassData
+async function getClassDataByIdAndName(classID: number, className: string, cobalt: string): Promise<ClassData> {
+  return getClassData(classID, className, cobalt);
 }

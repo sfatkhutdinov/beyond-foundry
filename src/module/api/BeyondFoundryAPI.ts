@@ -1015,14 +1015,13 @@ export class BeyondFoundryAPI {
         return null;
       }
       // Fetch class data from ddb-proxy
-      const response = await fetch(`${this.proxyEndpoint}/proxy/class`, {
+      const response = await fetch(`${this.proxyEndpoint}/proxy/classes/${classId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           cobalt: cobaltToken,
-          classId: parseInt(classId),
         }),
       });
       const data = await response.json();

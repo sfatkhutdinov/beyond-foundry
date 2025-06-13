@@ -131,40 +131,15 @@ After each fix, test with multiple classes:
 
 ```bash
 # Test extraction for each class
-curl -X POST http://localhost:4000/proxy/classes \
+curl -X POST http://localhost:4000/proxy/classes/1-druid \
   -H "Content-Type: application/json" \
-  -d '{"cobalt": "test_session", "classSlug": "druid"}' | jq '.data | {tags, prerequisites, source: (.source | length), progression: (.progression | length)}'
+  -d '{"cobalt": "test_session"}' | jq '.data | {tags, prerequisites, source: (.source | length), progression: (.progression | length)}'
 
-curl -X POST http://localhost:4000/proxy/classes \
+curl -X POST http://localhost:4000/proxy/classes/2-wizard \
   -H "Content-Type: application/json" \
-  -d '{"cobalt": "test_session", "classSlug": "wizard"}' | jq '.data | {tags, prerequisites, source: (.source | length), progression: (.progression | length)}'
+  -d '{"cobalt": "test_session"}' | jq '.data | {tags, prerequisites, source: (.source | length), progression: (.progression | length)}'
 
-curl -X POST http://localhost:4000/proxy/classes \
+curl -X POST http://localhost:4000/proxy/classes/3-bard \
   -H "Content-Type: application/json" \
-  -d '{"cobalt": "test_session", "classSlug": "bard"}' | jq '.data | {tags, prerequisites, source: (.source | length), progression: (.progression | length)}'
+  -d '{"cobalt": "test_session"}' | jq '.data | {tags, prerequisites, source: (.source | length), progression: (.progression | length)}'
 ```
-
-## Files That Need Updates
-
-1. **`beyond-foundry-proxy/src/class.ts`** - All extraction functions
-2. **`src/parsers/ClassParser.ts`** - May need updates once extraction is fixed
-3. **`docs/CLASS_EXTRACTION_ENRICHMENT_PLAN.md`** - ✅ Already updated with accurate status
-4. **Test files** - Add automated tests for extraction functions
-
-## Expected Outcomes
-
-After implementing these fixes:
-
-| Field | Current Status | Expected Status |
-|-------|----------------|-----------------|
-| Features | ✅ Working | ✅ Working |
-| Spell Lists | ✅ Working | ✅ Working |
-| Subclasses | 🟡 Poor Quality | ✅ Good Quality |
-| Tags | ❌ Empty Array | ✅ Working |
-| Prerequisites | ❌ Empty Array | ✅ Working |
-| Source Info | ❌ Poor Quality | ✅ Working |
-| Progression | ❌ Empty Array | ✅ Working |
-| Core Traits | ❌ Empty Object | ✅ Working |
-| Sidebars | ❌ Empty Array | ✅ Working |
-
-This would bring the class extraction system from **22% working** to **100% working** across all planned fields.

@@ -28,3 +28,5 @@ export const DEFAULT_IMPORT_OPTIONS = {
   updateExisting: false,
   createCompendiumItems: true,
 };
+
+// NOTE: /proxy/classes endpoint now expects /proxy/classes/{classID}-{class_name}
