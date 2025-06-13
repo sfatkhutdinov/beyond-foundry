@@ -1079,6 +1079,36 @@ router.post('/:classKey', async (req: Request, res: Response, next: NextFunction
   }
 });
 
+// Only extract the <div class="content-container"> from the class page
+router.post('/content-container/:className', async (req: Request, res: Response) => {
+  try {
+    const { className } = req.params;
+    // const { cobalt } = req.body; // Not needed for public class page
+    const htmlUrl = `https://www.dndbeyond.com/classes/${className}`;
+    const htmlResponse = await fetch(htmlUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+        // Cookie: `CobaltSession=${cobalt}`,
+      },
+    });
+    const html = await htmlResponse.text();
+    const $ = cheerio.load(html);
+    const contentContainerFull = $('.content-container').first().html() || '';
+    // Truncate at the first occurrence of the line or homebrew-comments div
+    const lineDiv = '<div class="line character marginTop20 marginBottom20"></div>';
+    const homebrewDiv = '<div class="homebrew-comments">';
+    let cutIndex = contentContainerFull.length;
+    const lineIndex = contentContainerFull.indexOf(lineDiv);
+    const homebrewIndex = contentContainerFull.indexOf(homebrewDiv);
+    if (lineIndex !== -1 && lineIndex < cutIndex) cutIndex = lineIndex;
+    if (homebrewIndex !== -1 && homebrewIndex < cutIndex) cutIndex = homebrewIndex;
+    const contentContainer = contentContainerFull.substring(0, cutIndex);
+    return res.json({ success: true, contentContainer });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+});
+
 export default router;
 
 /**
