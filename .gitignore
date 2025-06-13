@@ -65,7 +65,7 @@ debug-*.mjs
 
 
 # Output folder
-zzzOutputzzz/
+class_jsons/
 references/
 
 

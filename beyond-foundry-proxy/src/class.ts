@@ -68,6 +68,8 @@ type ProxyClassData = {
   schemaVersion?: string;
   advancement: any[];
   equipmentChoices: string[][];
+  // Add raw HTML for post-processing
+  rawHtmlContentContainer?: string;
 };
 
 /* *********************************** */
@@ -76,7 +78,8 @@ type ProxyClassData = {
 
 // Map slug to numeric class ID
 function getClassIdFromSlug(slug: string): number | null {
-  const clean = slug.replace(/^\d+-?/, '').toLowerCase();
+  const clean = slug.replace(/^(\d+-)?/, '').toLowerCase();
+  // Only match against config classMap
   const entry = CONFIG.classMap.find(
     e => e.name.toLowerCase() === clean || `${e.id}-${clean}` === slug.toLowerCase()
   );
@@ -136,6 +139,8 @@ async function getClassData(
         schemaVersion: '2025-06-11',
         advancement: extractAdvancement(apiCoreTraits),
         equipmentChoices: extractEquipmentChoices(apiCoreTraits),
+        // Add the raw HTML for post-processing
+        rawHtmlContentContainer: apiData.rawHtmlContentContainer || '',
       };
     }
   } catch (apiError) {
@@ -169,6 +174,8 @@ async function getClassData(
     });
     const html = await htmlResponse.text();
     const $ = cheerio.load(html);
+    // NEW: Extract the entire content-container div as raw HTML
+    const rawHtmlContentContainer = $('.content-container').first().html() || '';
     const htmlCoreTraits = extractCoreTraits($);
     const htmlFeatures = extractFeatures($);
     htmlResult = {
@@ -188,6 +195,8 @@ async function getClassData(
       schemaVersion: '2025-06-11',
       advancement: extractAdvancement(htmlCoreTraits),
       equipmentChoices: extractEquipmentChoices(htmlCoreTraits),
+      // Add the raw HTML for post-processing
+      rawHtmlContentContainer,
     };
   }
 
@@ -210,7 +219,7 @@ async function getClassData(
     };
   }
 
-  const merged: ProxyClassData = {
+  const merged: ProxyClassData & { rawHtmlContentContainer?: string } = {
     id: classID,
     slug: `${classID}-${className}`,
     name: !isEmpty(apiResult?.name) ? apiResult?.name : htmlResult.name || 'Unknown Class',
@@ -249,6 +258,8 @@ async function getClassData(
     equipmentChoices: !isEmpty(apiResult?.equipmentChoices)
       ? apiResult.equipmentChoices
       : htmlResult.equipmentChoices || [],
+    // Add the raw HTML for post-processing if present
+    ...(htmlResult.rawHtmlContentContainer ? { rawHtmlContentContainer: htmlResult.rawHtmlContentContainer } : {}),
   };
 
   if (!validateClassData(merged)) {
