@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router, Request, Response, NextFunction } from 'express';
 import * as winston from 'winston';
 import Ajv from 'ajv';
 import fetch from 'node-fetch';
@@ -53,7 +53,7 @@ type ProxyClassData = {
   source: string;
   tags: string[];
   prerequisites: string[];
-  coreTraits: Record<string,string>;
+  coreTraits: Record<string, string>;
   progression: ProgressionRow[];
   features: Feature[];
   subclasses: Subclass[];
@@ -77,14 +77,18 @@ type ProxyClassData = {
 // Map slug to numeric class ID
 function getClassIdFromSlug(slug: string): number | null {
   const clean = slug.replace(/^\d+-?/, '').toLowerCase();
-  const entry = CONFIG.classMap.find(e =>
-    e.name.toLowerCase() === clean || `${e.id}-${clean}` === slug.toLowerCase()
+  const entry = CONFIG.classMap.find(
+    e => e.name.toLowerCase() === clean || `${e.id}-${clean}` === slug.toLowerCase()
   );
   return entry?.id ?? null;
 }
 
 // Entry point
-async function getClassData(classID: number, className: string, cobalt: string): Promise<ClassData> {
+async function getClassData(
+  classID: number,
+  className: string,
+  cobalt: string
+): Promise<ClassData> {
   // Use classID and className for all lookups and API calls
   // Get bearer token first
   const token = await authentication.getBearerToken(classID.toString(), cobalt);
@@ -102,12 +106,13 @@ async function getClassData(classID: number, className: string, cobalt: string):
     console.log(`Trying API endpoint: ${classApiUrl}`);
     const apiResponse = await fetch(classApiUrl, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
-        'Referer': 'https://www.dndbeyond.com',
-        'Cookie': `CobaltSession=${cobalt}`
-      }
+        Authorization: `Bearer ${token}`,
+        'User-Agent':
+          'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        Accept: 'application/json',
+        Referer: 'https://www.dndbeyond.com',
+        Cookie: `CobaltSession=${cobalt}`,
+      },
     });
     if (apiResponse.ok) {
       apiData = await apiResponse.json();
@@ -140,14 +145,16 @@ async function getClassData(classID: number, className: string, cobalt: string):
   // If API is missing critical fields, fetch and parse HTML for fallback/merge
   let htmlResult: Partial<ProxyClassData> = {};
   let needHtml = false;
-  if (!apiResult ||
-      !apiResult.progression?.length ||
-      !apiResult.features?.length ||
-      !apiResult.subclasses?.length ||
-      !apiResult.sidebars?.length ||
-      !apiResult.tags?.length ||
-      !apiResult.prerequisites?.length ||
-      !Object.keys(apiResult.coreTraits || {}).length) {
+  if (
+    !apiResult ||
+    !apiResult.progression?.length ||
+    !apiResult.features?.length ||
+    !apiResult.subclasses?.length ||
+    !apiResult.sidebars?.length ||
+    !apiResult.tags?.length ||
+    !apiResult.prerequisites?.length ||
+    !Object.keys(apiResult.coreTraits || {}).length
+  ) {
     needHtml = true;
   }
 
@@ -157,8 +164,8 @@ async function getClassData(classID: number, className: string, cobalt: string):
     const htmlResponse = await fetch(htmlUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0',
-        'Cookie': `CobaltSession=${cobalt}`
-      }
+        Cookie: `CobaltSession=${cobalt}`,
+      },
     });
     const html = await htmlResponse.text();
     const $ = cheerio.load(html);
@@ -195,7 +202,9 @@ async function getClassData(classID: number, className: string, cobalt: string):
 
   function mergeSpellcasting(apiSpell: any, htmlSpell: any) {
     return {
-      progression: !isEmpty(apiSpell?.progression) ? apiSpell.progression : htmlSpell?.progression || '',
+      progression: !isEmpty(apiSpell?.progression)
+        ? apiSpell.progression
+        : htmlSpell?.progression || '',
       ability: !isEmpty(apiSpell?.ability) ? apiSpell.ability : htmlSpell?.ability || '',
       lists: !isEmpty(apiSpell?.lists) ? apiSpell.lists : htmlSpell?.lists || [],
     };
@@ -205,21 +214,41 @@ async function getClassData(classID: number, className: string, cobalt: string):
     id: classID,
     slug: `${classID}-${className}`,
     name: !isEmpty(apiResult?.name) ? apiResult?.name : htmlResult.name || 'Unknown Class',
-    description: !isEmpty(apiResult?.description) ? apiResult?.description : htmlResult.description || '',
-    source: !isEmpty(apiResult?.source) ? apiResult?.source : htmlResult.source || 'Player\'s Handbook',
+    description: !isEmpty(apiResult?.description)
+      ? apiResult?.description
+      : htmlResult.description || '',
+    source: !isEmpty(apiResult?.source)
+      ? apiResult?.source
+      : htmlResult.source || "Player's Handbook",
     tags: !isEmpty(apiResult?.tags) ? apiResult.tags : htmlResult.tags || [],
-    prerequisites: !isEmpty(apiResult?.prerequisites) ? apiResult.prerequisites : htmlResult.prerequisites || [],
-    coreTraits: !isEmpty(apiResult?.coreTraits) ? apiResult.coreTraits : htmlResult.coreTraits || {},
-    progression: !isEmpty(apiResult?.progression) ? apiResult.progression : htmlResult.progression || [],
+    prerequisites: !isEmpty(apiResult?.prerequisites)
+      ? apiResult.prerequisites
+      : htmlResult.prerequisites || [],
+    coreTraits: !isEmpty(apiResult?.coreTraits)
+      ? apiResult.coreTraits
+      : htmlResult.coreTraits || {},
+    progression: !isEmpty(apiResult?.progression)
+      ? apiResult.progression
+      : htmlResult.progression || [],
     features: !isEmpty(apiResult?.features) ? apiResult.features : htmlResult.features || [],
-    subclasses: !isEmpty(apiResult?.subclasses) ? apiResult.subclasses : htmlResult.subclasses || [],
+    subclasses: !isEmpty(apiResult?.subclasses)
+      ? apiResult.subclasses
+      : htmlResult.subclasses || [],
     spellcasting: mergeSpellcasting(apiResult?.spellcasting, htmlResult.spellcasting),
     sidebars: !isEmpty(apiResult?.sidebars) ? apiResult.sidebars : htmlResult.sidebars || [],
-    additionalTables: !isEmpty(apiResult?.additionalTables) ? apiResult.additionalTables : htmlResult.additionalTables || [],
-    optionalFeatures: !isEmpty(apiResult?.optionalFeatures) ? apiResult.optionalFeatures : htmlResult.optionalFeatures || [],
+    additionalTables: !isEmpty(apiResult?.additionalTables)
+      ? apiResult.additionalTables
+      : htmlResult.additionalTables || [],
+    optionalFeatures: !isEmpty(apiResult?.optionalFeatures)
+      ? apiResult.optionalFeatures
+      : htmlResult.optionalFeatures || [],
     schemaVersion: '2025-06-11',
-    advancement: !isEmpty(apiResult?.advancement) ? apiResult.advancement : htmlResult.advancement || [],
-    equipmentChoices: !isEmpty(apiResult?.equipmentChoices) ? apiResult.equipmentChoices : htmlResult.equipmentChoices || [],
+    advancement: !isEmpty(apiResult?.advancement)
+      ? apiResult.advancement
+      : htmlResult.advancement || [],
+    equipmentChoices: !isEmpty(apiResult?.equipmentChoices)
+      ? apiResult.equipmentChoices
+      : htmlResult.equipmentChoices || [],
   };
 
   if (!validateClassData(merged)) {
@@ -324,7 +353,7 @@ function extractProgressionFromAPI(apiData: any): ProgressionRow[] {
   // Extract progression table from API response
   if (apiData.classFeatures && Array.isArray(apiData.classFeatures)) {
     const progressionMap = new Map<number, string[]>();
-    
+
     apiData.classFeatures.forEach((feature: any) => {
       const level = feature.requiredLevel || 1;
       if (!progressionMap.has(level)) {
@@ -332,13 +361,13 @@ function extractProgressionFromAPI(apiData: any): ProgressionRow[] {
       }
       progressionMap.get(level)?.push(feature.name || '');
     });
-    
+
     return Array.from(progressionMap.entries()).map(([level, columns]) => ({
       level,
-      columns
+      columns,
     }));
   }
-  
+
   return [];
 }
 
@@ -348,10 +377,10 @@ function extractFeaturesFromAPI(apiData: any): Feature[] {
     return apiData.classFeatures.map((feature: any) => ({
       name: feature.name || '',
       description: feature.description || feature.snippet || '',
-      requiredLevel: feature.requiredLevel || 1
+      requiredLevel: feature.requiredLevel || 1,
     }));
   }
-  
+
   return [];
 }
 
@@ -361,25 +390,31 @@ function extractSubclassesFromAPI(apiData: any): Subclass[] {
     return apiData.subclasses.map((subclass: any) => ({
       name: subclass.name || '',
       overview: subclass.description || subclass.snippet || '',
-      features: subclass.features ? subclass.features.map((f: any) => ({
-        name: f.name || '',
-        description: f.description || f.snippet || '',
-        requiredLevel: f.requiredLevel || 1
-      })) : []
+      features: subclass.features
+        ? subclass.features.map((f: any) => ({
+            name: f.name || '',
+            description: f.description || f.snippet || '',
+            requiredLevel: f.requiredLevel || 1,
+          }))
+        : [],
     }));
   }
-  
+
   return [];
 }
 
-function extractSpellcastingFromAPI(apiData: any): { progression: string; ability: string; lists: Array<{ label: string; url: string }> } {
+function extractSpellcastingFromAPI(apiData: any): {
+  progression: string;
+  ability: string;
+  lists: Array<{ label: string; url: string }>;
+} {
   // Extract spellcasting info from API response
   const result = {
     progression: '',
     ability: '',
-    lists: [] as Array<{ label: string; url: string }>
+    lists: [] as Array<{ label: string; url: string }>,
   };
-  
+
   if (apiData.spellcasting) {
     result.progression = apiData.spellcasting.progression || '';
     result.ability = apiData.spellcasting.ability || '';
@@ -387,14 +422,14 @@ function extractSpellcastingFromAPI(apiData: any): { progression: string; abilit
       result.lists = apiData.spellcasting.lists;
     }
   }
-  
+
   return result;
 }
 
 function getBasicCoreTraits(className: string): Record<string, string> {
   // Return basic core traits based on class name
   const traits: Record<string, string> = {};
-  
+
   switch (className.toLowerCase()) {
     case 'fighter':
       traits['Hit Die'] = 'd10';
@@ -437,7 +472,7 @@ function getBasicCoreTraits(className: string): Record<string, string> {
       traits['Primary Ability'] = 'Varies';
       traits['Saving Throws'] = 'Varies';
   }
-  
+
   return traits;
 }
 
@@ -477,18 +512,22 @@ function extractName($: cheerio.Root): string {
  */
 function extractDescription($: cheerio.Root): string {
   const paragraphs: string[] = [];
-  
+
   // Find the Core Traits table
-  const $coreTraitsTable = $('table').filter((_, el) => {
-    return $(el).find('h2#CoreRogueTraits').length > 0 || 
-           ($(el).find('h2').text().includes('Core') && $(el).find('h2').text().includes('Traits'));
-  }).first();
-  
+  const $coreTraitsTable = $('table')
+    .filter((_, el) => {
+      return (
+        $(el).find('h2#CoreRogueTraits').length > 0 ||
+        ($(el).find('h2').text().includes('Core') && $(el).find('h2').text().includes('Traits'))
+      );
+    })
+    .first();
+
   if (!$coreTraitsTable.length) return '';
-  
+
   // Start from the element after the table
   let $current = $coreTraitsTable.next();
-  
+
   // Collect paragraphs until we hit a heading
   while ($current.length && !$current.is('h2, h3, h4')) {
     if ($current.is('p')) {
@@ -500,15 +539,19 @@ function extractDescription($: cheerio.Root): string {
     }
     $current = $current.next();
   }
-  
+
   return paragraphs.join('\n\n');
 }
 
-function extractMetadata($: cheerio.Root): { source: string; tags: string[]; prerequisites: string[] } {
+function extractMetadata($: cheerio.Root): {
+  source: string;
+  tags: string[];
+  prerequisites: string[];
+} {
   return {
-    source: 'Player\'s Handbook',
+    source: "Player's Handbook",
     tags: [],
-    prerequisites: []
+    prerequisites: [],
   };
 }
 
@@ -517,27 +560,29 @@ function extractMetadata($: cheerio.Root): { source: string; tags: string[]; pre
  */
 function extractCoreTraits($: cheerio.Root): Record<string, string> {
   const traits: Record<string, string> = {};
-  
+
   // Find the Core Traits table
-  const $table = $('table').filter((_, el) => {
-    const $h2 = $(el).find('h2');
-    return $h2.text().includes('Core') && $h2.text().includes('Traits');
-  }).first();
-  
+  const $table = $('table')
+    .filter((_, el) => {
+      const $h2 = $(el).find('h2');
+      return $h2.text().includes('Core') && $h2.text().includes('Traits');
+    })
+    .first();
+
   if (!$table.length) return traits;
-  
+
   // Extract each row
   $table.find('tbody tr').each((_, row) => {
     const $row = $(row);
     const key = $row.find('th').text().trim();
     const value = $row.find('td').text().trim();
-    
+
     if (key && value) {
       // Store with original key
       traits[key] = value;
     }
   });
-  
+
   return normalizeCoreTraitKeys(traits);
 }
 
@@ -546,31 +591,36 @@ function extractCoreTraits($: cheerio.Root): Record<string, string> {
  */
 function extractProgressionTable($: cheerio.Root): ProgressionRow[] {
   const progression: ProgressionRow[] = [];
-  
+
   // Find the Rogue Features table (or any class features table)
-  const $table = $('table').filter((_, el) => {
-    const $h2 = $(el).find('h2');
-    return $h2.text().includes('Features') && !$h2.text().includes('Core');
-  }).first();
-  
+  const $table = $('table')
+    .filter((_, el) => {
+      const $h2 = $(el).find('h2');
+      return $h2.text().includes('Features') && !$h2.text().includes('Core');
+    })
+    .first();
+
   if (!$table.length) return progression;
-  
+
   // Process each row in tbody
   $table.find('tbody tr').each((_, row) => {
     const $row = $(row);
-    const cells = $row.find('td').map((_, td) => $(td).text().trim()).get();
-    
+    const cells = $row
+      .find('td')
+      .map((_, td) => $(td).text().trim())
+      .get();
+
     if (cells.length >= 4) {
       const level = parseInt(cells[0], 10);
       if (!isNaN(level)) {
         progression.push({
           level,
-          columns: cells
+          columns: cells,
         });
       }
     }
   });
-  
+
   return progression;
 }
 
@@ -579,61 +629,66 @@ function extractProgressionTable($: cheerio.Root): ProgressionRow[] {
  */
 function extractFeatures($: cheerio.Root): Feature[] {
   const features: Feature[] = [];
-  
+
   // Find the main content container
   const $mainContainer = $('.static-container-details > .content-container').first();
-  
+
   // Find all h4 elements that are NOT within subclass containers
   $mainContainer.find('h4').each((_, el) => {
     const $el = $(el);
-    
+
     // Skip if this h4 is within a subclass container
     if ($el.closest('.subitems-list-details-item').length > 0) {
       return; // Skip subclass features
     }
-    
+
     // Skip sidebar headers
-    if ($el.attr('id')?.includes('AsaLevel1Character') || 
-        $el.attr('id')?.includes('AsaMulticlassCharacter')) {
+    if (
+      $el.attr('id')?.includes('AsaLevel1Character') ||
+      $el.attr('id')?.includes('AsaMulticlassCharacter')
+    ) {
       return;
     }
-    
+
     const headingText = $el.text().trim();
-    
+
     // Parse level from heading (e.g., 'Level 3: Steady Aim')
     let requiredLevel = 1;
     const levelMatch = headingText.match(/Level\s*(\d+):?\s*/i);
     if (levelMatch) {
       requiredLevel = parseInt(levelMatch[1], 10);
     }
-    
+
     // Feature name is heading text after 'Level X:'
     let name = headingText.replace(/Level\s*\d+:?\s*/i, '').trim();
     if (!name) name = headingText;
-    
+
     // Gather description from following elements
     const descriptionParts: string[] = [];
     let $next = $el.next();
-    
+
     while ($next.length && !$next.is('h2, h3, h4')) {
       if ($next.is('p')) {
         const text = $next.text().trim();
         if (text) descriptionParts.push(text);
       } else if ($next.is('ul, ol')) {
         // Format list items
-        const items = $next.find('li').map((_, li) => '• ' + $(li).text().trim()).get();
+        const items = $next
+          .find('li')
+          .map((_, li) => '• ' + $(li).text().trim())
+          .get();
         if (items.length) descriptionParts.push(items.join('\n'));
       }
       $next = $next.next();
     }
-    
+
     const description = descriptionParts.join('\n\n');
-    
+
     if (name && description) {
       features.push({ name, description, requiredLevel });
     }
   });
-  
+
   return features;
 }
 
@@ -642,14 +697,14 @@ function extractFeatures($: cheerio.Root): Feature[] {
  */
 function extractSubclasses($: cheerio.Root): Subclass[] {
   const subclasses: Subclass[] = [];
-  
+
   // Each subclass is in a .subitems-list-details-item
   $('.subitems-list-details-item').each((_, item) => {
     const $item = $(item);
-    
+
     // Get subclass name from h2
     const name = $item.find('h2').first().text().trim();
-    
+
     // Get overview from first paragraph after h2
     let overview = '';
     const $h2 = $item.find('h2').first();
@@ -662,35 +717,42 @@ function extractSubclasses($: cheerio.Root): Subclass[] {
       }
       $overviewEl = $overviewEl.next();
     }
-    
+
     // Extract features ONLY from this subclass
     const features: SubclassFeature[] = [];
-    
+
     $item.find('h4').each((_, el) => {
       const $el = $(el);
       const headingText = $el.text().trim();
-      
+
       // Parse level if present
       let requiredLevel: number | undefined = undefined;
       const levelMatch = headingText.match(/Level\s*(\d+):?\s*/i);
       if (levelMatch) {
         requiredLevel = parseInt(levelMatch[1], 10);
       }
-      
+
       // Get feature name
       let featureName = headingText.replace(/Level\s*\d+:?\s*/i, '').trim();
       if (!featureName) featureName = headingText;
-      
+
       // Get description
       const descriptionParts: string[] = [];
       let $next = $el.next();
-      
-      while ($next.length && !$next.is('h4, h3, h2') && $next.closest('.subitems-list-details-item')[0] === item) {
+
+      while (
+        $next.length &&
+        !$next.is('h4, h3, h2') &&
+        $next.closest('.subitems-list-details-item')[0] === item
+      ) {
         if ($next.is('p')) {
           const text = $next.text().trim();
           if (text) descriptionParts.push(text);
         } else if ($next.is('ul, ol')) {
-          const items = $next.find('li').map((_, li) => '• ' + $(li).text().trim()).get();
+          const items = $next
+            .find('li')
+            .map((_, li) => '• ' + $(li).text().trim())
+            .get();
           if (items.length) descriptionParts.push(items.join('\n'));
         } else if ($next.is('table')) {
           // Skip tables here, they'll be handled separately
@@ -703,26 +765,26 @@ function extractSubclasses($: cheerio.Root): Subclass[] {
         }
         $next = $next.next();
       }
-      
+
       const description = descriptionParts.join('\n\n');
-      
+
       if (featureName && description) {
         features.push({ name: featureName, description, requiredLevel });
       }
     });
-    
+
     // Extract tables specific to this subclass
     const tables: Array<{ title: string; headers: string[]; rows: string[][] }> = [];
-    
+
     $item.find('table').each((_, table) => {
       const $table = $(table);
       const caption = $table.find('caption').text().trim();
-      
+
       if (!caption) return;
-      
+
       const headers: string[] = [];
       const rows: string[][] = [];
-      
+
       // Get headers from thead
       const $headerRow = $table.find('thead tr').last();
       if ($headerRow.length) {
@@ -730,7 +792,7 @@ function extractSubclasses($: cheerio.Root): Subclass[] {
           headers.push($(th).text().trim());
         });
       }
-      
+
       // If no headers in thead, check first tbody row
       if (headers.length === 0) {
         const $firstRow = $table.find('tbody tr').first();
@@ -740,7 +802,7 @@ function extractSubclasses($: cheerio.Root): Subclass[] {
           });
         }
       }
-      
+
       // Get data rows
       $table.find('tbody tr').each((idx, row) => {
         const $row = $(row);
@@ -748,23 +810,26 @@ function extractSubclasses($: cheerio.Root): Subclass[] {
         if (idx === 0 && $row.find('th').length > 0 && headers.length > 0) {
           return;
         }
-        
-        const cells = $row.find('td, th').map((_, cell) => $(cell).text().trim()).get();
+
+        const cells = $row
+          .find('td, th')
+          .map((_, cell) => $(cell).text().trim())
+          .get();
         if (cells.length > 0) {
           rows.push(cells);
         }
       });
-      
+
       if (headers.length > 0 || rows.length > 0) {
         tables.push({ title: caption, headers, rows });
       }
     });
-    
+
     if (name) {
       subclasses.push({ name, overview, features, tables });
     }
   });
-  
+
   return subclasses;
 }
 
@@ -779,30 +844,30 @@ function extractSpellcasting(
   const spellcasting = {
     progression: '',
     ability: '',
-    lists: [] as Array<{ label: string; url: string }>
+    lists: [] as Array<{ label: string; url: string }>,
   };
 
   // First check if there's a spellcasting table in any subclass
   let foundSpellcastingTable = false;
-  
+
   $('.subitems-list-details-item table').each((_, table) => {
     const $table = $(table);
     const caption = $table.find('caption').text().trim();
-    
+
     if (/spellcasting/i.test(caption)) {
       foundSpellcastingTable = true;
       spellcasting.progression = caption;
-      
+
       // Determine spellcasting details based on subclass
       const $subclass = $table.closest('.subitems-list-details-item');
       const subclassName = $subclass.find('h2').first().text().trim();
-      
+
       if (/arcane trickster/i.test(subclassName)) {
         spellcasting.ability = 'Intelligence';
         spellcasting.lists = [{ label: 'Wizard', url: '/spells/wizard' }];
       }
       // Add other spellcasting subclasses as needed
-      
+
       return false; // Break the loop
     }
   });
@@ -812,10 +877,11 @@ function extractSpellcasting(
     // Look in both main features and subclass features
     $('.subitems-list-details-item').each((_, item) => {
       const $item = $(item);
-      const $spellcastingFeature = $item.find('h4').filter((_, el) => 
-        /spellcasting/i.test($(el).text())
-      ).first();
-      
+      const $spellcastingFeature = $item
+        .find('h4')
+        .filter((_, el) => /spellcasting/i.test($(el).text()))
+        .first();
+
       if ($spellcastingFeature.length) {
         // Get the description text
         let description = '';
@@ -826,7 +892,7 @@ function extractSpellcasting(
           }
           $next = $next.next();
         }
-        
+
         // Parse ability from description
         if (/intelligence\s+is\s+your\s+spellcasting\s+ability/i.test(description)) {
           spellcasting.ability = 'Intelligence';
@@ -835,16 +901,16 @@ function extractSpellcasting(
         } else if (/charisma\s+is\s+your\s+spellcasting\s+ability/i.test(description)) {
           spellcasting.ability = 'Charisma';
         }
-        
+
         // Parse spell list
         if (/wizard\s+spell/i.test(description)) {
           spellcasting.lists.push({ label: 'Wizard', url: '/spells/wizard' });
         }
-        
+
         // Set progression
         const subclassName = $item.find('h2').first().text().trim();
         spellcasting.progression = `${subclassName} Spellcasting`;
-        
+
         return false; // Found it, stop looking
       }
     });
@@ -858,21 +924,26 @@ function extractSpellcasting(
  */
 function extractSidebars($: cheerio.Root): string[] {
   const sidebars: string[] = [];
-  
+
   // Extract "Becoming a Rogue" section
-  const $becomingSection = $('h3').filter((_, el) => {
-    return $(el).text().includes('Becoming a');
-  }).first();
-  
+  const $becomingSection = $('h3')
+    .filter((_, el) => {
+      return $(el).text().includes('Becoming a');
+    })
+    .first();
+
   if ($becomingSection.length) {
     const sidebarParts: string[] = ['## ' + $becomingSection.text().trim()];
-    
+
     let $current = $becomingSection.next();
     while ($current.length && !$current.is('h2, table')) {
       if ($current.is('h4')) {
         sidebarParts.push('\n### ' + $current.text().trim());
       } else if ($current.is('ul')) {
-        const items = $current.find('li').map((_, li) => '- ' + $(li).text().trim()).get();
+        const items = $current
+          .find('li')
+          .map((_, li) => '- ' + $(li).text().trim())
+          .get();
         if (items.length) sidebarParts.push(items.join('\n'));
       } else if ($current.is('p')) {
         const text = $current.text().trim();
@@ -880,43 +951,45 @@ function extractSidebars($: cheerio.Root): string[] {
       }
       $current = $current.next();
     }
-    
+
     if (sidebarParts.length > 1) {
       sidebars.push(sidebarParts.join('\n'));
     }
   }
-  
+
   return sidebars;
 }
 
 /**
  * Extract additional tables, excluding those already captured
  */
-function extractAdditionalTables($: cheerio.Root): Array<{ title: string; headers: string[]; rows: string[][] }> {
+function extractAdditionalTables(
+  $: cheerio.Root
+): Array<{ title: string; headers: string[]; rows: string[][] }> {
   const tables: Array<{ title: string; headers: string[]; rows: string[][] }> = [];
   const processedCaptions = new Set(['Core Rogue Traits', 'Rogue Features']);
-  
+
   // Find tables in main content, not in subclasses
   const $mainContainer = $('.static-container-details > .content-container').first();
-  
+
   $mainContainer.find('> table, > * > table').each((_, table) => {
     const $table = $(table);
-    
+
     // Skip if within a subclass
     if ($table.closest('.subitems-list-details-item').length > 0) {
       return;
     }
-    
+
     const caption = $table.find('caption').text().trim();
-    
+
     // Skip if already processed or no caption
     if (!caption || processedCaptions.has(caption)) {
       return;
     }
-    
+
     const headers: string[] = [];
     const rows: string[][] = [];
-    
+
     // Extract headers
     const $headerRow = $table.find('thead tr').last();
     if ($headerRow.length) {
@@ -924,20 +997,23 @@ function extractAdditionalTables($: cheerio.Root): Array<{ title: string; header
         headers.push($(th).text().trim());
       });
     }
-    
+
     // Extract rows
     $table.find('tbody tr').each((_, row) => {
-      const cells = $(row).find('td, th').map((_, cell) => $(cell).text().trim()).get();
+      const cells = $(row)
+        .find('td, th')
+        .map((_, cell) => $(cell).text().trim())
+        .get();
       if (cells.length > 0) {
         rows.push(cells);
       }
     });
-    
+
     if (caption && (headers.length > 0 || rows.length > 0)) {
       tables.push({ title: caption, headers, rows });
     }
   });
-  
+
   return tables;
 }
 
@@ -961,7 +1037,10 @@ function deepSanitize<T>(obj: T): T {
 /* *********************************** */
 
 const validateRequest = ajv.compile({
-  type: 'object', properties: { cobalt:{type:'string'} }, additionalProperties:false, required:['cobalt']
+  type: 'object',
+  properties: { cobalt: { type: 'string' } },
+  additionalProperties: false,
+  required: ['cobalt'],
 });
 
 router.post('/:classKey', async (req: Request, res: Response, next: NextFunction) => {
@@ -971,7 +1050,9 @@ router.post('/:classKey', async (req: Request, res: Response, next: NextFunction
     // classKey is expected to be {classID}-{class_name}
     const match = classKey.match(/^(\d+)-([a-zA-Z0-9_-]+)$/);
     if (!match) {
-      return res.status(400).json({ error: 'Invalid classKey format. Expected {classID}-{class_name}' });
+      return res
+        .status(400)
+        .json({ error: 'Invalid classKey format. Expected {classID}-{class_name}' });
     }
     const classID = parseInt(match[1], 10);
     const className = match[2];
@@ -1008,7 +1089,7 @@ function extractAdvancement(coreTraits: Record<string, string>): any[] {
         type: 'Trait',
         level: 1,
         configuration: { grants: saves.map(s => `saves:${s}`) },
-        value: { chosen: saves.map(s => `saves:${s}`) }
+        value: { chosen: saves.map(s => `saves:${s}`) },
       });
     }
   }
@@ -1030,14 +1111,17 @@ function extractAdvancement(coreTraits: Record<string, string>): any[] {
       if (colonMatch) skillsRaw = colonMatch[1];
     }
     if (skillsRaw) {
-      pool = skillsRaw.split(/,| or /).map(s => s.trim()).filter(Boolean);
+      pool = skillsRaw
+        .split(/,| or /)
+        .map(s => s.trim())
+        .filter(Boolean);
     }
     if (count && pool.length) {
       advancement.push({
         type: 'Trait',
         level: 1,
         configuration: { choices: [{ count, pool: pool.map(s => `skills:${s}`) }] },
-        value: { chosen: [] }
+        value: { chosen: [] },
       });
     }
   }
@@ -1048,41 +1132,44 @@ function extractAdvancement(coreTraits: Record<string, string>): any[] {
 // Helper: Map equipment names to Foundry compendium names (simple mapping for now)
 function mapEquipmentToCompendium(equipment: string): string {
   // TODO: Enhance with a real mapping table if needed
-  return equipment.replace(/\bLeather Armor\b/i, 'Leather Armor')
-                  .replace(/\bShortsword\b/i, 'Shortsword')
-                  .replace(/\bShortbow\b/i, 'Shortbow')
-                  .replace(/\bDagger\b/i, 'Dagger')
-                  .replace(/\bThieves' Tools\b/i, 'Thieves\' Tools')
-                  .replace(/\bBurglar's Pack\b/i, 'Burglar\'s Pack')
-                  .replace(/\bQuiver\b/i, 'Quiver')
-                  .replace(/\bArrows\b/i, 'Arrows')
-                  .replace(/\bGP\b/i, 'Gold Pieces');
+  return equipment
+    .replace(/\bLeather Armor\b/i, 'Leather Armor')
+    .replace(/\bShortsword\b/i, 'Shortsword')
+    .replace(/\bShortbow\b/i, 'Shortbow')
+    .replace(/\bDagger\b/i, 'Dagger')
+    .replace(/\bThieves' Tools\b/i, "Thieves' Tools")
+    .replace(/\bBurglar's Pack\b/i, "Burglar's Pack")
+    .replace(/\bQuiver\b/i, 'Quiver')
+    .replace(/\bArrows\b/i, 'Arrows')
+    .replace(/\bGP\b/i, 'Gold Pieces');
 }
 
 // Helper: Extract equipment choices from HTML coreTraits
 function extractEquipmentChoices(coreTraits: Record<string, string>): string[][] {
   const startingEquipment = coreTraits['Starting Equipment'];
   if (!startingEquipment) return [];
-  
+
   const choices: string[][] = [];
-  
+
   // Pattern: Choose A or B: (A) ... ; or (B) ...
   const choicePattern = /Choose\s+A\s+or\s+B:\s*\(A\)\s*([^;]+);\s*or\s*\(B\)\s*(.+)/i;
   const match = startingEquipment.match(choicePattern);
-  
+
   if (match) {
     // Parse choice A
-    const choiceA = match[1].trim()
+    const choiceA = match[1]
+      .trim()
       .split(/,\s*(?![^()]*\))/) // Split by comma, but not within parentheses
       .map(item => item.trim())
       .filter(Boolean);
-    
+
     // Parse choice B
-    const choiceB = match[2].trim()
+    const choiceB = match[2]
+      .trim()
       .split(/,\s*(?![^()]*\))/)
       .map(item => item.trim())
       .filter(Boolean);
-    
+
     choices.push(choiceA, choiceB);
   } else {
     // No choices, just a list of equipment
@@ -1090,19 +1177,19 @@ function extractEquipmentChoices(coreTraits: Record<string, string>): string[][]
       .split(/,\s*(?![^()]*\))/)
       .map(item => item.trim())
       .filter(Boolean);
-    
+
     if (items.length > 0) {
       choices.push(items);
     }
   }
-  
+
   return choices;
 }
 
 // Helper: Extract advancement choices (skills, tools, saves, subclass)
 function extractAdvancementV1(coreTraits: Record<string, string>, subclasses: Subclass[]): any[] {
   const advancement: any[] = [];
-  
+
   // Saving Throws
   const savingThrows = coreTraits['Saving Throws'] || coreTraits['Saving Throw Proficiencies'];
   if (savingThrows) {
@@ -1110,31 +1197,31 @@ function extractAdvancementV1(coreTraits: Record<string, string>, subclasses: Su
       .split(/\s+and\s+|,\s*/)
       .map(s => s.trim())
       .filter(s => /^(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)$/i.test(s));
-    
+
     if (saves.length > 0) {
       advancement.push({
         type: 'Trait',
         level: 1,
-        configuration: { 
-          grants: saves.map(s => `saves:${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}`) 
+        configuration: {
+          grants: saves.map(s => `saves:${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}`),
         },
-        value: { 
-          chosen: saves.map(s => `saves:${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}`) 
-        }
+        value: {
+          chosen: saves.map(s => `saves:${s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()}`),
+        },
       });
     }
   }
-  
+
   // Skill Proficiencies
   const skillProfs = coreTraits['Skill Proficiencies'];
   if (skillProfs) {
     // Extract the number to choose
     const countMatch = /choose\s+(\d+)/i.exec(skillProfs);
     const count = countMatch ? parseInt(countMatch[1], 10) : 0;
-    
+
     // Extract the skill list
     let skillList: string[] = [];
-    
+
     // Try to find skills after "Choose X:"
     const colonMatch = /choose\s+\d+:\s*(.+)/i.exec(skillProfs);
     if (colonMatch) {
@@ -1143,22 +1230,24 @@ function extractAdvancementV1(coreTraits: Record<string, string>, subclasses: Su
         .map(s => s.trim())
         .filter(Boolean);
     }
-    
+
     if (count > 0 && skillList.length > 0) {
       advancement.push({
         type: 'Trait',
         level: 1,
         configuration: {
-          choices: [{
-            count: count,
-            pool: skillList.map(skill => `skills:${skill}`)
-          }]
+          choices: [
+            {
+              count: count,
+              pool: skillList.map(skill => `skills:${skill}`),
+            },
+          ],
         },
-        value: { chosen: [] }
+        value: { chosen: [] },
       });
     }
   }
-  
+
   // Tool Proficiencies
   const toolProfs = coreTraits['Tool Proficiencies'];
   if (toolProfs && toolProfs !== 'None') {
@@ -1166,31 +1255,35 @@ function extractAdvancementV1(coreTraits: Record<string, string>, subclasses: Su
       .split(/,\s*/)
       .map(t => t.trim())
       .filter(Boolean);
-    
+
     if (tools.length > 0) {
       advancement.push({
         type: 'Trait',
         level: 1,
         configuration: { grants: tools.map(t => `tools:${t}`) },
-        value: { chosen: tools.map(t => `tools:${t}`) }
+        value: { chosen: tools.map(t => `tools:${t}`) },
       });
     }
   }
-  
+
   // Subclass selection (usually at level 3 for Rogue)
   if (subclasses && subclasses.length > 0) {
     advancement.push({
       type: 'Subclass',
       level: 3,
       configuration: { pool: subclasses.map(sc => sc.name) },
-      value: { chosen: [] }
+      value: { chosen: [] },
     });
   }
-  
+
   return advancement;
 }
 
 // Update getClassDataByIdAndName to call the new getClassData
-async function getClassDataByIdAndName(classID: number, className: string, cobalt: string): Promise<ClassData> {
+async function getClassDataByIdAndName(
+  classID: number,
+  className: string,
+  cobalt: string
+): Promise<ClassData> {
   return getClassData(classID, className, cobalt);
 }

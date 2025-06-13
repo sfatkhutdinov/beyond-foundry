@@ -1,22 +1,183 @@
 {
   "type": "object",
   "properties": {
-    "id": { "type": "number" },
-    "slug": { "type": "string" },
-    "name": { "type": "string" },
-    "description": { "type": "string" },
-    "source": { "type": "string" },
-    "tags": { "type": "array", "items": { "type": "string" } },
-    "prerequisites": { "type": "array", "items": { "type": "string" } },
-    "coreTraits": { "type": "object", "additionalProperties": { "type": "string" } },
-    "progression": { "type": "array", "items": { "type": "object", "properties": { "level": { "type": "number" }, "columns": { "type": "array", "items": { "type": "string" } } } } },
-    "features": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "requiredLevel": { "type": "number" } } } },
-    "subclasses": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "overview": { "type": "string" }, "features": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "description": { "type": "string" }, "requiredLevel": { "type": "number" } } } } } } },
-    "spellcasting": { "type": "object", "properties": { "progression": { "type": "string" }, "ability": { "type": "string" }, "lists": { "type": "array", "items": { "type": "object", "properties": { "label": { "type": "string" }, "url": { "type": "string" } } } } } },
-    "sidebars": { "type": "array", "items": { "type": "string" } },
-    "additionalTables": { "type": "array", "items": { "type": "object", "properties": { "title": { "type": "string" }, "headers": { "type": "array", "items": { "type": "string" } }, "rows": { "type": "array", "items": { "type": "array", "items": { "type": "string" } } } } } },
-    "optionalFeatures": { "type": "array" },
-    "schemaVersion": { "type": "string" }
+    "id": {
+      "type": "number"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "coreTraits": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "progression": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "number"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "requiredLevel": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "subclasses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "overview": {
+            "type": "string"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "requiredLevel": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "spellcasting": {
+      "type": "object",
+      "properties": {
+        "progression": {
+          "type": "string"
+        },
+        "ability": {
+          "type": "string"
+        },
+        "lists": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "sidebars": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "additionalTables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "optionalFeatures": {
+      "type": "array"
+    },
+    "schemaVersion": {
+      "type": "string"
+    }
   },
-  "required": ["id", "slug", "name", "description", "source", "tags", "prerequisites", "coreTraits", "progression", "features", "subclasses", "spellcasting", "sidebars", "optionalFeatures", "schemaVersion"]
+  "required": [
+    "id",
+    "slug",
+    "name",
+    "description",
+    "source",
+    "tags",
+    "prerequisites",
+    "coreTraits",
+    "progression",
+    "features",
+    "subclasses",
+    "spellcasting",
+    "sidebars",
+    "optionalFeatures",
+    "schemaVersion"
+  ]
 }
