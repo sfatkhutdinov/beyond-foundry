@@ -1,9 +1,7 @@
-// ClassParser.ts
-// Stub for ClassParser
-
+// ClassParser.ts - Fixed version
 import type { DDBClass } from '../types/index.js';
+import { load } from 'cheerio';
 
-// Extend proxyData type to include new fields
 interface ProxyClassData {
   features?: Array<{ name: string; description: string; requiredLevel?: number }>;
   subclasses?: Array<{ name: string; description: string; requiredLevel?: number }>;
@@ -14,224 +12,477 @@ interface ProxyClassData {
   progression?: Array<{ level?: number; features?: string[]; columns?: string[] }>;
   coreTraits?: Record<string, string>;
   sidebars?: string[];
-  name?: string; // Add name for proxy extraction
-  additionalTables?: unknown; // Add additionalTables for flags
+  name?: string;
+  additionalTables?: unknown;
 }
 
 export class ClassParser {
   /**
-   * Parse a D&D Beyond class into FoundryVTT class data (full schema mapping)
-   * @param ddbClass - The D&D Beyond class data
-   * @param proxyData - Optional: HTML/proxy output for enrichment (e.g., zzzOutputzzz/bard-class.json)
-   * @returns Parsed FoundryVTT class data
+   * Extract HTML from JSON wrapper if present
+   */
+  private static extractHtmlContent(input: string): string {
+    const trimmed = input.trim();
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && parsed.contentContainer) return parsed.contentContainer;
+      } catch (e) {
+        // Not valid JSON, fall through
+      }
+    }
+    // Otherwise, treat as raw HTML
+    return input;
+  }
+
+  /**
+   * Parse features from HTML with proper deduplication and h2/h3 handling
+   */
+  public static parseFeaturesFromHtml(htmlInput: string): Array<{ name: string; description: string; requiredLevel: number }> {
+    // Extract HTML from JSON if needed
+    const html = this.extractHtmlContent(htmlInput);
+    const $ = load(html);
+    const features: Array<{ name: string; description: string; requiredLevel: number }> = [];
+    
+    // Track processed features to avoid duplicates
+    const processedFeatures = new Map<string, Set<number>>();
+    
+    console.log('Starting HTML parsing...');
+    
+    // Find all tables
+    const tables = $('table');
+    console.log(`Found ${tables.length} table(s)`);
+    
+    if (tables.length === 0) {
+      console.warn('No tables found in HTML');
+      return features;
+    }
+    
+    // Process the first table (features table)
+    const table = tables.first();
+    const rows = table.find('tbody tr');
+    console.log(`Found ${rows.length} rows in table body`);
+    
+    rows.each((rowIndex, row) => {
+      const tds = $(row).find('td');
+      if (tds.length < 2) return;
+      // Extract level from first <td>
+      const levelText = $(tds[0]).text().trim();
+      const levelMatch = levelText.match(/(\d+)/);
+      const requiredLevel = levelMatch ? parseInt(levelMatch[1], 10) : 1;
+      // Debug: print the HTML of the last <td>
+      const lastTd = tds[tds.length - 1];
+      console.log('Row', rowIndex, 'lastTd HTML:', $(lastTd).html());
+      const featureLinks = $(lastTd).find('a');
+      console.log('Row', rowIndex, 'featureLinks count:', featureLinks.length);
+      
+      featureLinks.each((i, a) => {
+        console.log('  Feature', i, ':', $(a).text(), $(a).attr('href'));
+        const $a = $(a);
+        const name = $a.text().trim().replace(/\s+/g, ' ');
+        const href = $a.attr('href') || '';
+        
+        if (!name || !href.startsWith('#')) {
+          return;
+        }
+        
+        // Check if we've already processed this feature at this level
+        if (!processedFeatures.has(name)) {
+          processedFeatures.set(name, new Set());
+        }
+        
+        const levelsForFeature = processedFeatures.get(name)!;
+        if (levelsForFeature.has(requiredLevel)) {
+          console.log(`Skipping duplicate: ${name} at level ${requiredLevel}`);
+          return;
+        }
+        
+        levelsForFeature.add(requiredLevel);
+        
+        // Get description
+        const description = this.extractFeatureDescription($, href.slice(1), name);
+        
+        features.push({ 
+          name, 
+          description, 
+          requiredLevel 
+        });
+      });
+    });
+    
+    console.log(`Total unique features parsed: ${features.length}`);
+    return features;
+  }
+  
+  /**
+   * Extract feature description, handling h2/h3/h4 elements
+   */
+  private static extractFeatureDescription($: any, anchorId: string, featureName: string): string {
+    console.log(`Looking for element with id="${anchorId}"`);
+    
+    // Try to find any element with this ID
+    let $target = $(`#${anchorId}`);
+    
+    if ($target.length === 0) {
+      console.warn(`No element found with id="${anchorId}"`);
+      return `<p><em>Description not found for ${featureName}</em></p>`;
+    }
+    
+    const elementType = $target.prop('tagName')?.toLowerCase();
+    console.log(`Found ${elementType} element for ${anchorId}`);
+    
+    // Special handling for "Monastic Traditions" (h2 section)
+    if (anchorId === 'MonasticTraditions' || elementType === 'h2') {
+      // This is a section header, get the introductory paragraph
+      let $intro = $target.next();
+      const descParts: string[] = [];
+      
+      // Collect the general description paragraphs before subclass listings
+      while ($intro.length && $intro.prop('tagName')?.toLowerCase() === 'p') {
+        const text = $intro.text().trim();
+        // Stop if we hit a paragraph that starts listing specific traditions
+        if (text.includes('@UUID') || text.includes('Way of')) {
+          break;
+        }
+        descParts.push($.html($intro));
+        $intro = $intro.next();
+      }
+      
+      if (descParts.length === 0) {
+        return `<p><em>See Monastic Traditions section for details</em></p>`;
+      }
+      
+      return descParts.join('\n').trim();
+    }
+    
+    // For h3/h4 elements, collect following content
+    const descParts: string[] = [];
+    let $current = $target.next();
+    let elementCount = 0;
+    
+    while ($current.length && !/^h[1234]$/i.test($current.prop('tagName'))) {
+      const tagName = $current.prop('tagName')?.toLowerCase();
+      
+      if (tagName && ['p', 'ul', 'ol', 'blockquote'].includes(tagName)) {
+        // Skip empty paragraphs
+        const text = $current.text().trim();
+        if (text) {
+          const htmlContent = $.html($current);
+          descParts.push(htmlContent);
+          elementCount++;
+        }
+      }
+      
+      $current = $current.next();
+    }
+    
+    console.log(`Collected ${elementCount} elements for description`);
+    const description = descParts.join('\n').replace(/\n{2,}/g, '\n').trim();
+    
+    if (!description) {
+      console.warn(`No description content found for ${featureName}`);
+      return `<p><em>No description available</em></p>`;
+    }
+    
+    return description;
+  }
+  
+  /**
+   * Extract core traits from the HTML
+   */
+  public static extractCoreTraits(html: string): Record<string, string> {
+    const $ = load(html);
+    const traits: Record<string, string> = {};
+    
+    // Find Hit Points section
+    const $hitPoints = $('#HitPoints-536');
+    if ($hitPoints.length) {
+      const $p = $hitPoints.next('p');
+      if ($p.length) {
+        const text = $p.html() || '';
+        // Extract individual traits
+        const matches = text.matchAll(/<strong>.*?<span[^>]*>([^<]+)<\/span><\/strong>\s*([^<]+)/g);
+        for (const match of matches) {
+          const key = match[1].replace(':', '').trim();
+          const value = match[2].trim();
+          if (key && value) {
+            traits[key] = value;
+          }
+        }
+      }
+    }
+    
+    // Find Proficiencies section
+    const $proficiencies = $('#Proficiencies-464');
+    if ($proficiencies.length) {
+      const $p = $proficiencies.next('p');
+      if ($p.length) {
+        const text = $p.html() || '';
+        const lines = text.split('<br>');
+        for (const line of lines) {
+          const cleanLine = load(line).text();
+          const match = cleanLine.match(/^([^:]+):\s*(.+)$/);
+          if (match) {
+            traits[match[1].trim()] = match[2].trim();
+          }
+        }
+      }
+    }
+    
+    // Extract from Quick Build if present
+    const $quickBuild = $('blockquote:contains("QUICK BUILD")');
+    if ($quickBuild.length) {
+      const text = $quickBuild.text();
+      const abilityMatch = text.match(/make (\w+) your highest ability score(?:, followed by (\w+))?/i);
+      if (abilityMatch) {
+        const abilities = [abilityMatch[1]];
+        if (abilityMatch[2]) abilities.push(abilityMatch[2]);
+        traits['Primary Ability'] = abilities.join(' and ');
+      }
+    }
+    
+    return traits;
+  }
+
+  /**
+   * Parse class data from HTML (main entry point)
+   */
+  public static parseClassFromHtml(htmlInput: string): ProxyClassData {
+    const html = this.extractHtmlContent(htmlInput);
+    const $ = load(html);
+    
+    // Extract class name
+    const $h1 = $('h1').first();
+    let className = '';
+    
+    // Get only the text content, not the badges
+    $h1.contents().each((i, el) => {
+      if (el.type === 'text') {
+        const text = $(el).text().trim();
+        if (text && !text.includes('Class Details')) {
+          className = text;
+          return false; // break
+        }
+      }
+    });
+    
+    // Parse features with deduplication
+    const features = this.parseFeaturesFromHtml(htmlInput);
+    
+    // Extract core traits
+    const coreTraits = this.extractCoreTraits(html);
+    
+    // Extract progression table
+    const progression = this.extractProgression($, html);
+    
+    // Extract subclasses
+    const subclasses = this.extractSubclasses($, html);
+    
+    return {
+      name: className || 'Unknown Class',
+      features,
+      coreTraits,
+      progression,
+      subclasses,
+      tags: [],
+      prerequisites: [],
+      source: 'D&D Beyond'
+    };
+  }
+  
+  /**
+   * Extract progression from the class table
+   */
+  private static extractProgression($: any, html: string): Array<{ level: number; features: string[]; columns: string[] }> {
+    const progression: Array<{ level: number; features: string[]; columns: string[] }> = [];
+    
+    $('table').first().find('tbody tr').each((i: number, row: any) => {
+      const cells = $(row).find('td').map((j: number, cell: any) => $(cell).text().trim()).get();
+      
+      if (cells.length >= 2) {
+        const levelMatch = cells[0].match(/(\d+)/);
+        if (levelMatch) {
+          const level = parseInt(levelMatch[1]);
+          
+          // Extract feature names from links in the last cell
+          const $lastCell = $(row).find('td').last();
+          const features = $lastCell.find('a').map((k: number, a: any) => $(a).text().trim()).get();
+          
+          // Extract middle columns (excluding level and features)
+          const columns = cells.slice(1, -1);
+          
+          progression.push({ level, features, columns });
+        }
+      }
+    });
+    
+    return progression;
+  }
+  
+  /**
+   * Extract subclasses from the HTML
+   */
+  private static extractSubclasses($: any, html: string): Array<{ name: string; description: string }> {
+    const subclasses: Array<{ name: string; description: string }> = [];
+    
+    // Find the Monastic Traditions section
+    const $section = $('#MonasticTraditions');
+    if ($section.length) {
+      // Look for subclass containers after this section
+      const $container = $section.nextAll('.subitems-list-details').first();
+      if ($container.length) {
+        $container.find('.subitems-list-details-item').each((i: number, item: any) => {
+          const $item = $(item);
+          const $title = $item.find('h2').first();
+          const name = $title.contents().filter((j: number, el: any) => el.type === 'text').text().trim();
+          
+          if (name && !name.includes('Monastic Traditions')) {
+            // Collect description paragraphs
+            const descParts: string[] = [];
+            $item.find('p').slice(0, 2).each((j: number, p: any) => {
+              descParts.push($.html(p));
+            });
+            
+            subclasses.push({
+              name,
+              description: descParts.join('\n')
+            });
+          }
+        });
+      }
+    }
+    
+    return subclasses;
+  }
+  
+  /**
+   * Main parse method for D&D Beyond class data
    */
   public static parseClass(
     ddbClass: DDBClass,
-    proxyData?: { data?: ProxyClassData }
+    proxyData?: { data?: ProxyClassData } | string
   ): Record<string, unknown> {
-    if (!ddbClass?.definition) throw new Error('Invalid DDBClass input');
-    const proxy = proxyData?.data ?? {};
-
-    // 1. Name: Prefer proxy (from <h1 class-heading>) if available, else DDB definition
-    const name = proxy.coreTraits?.Name ?? proxy.name ?? ddbClass.definition.name;
-
-    // 2. Description: Prefer a feature named 'Class Features', else first feature, else empty
-    const description = proxy.features?.find(f => f.name === 'Class Features')?.description
-      ?? proxy.features?.[0]?.description
-      ?? '';
-    // 3. Source, Tags, Prerequisites: Ensure correct types
-    const source = typeof proxy.source === 'string' ? proxy.source : '';
-    const tags = Array.isArray(proxy.tags) ? proxy.tags : [];
-    const prerequisites = Array.isArray(proxy.prerequisites) ? proxy.prerequisites : [];
-
-    // 4. Core Traits: Ensure split into keys (Armor, Weapons, Tools, etc.)
-    let coreTraits: Record<string, string> = {};
-    if (proxy.coreTraits && typeof proxy.coreTraits === 'object') {
-      coreTraits = { ...proxy.coreTraits };
-    } else if (Array.isArray(proxy.coreTraits)) {
-      for (const row of proxy.coreTraits) {
-        const [key, ...rest] = row.split(':');
-        if (key && rest.length) coreTraits[key.trim()] = rest.join(':').trim();
+    if (!ddbClass?.definition) {
+      throw new Error('Invalid DDBClass input');
+    }
+    
+    let proxy: ProxyClassData;
+    
+    // Handle different input types
+    if (typeof proxyData === 'string') {
+      // If it's a string, parse it as HTML
+      proxy = this.parseClassFromHtml(proxyData);
+    } else if (proxyData?.data) {
+      // If it's already parsed proxy data
+      proxy = proxyData.data;
+    } else {
+      // Empty proxy data
+      proxy = {};
+    }
+    
+    // Build the class name
+    const name = proxy.name || ddbClass.definition.name;
+    
+    // Get description from first feature or class features
+    const description = proxy.features?.find(f => 
+      f.name.toLowerCase().includes('class features')
+    )?.description || proxy.features?.[0]?.description || '';
+    
+    // Process core traits
+    const coreTraits = proxy.coreTraits || {};
+    const hitDieMatch = coreTraits['Hit Dice']?.match(/(\d+)d(\d+)/);
+    const hitDie = hitDieMatch ? `d${hitDieMatch[2]}` : 'd8';
+    
+    // Build advancements
+    const advancement: any[] = [];
+    
+    // Saving throws
+    if (coreTraits['Saving Throws']) {
+      const saves = coreTraits['Saving Throws']
+        .split(/,\s*/)
+        .map(s => s.trim())
+        .map(s => `saves:${s.toLowerCase().substring(0, 3)}`);
+      
+      advancement.push({
+        type: 'Trait',
+        level: 1,
+        configuration: { grants: saves },
+        value: { chosen: saves }
+      });
+    }
+    
+    // Skills
+    if (coreTraits['Skills']) {
+      const skillsText = coreTraits['Skills'];
+      const countMatch = skillsText.match(/Choose (\w+)/i);
+      const count = countMatch ? (countMatch[1].toLowerCase() === 'two' ? 2 : parseInt(countMatch[1])) : 2;
+      
+      const skillsList = skillsText.match(/from (.+)$/i)?.[1] || '';
+      const skills = skillsList
+        .split(/,\s*and\s*|,\s*/)
+        .map(s => s.trim())
+        .filter(s => s)
+        .map(s => `skills:${s.toLowerCase().substring(0, 3)}`);
+      
+      if (skills.length > 0) {
+        advancement.push({
+          type: 'Trait',
+          level: 1,
+          configuration: {
+            choices: [{
+              count,
+              pool: skills
+            }]
+          },
+          value: { chosen: [] }
+        });
       }
     }
-
-    // 5. Hit Dice
-    const hdDenomination = coreTraits["Hit Die"]?.replace(/^Hit Die:\s*/i, "") ?? "d8";
-    const hdAdditional = coreTraits["Unarmored Movement"] ?? "";
-    const hdSpent = 0;
-
-    // 6. Levels
-    const levels = ddbClass.level ?? 1;
-
-    // 7. Primary Abilities
-    const primAb = coreTraits["Primary Ability"] ?? "";
-    const primList = primAb.split(/\s+and\s+/i).map(s => s.trim()).filter(Boolean);
-    const primaryAbility = {
-      value: Array.from(new Set(primList)),
-      all: true
-    };
-
-    // 8. Advancement for Saves & Skills
-    type Advancement = {
-      type: string;
-      level: number;
-      configuration: Record<string, unknown>;
-      value: Record<string, unknown>;
-    };
-    const advancement: Advancement[] = [];
-    if (coreTraits["Saving Throws"]) {
-      const saves = coreTraits["Saving Throws"].split(/,\s*/);
-      advancement.push({
-        type: "Trait",
-        level: 1,
-        configuration: { grants: saves.map(s => `saves:${s}`) },
-        value: { chosen: saves.map(s => `saves:${s}`) }
-      });
-    }
-    if (coreTraits["Skill Proficiencies"]) {
-      const match = /choose (\d+)/i.exec(coreTraits["Skill Proficiencies"]);
-      const count = match ? parseInt(match[1]) : 0;
-      const optionsRaw = coreTraits["Skill Proficiencies"];
-      const optionsRegex = /\(([^)]+)\)/;
-      const optionsMatch = optionsRegex.exec(optionsRaw);
-      const options = optionsMatch ? optionsMatch[1].split(/,\s*/) : [];
-      advancement.push({
-        type: "Trait",
-        level: 1,
-        configuration: { choices: [{ count, pool: options.map(o => `skills:${o}`) }] },
-        value: { chosen: [] }
-      });
-    }
-
-    // 9. Spellcasting: Map all fields if present
-    let progression = 'none';
-    let spellLists: Array<{ name: string; url: string }> = [];
-    let spellcastingAbility = '';
-    if (coreTraits["Spellcasting"] ?? proxy.features?.some(f => f.name === 'Spellcasting')) {
-      const spellText = coreTraits["Spellcasting"] ?? proxy.features?.find(f => f.name === 'Spellcasting')?.description ?? '';
-      if (/full[- ]?caster/i.test(spellText)) progression = 'full';
-      else if (/half[- ]?caster/i.test(spellText)) progression = 'half';
-      else if (/third[- ]?caster/i.test(spellText)) progression = 'third';
-      else progression = 'full';
-      spellcastingAbility = coreTraits["Spellcasting Ability"]?.trim() ?? '';
-      if (Array.isArray(proxy.spellLists)) spellLists = proxy.spellLists;
-    }
-    const spellcasting = {
-      progression,
-      ability: spellcastingAbility,
-      spellLists
-    };
-
-    // 10. Features: Assign requiredLevel, group by level in progression
-    type Feature = { name: string; description: string; level?: number };
-    let features: Feature[] = [];
-    if (Array.isArray(proxy.features)) {
-      features = proxy.features.map(f => ({
-        name: f.name ?? '',
-        description: f.description ?? '',
-        level: typeof f.requiredLevel === 'number' ? f.requiredLevel : undefined
-      }));
-    }
-
-    // 11. Subclasses: Include per-level features and requiredLevel
-    type Subclass = { name: string; features: Feature[] };
-    let subclass: Subclass = { name: '', features: [] };
-    if (Array.isArray(proxy.subclasses) && proxy.subclasses.length > 0) {
-      const sub = proxy.subclasses[0];
-      subclass = {
-        name: sub.name ?? '',
-        features: sub.description ? [{
-          name: sub.name ?? '',
-          description: sub.description,
-          level: typeof sub.requiredLevel === 'number' ? sub.requiredLevel : undefined
-        }] : []
-      };
-    }
-
-    // 12. Progression: Validate as array of level objects
-    type ProgressionRow = { level?: number; features?: string[]; columns?: string[] };
-    const progressionArr: ProgressionRow[] = Array.isArray(proxy.progression) ? proxy.progression.map((row): ProgressionRow => ({
-      level: typeof row.level === 'number' ? row.level : undefined,
-      features: Array.isArray(row.features) ? row.features : [],
-      columns: Array.isArray(row.columns) ? row.columns : []
-    })) : [];
-
-    // 13. Sidebars: Pass through if present
-    const sidebars = Array.isArray(proxy.sidebars) ? proxy.sidebars : [];
-
-    // 14. Additional Tables: Store in flags if present
-    const additionalTables = proxy.additionalTables ?? undefined;
-
-    // 15. Compose FoundryVTT class item
+    
+    // Process primary ability
+    const primaryAbility = coreTraits['Primary Ability']?.split(/\s+and\s+/i)
+      .map(s => s.trim().toLowerCase().substring(0, 3)) || [];
+    
+    // Build the final class object
     return {
-      type: "class",
+      type: 'class',
       name,
-      img: "",
+      img: '',
       system: {
-        description:    { value: description },
-        source,
+        description: { value: description },
+        source: proxy.source || 'D&D Beyond',
         hd: {
-          denomination: hdDenomination,
-          additional:   hdAdditional,
-          spent:        hdSpent
+          denomination: hitDie,
+          additional: '',
+          spent: 0
         },
-        levels,
-        primaryAbility,
-        properties: Array.from(new Set(tags)),
-        prerequisites,
+        levels: ddbClass.level || 1,
+        primaryAbility: {
+          value: primaryAbility,
+          all: true
+        },
+        properties: proxy.tags || [],
+        prerequisites: proxy.prerequisites || [],
         advancement,
-        spellcasting,
-        features,
-        subclass,
-        progression: progressionArr,
+        spellcasting: {
+          progression: 'none',
+          ability: '',
+          spellLists: proxy.spellLists || []
+        },
+        features: proxy.features || [],
+        subclass: {
+          name: proxy.subclasses?.[0]?.name || '',
+          features: []
+        },
+        progression: proxy.progression || [],
         coreTraits,
-        sidebars,
+        sidebars: proxy.sidebars || []
       },
       flags: {
-        "beyond-foundry": {
+        'beyond-foundry': {
           originalDDB: ddbClass,
-          ...proxy,
-          ...(additionalTables ? { additionalTables } : {})
+          proxyData: proxy
         }
       }
     };
-  }
-
-  /**
-   * Parse an array of classes (static interface)
-   * Batch class parsing with error aggregation
-   */
-  public static parseClassArray(classes: DDBClass[], proxyDataArr?: Array<{ data?: { features?: Array<{ name: string; description: string }>; subclasses?: Array<{ name: string; description: string }> } }>): unknown[] {
-    return classes.map((cls, i) => {
-      try {
-        return this.parseClass(cls, proxyDataArr?.[i]);
-      } catch (e) {
-        return { error: (e as Error).message, classId: cls.id };
-      }
-    });
-  }
-
-  /**
-   * Parse homebrew and custom class flags (stub: returns isHomebrew boolean)
-   */
-  private static parseHomebrewFlags(ddbClass: DDBClass): Record<string, unknown> {
-    // Heuristic: id > 1000 or 'homebrew' in name
-    return { isHomebrew: ddbClass.id > 1000 || /homebrew/i.test(ddbClass.definition.name) };
-  }
-
-  /**
-   * Enhanced property parsing (stub: returns empty object)
-   */
-  private static parseEnhancedProperties(): Record<string, unknown> {
-    // Extend for ddb-importer parity if needed
-    return {};
-  }
-
-  /**
-   * Additional system fields (stub: returns empty object)
-   */
-  private static parseAdditionalSystemFields(): Record<string, unknown> {
-    // Extend for advanced class support if needed
-    return {};
   }
 }
