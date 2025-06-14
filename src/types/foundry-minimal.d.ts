@@ -81,6 +81,10 @@ declare global {
 
   function mergeObject(_target: any, _source: any, _options?: any): any;
 
+  declare class CompendiumCollection {
+    static createCompendium(options: { label: string; name: string; type: string }): Promise<any>;
+  }
+
   interface Window {
     game: typeof game;
     ui: typeof ui;

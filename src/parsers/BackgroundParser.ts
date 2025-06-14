@@ -11,7 +11,7 @@ export class BackgroundParser {
    */
   public static parseBackground(_ddbBackground: DDBBackground): unknown {
     void _ddbBackground;
-    // TODO: Implement background parsing logic
+    // FIXME: parseBackground method not implemented. Implement full parsing logic and error handling.
     throw new Error('BackgroundParser.parseBackground not implemented');
   }
 

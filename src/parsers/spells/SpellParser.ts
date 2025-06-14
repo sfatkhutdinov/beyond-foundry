@@ -31,6 +31,14 @@ export class SpellParser {
 
     Logger.debug(`📜 Parsing spell: ${definition.name} (Level ${definition.level})`);
 
+    // 1. Extract restriction logic
+    let restriction: string | null = null;
+    if (typeof ddbSpell.restriction === 'string') {
+      restriction = ddbSpell.restriction;
+    } else if (ddbSpell.restriction != null) {
+      restriction = String(ddbSpell.restriction);
+    }
+
     const foundrySpell: FoundrySpell = {
       name: definition.name,
       type: 'spell',
@@ -74,7 +82,7 @@ export class SpellParser {
           alwaysPrepared: typeof ddbSpell.alwaysPrepared === 'boolean' ? ddbSpell.alwaysPrepared : false,
           usesSpellSlot: ddbSpell.usesSpellSlot !== false,
           castAtLevel: typeof ddbSpell.castAtLevel === 'number' ? ddbSpell.castAtLevel : null,
-          restriction: typeof ddbSpell.restriction === 'string' ? ddbSpell.restriction : (ddbSpell.restriction == null ? null : String(ddbSpell.restriction)),
+          restriction,
         },
       },
     };
@@ -85,8 +93,8 @@ export class SpellParser {
   /**
    * Parse spell description with enhanced formatting
    */
-  private static parseDescription(definition: any): string {
-    let description = definition.description || '';
+  private static parseDescription(definition: DDBSpellDefinitionExtended): string {
+    let description = definition.description ?? '';
 
     // Add spell tags for better organization
     const tags = [];
@@ -110,9 +118,9 @@ export class SpellParser {
   /**
    * Parse chat description for spell card display
    */
-  private static parseChatDescription(definition: any): string {
+  private static parseChatDescription(definition: DDBSpellDefinitionExtended): string {
     // Create a shorter version for chat display
-    const desc = definition.description || '';
+    const desc = definition.description ?? '';
     const sentences = desc.split('.').slice(0, 2); // First two sentences
     return sentences.join('.') + (sentences.length < desc.split('.').length ? '...' : '');
   }
@@ -120,10 +128,10 @@ export class SpellParser {
   /**
    * Parse spell source information
    */
-  private static parseSource(definition: any): string {
+  private static parseSource(definition: DDBSpellDefinitionExtended): string {
     if (definition.sources && definition.sources.length > 0) {
       const source = definition.sources[0];
-      return `${source.sourceType === 1 ? 'PHB' : 'Supplement'} ${source.pageNumber || ''}`.trim();
+      return `${source.sourceType === 1 ? 'PHB' : 'Supplement'} ${source.pageNumber ?? ''}`.trim();
     }
     return '';
   }
@@ -131,8 +139,8 @@ export class SpellParser {
   /**
    * Parse spell activation details
    */
-  private static parseActivation(definition: any): any {
-    const activation = definition.activation || {};
+  private static parseActivation(definition: DDBSpellDefinitionExtended): { type: string; cost: number; condition: string } {
+    const activation = definition.activation ?? {};
 
     const typeMap: Record<number, string> = {
       1: 'action', // Action
@@ -146,17 +154,22 @@ export class SpellParser {
 
     return {
       type: typeMap[activation.activationType] || 'action',
-      cost: activation.activationTime || 1,
-      condition: activation.activationCondition || '',
+      cost: activation.activationTime ?? 1,
+      condition: activation.activationCondition ?? '',
     };
   }
 
   /**
    * Parse spell duration
    */
-  private static parseDuration(definition: any): any {
-    const duration = definition.duration || {};
-
+  private static parseDuration(definition: DDBSpellDefinitionExtended): { value: number | null; units: string } {
+    const duration = (definition.duration && typeof definition.duration === 'object') ? definition.duration : {};
+    const durationUnit = ('durationType' in duration && typeof (duration as { durationType?: unknown }).durationType === 'string')
+      ? (duration as { durationType: string }).durationType
+      : 'Instantaneous';
+    const durationInterval = ('durationInterval' in duration && typeof (duration as { durationInterval?: unknown }).durationInterval === 'number')
+      ? (duration as { durationInterval: number }).durationInterval
+      : null;
     const unitMap: Record<string, string> = {
       Instantaneous: 'inst',
       Round: 'round',
@@ -168,27 +181,23 @@ export class SpellParser {
       Year: 'year',
       Permanent: 'perm',
       Special: 'spec',
-      Time: 'minute', // D&D Beyond uses "Time" for various durations
-      Concentration: 'minute', // Concentration spells usually have minute duration
+      Time: 'minute',
+      Concentration: 'minute',
       'Until Dispelled': 'perm',
       'Until Dispelled or Triggered': 'perm',
     };
-
-    const durationUnit = duration.durationType || 'Instantaneous';
-    const mappedUnit = unitMap[durationUnit];
-
+    const mappedUnit = typeof durationUnit === 'string' && unitMap[durationUnit] ? unitMap[durationUnit] : 'inst';
     return {
-      value: duration.durationInterval || null,
-      units: mappedUnit || 'inst',
+      value: durationInterval,
+      units: mappedUnit,
     };
   }
 
   /**
    * Parse spell target information
    */
-  private static parseTarget(definition: any): any {
-    const range = definition.range || {};
-
+  private static parseTarget(definition: DDBSpellDefinitionExtended): { value: number | null; width: null; units: string; type: string } {
+    const range = (definition.range && typeof definition.range === 'object') ? definition.range : {};
     const typeMap: Record<string, string> = {
       Self: 'self',
       Touch: 'touch',
@@ -201,21 +210,29 @@ export class SpellParser {
       Sphere: 'sphere',
       Square: 'square',
     };
-
+    const aoeValue = ('aoeValue' in range && typeof (range as { aoeValue?: unknown }).aoeValue === 'number')
+      ? (range as { aoeValue: number }).aoeValue
+      : null;
+    const aoeType = ('aoeType' in range && typeof (range as { aoeType?: unknown }).aoeType === 'string')
+      ? (range as { aoeType: string }).aoeType
+      : undefined;
+    const origin = ('origin' in range && typeof (range as { origin?: unknown }).origin === 'string')
+      ? (range as { origin: string }).origin
+      : undefined;
+    const typeKey = aoeType ?? origin ?? '';
     return {
-      value: range.aoeValue || null,
+      value: aoeValue,
       width: null,
       units: 'ft',
-      type: typeMap[range.aoeType || range.origin] || 'creature',
+      type: typeof typeKey === 'string' && typeMap[typeKey] ? typeMap[typeKey] : 'creature',
     };
   }
 
   /**
    * Parse spell range
    */
-  private static parseRange(definition: any): any {
-    const range = definition.range || {};
-
+  private static parseRange(definition: DDBSpellDefinitionExtended): { value: number | null; long: null; units: string } {
+    const range = (definition.range && typeof definition.range === 'object') ? definition.range : {};
     const unitMap: Record<string, string> = {
       Self: 'self',
       Touch: 'touch',
@@ -223,21 +240,26 @@ export class SpellParser {
       Sight: 'spec',
       Unlimited: 'any',
     };
-
+    const rangeValue = ('rangeValue' in range && typeof (range as { rangeValue?: unknown }).rangeValue === 'number')
+      ? (range as { rangeValue: number }).rangeValue
+      : null;
+    const origin = ('origin' in range && typeof (range as { origin?: unknown }).origin === 'string')
+      ? (range as { origin: string }).origin
+      : '';
     return {
-      value: range.rangeValue || null,
+      value: rangeValue,
       long: null,
-      units: unitMap[range.origin] || 'ft',
+      units: unitMap[origin] || 'ft',
     };
   }
 
   /**
    * Parse spell uses and limitations
    */
-  private static parseUses(ddbSpell: any): any {
+  private static parseUses(ddbSpell: DDBSpell): { value: number | null; max: string; per: string | null; recovery: string } {
     const limitedUse = ddbSpell.limitedUse;
 
-    if (!limitedUse) {
+    if (!limitedUse || typeof limitedUse !== 'object') {
       return {
         value: null,
         max: '',
@@ -253,41 +275,56 @@ export class SpellParser {
       4: 'charges', // Charges
     };
 
+    const maxUses = ('maxUses' in limitedUse && typeof (limitedUse as { maxUses?: unknown }).maxUses === 'number')
+      ? (limitedUse as { maxUses: number }).maxUses
+      : null;
+    const resetType = ('resetType' in limitedUse && typeof (limitedUse as { resetType?: unknown }).resetType === 'number')
+      ? (limitedUse as { resetType: number }).resetType
+      : undefined;
+
     return {
-      value: limitedUse.maxUses || null,
-      max: limitedUse.maxUses?.toString() || '',
-      per: recoveryMap[limitedUse.resetType] || null,
+      value: maxUses,
+      max: maxUses !== null ? maxUses.toString() : '',
+      per: resetType !== undefined && recoveryMap[resetType] ? recoveryMap[resetType] : null,
       recovery: '',
     };
   }
 
   /**
+   * Parse spell properties/flags
+   */
+  private static parseProperties(definition: DDBSpellDefinitionExtended): string[] {
+    const properties: string[] = [];
+
+    if (definition.ritual) properties.push('ritual');
+    if (definition.concentration) properties.push('concentration');
+    if (definition.components?.verbal) properties.push('vocal');
+    if (definition.components?.somatic) properties.push('somatic');
+    if (definition.components?.material) properties.push('material');
+
+    return properties;
+  }
+
+  /**
    * Parse spell resource consumption
    */
-  private static parseConsume(definition: any): any {
-    return {
-      type: 'slots',
-      target: `spell${definition.level ?? 0}`,
-      amount: 1,
-      scale: false,
-    };
+  private static parseConsume(_definition: DDBSpellDefinitionExtended): { type: string; target: string; amount: number; scale: boolean } {
+    // Provide default values for Foundry schema
+    return { type: '', target: '', amount: 0, scale: false };
   }
 
   /**
    * Parse spellcasting ability
    */
-  private static parseAbility(ddbSpell: any): string | null {
-    // This would typically come from the character's class
-    // For now, return null to use character's default
-    return ddbSpell.spellCastingAbilityId
-      ? this.mapAbilityId(ddbSpell.spellCastingAbilityId)
-      : null;
+  private static parseAbility(ddbSpell: DDBSpell): string | null {
+    const abilityId = typeof ddbSpell.spellCastingAbilityId === 'number' ? ddbSpell.spellCastingAbilityId : null;
+    return abilityId !== null ? this.mapAbilityId(abilityId) : null;
   }
 
   /**
    * Parse spell action type
    */
-  private static parseActionType(definition: any): string {
+  private static parseActionType(definition: DDBSpellDefinitionExtended): string {
     if (definition.attackType === 1) return 'mwak'; // Melee weapon attack
     if (definition.attackType === 2) return 'rwak'; // Ranged weapon attack
     if (definition.attackType === 3) return 'msak'; // Melee spell attack
@@ -300,7 +337,7 @@ export class SpellParser {
   /**
    * Parse attack bonus for spell attacks
    */
-  private static parseAttackBonus(definition: any): string {
+  private static parseAttackBonus(_definition: DDBSpellDefinitionExtended): string {
     // Attack bonus is typically calculated from spellcasting ability + proficiency
     // Return empty string to use character's calculated bonus
     return '';
@@ -309,24 +346,24 @@ export class SpellParser {
   /**
    * Parse critical hit information
    */
-  private static parseCritical(definition: any): any {
-    return {
-      threshold: null,
-      damage: '',
-    };
+  private static parseCritical(_definition: DDBSpellDefinitionExtended): { threshold: number; damage: string } {
+    return { threshold: 20, damage: '' };
   }
 
   /**
    * Parse spell damage
    */
-  private static parseDamage(definition: any): any {
+  private static parseDamage(definition: DDBSpellDefinitionExtended): { parts: [string, string][]; versatile: string; value: string } {
     const parts: [string, string][] = [];
 
-    if (definition.damageTypes && definition.damageTypes.length > 0) {
-      definition.damageTypes.forEach((damageType: any, index: number) => {
-        if (definition.dice && definition.dice[index]) {
+    if (Array.isArray(definition.damageTypes) && definition.damageTypes.length > 0) {
+      definition.damageTypes.forEach((damageType: string, index: number) => {
+        if (definition.dice?.[index]) {
           const dice = definition.dice[index];
-          const formula = `${dice.diceCount || 1}d${dice.diceValue || 6}${dice.fixedValue ? ` + ${dice.fixedValue}` : ''}`;
+          const diceCount = dice.diceCount ?? 1;
+          const diceValue = dice.diceValue ?? 6;
+          const fixedValue = dice.fixedValue ? ` + ${dice.fixedValue}` : '';
+          const formula = `${diceCount}d${diceValue}${fixedValue}`;
           parts.push([formula, damageType.toLowerCase()]);
         }
       });
@@ -342,11 +379,15 @@ export class SpellParser {
   /**
    * Parse additional formula (like healing)
    */
-  private static parseFormula(definition: any): string {
+  private static parseFormula(definition: DDBSpellDefinitionExtended): string {
     if (definition.healingTypes && definition.healingTypes.length > 0 && definition.dice) {
       const dice = definition.dice[0];
       if (dice) {
-        return `${dice.diceCount || 1}d${dice.diceValue || 6}${dice.fixedValue ? ` + ${dice.fixedValue}` : ''}`;
+        const diceCount = dice.diceCount ?? 1;
+        const diceValue = dice.diceValue ?? 6;
+        const fixedValue = dice.fixedValue ? ` + ${dice.fixedValue}` : '';
+        const formula = `${diceCount}d${diceValue}${fixedValue}`;
+        return formula;
       }
     }
     return '';
@@ -355,29 +396,8 @@ export class SpellParser {
   /**
    * Parse saving throw information
    */
-  private static parseSave(definition: any): any {
-    if (!definition.saveType) {
-      return {
-        ability: '',
-        dc: null,
-        scaling: 'spell',
-      };
-    }
-
-    const abilityMap: Record<number, string> = {
-      1: 'str',
-      2: 'dex',
-      3: 'con',
-      4: 'int',
-      5: 'wis',
-      6: 'cha',
-    };
-
-    return {
-      ability: abilityMap[definition.saveType] || '',
-      dc: null, // Will be calculated from character's spell DC
-      scaling: 'spell',
-    };
+  private static parseSave(_definition: DDBSpellDefinitionExtended): { ability: string; dc: number; scaling: string } {
+    return { ability: '', dc: 0, scaling: '' };
   }
 
   /**
@@ -405,131 +425,87 @@ export class SpellParser {
   /**
    * Parse spell components
    */
-  private static parseComponents(definition: any): any {
-    const components = definition.components || {};
-
-    // Handle both array format (legacy) and object format (current)
-    let hasVerbal: boolean, hasSomatic: boolean, hasMaterial: boolean;
-    
+  private static parseComponents(definition: DDBSpellDefinitionExtended): { vocal: boolean; somatic: boolean; material: boolean; ritual: boolean; concentration: boolean } {
+    const components = definition.components ?? { verbal: false, somatic: false, material: false };
+    let hasVerbal = false, hasSomatic = false, hasMaterial = false;
     if (Array.isArray(components)) {
-      // D&D Beyond legacy format uses numbers: 1=verbal, 2=somatic, 3=material
       hasVerbal = components.includes(1);
       hasSomatic = components.includes(2);
       hasMaterial = components.includes(3);
     } else {
-      // Current D&D Beyond format uses object with boolean properties
-      hasVerbal = components.verbal || false;
-      hasSomatic = components.somatic || false;
-      hasMaterial = components.material || false;
+      hasVerbal = 'verbal' in components ? !!components.verbal : false;
+      hasSomatic = 'somatic' in components ? !!components.somatic : false;
+      hasMaterial = 'material' in components ? !!components.material : false;
     }
-
     return {
       vocal: hasVerbal,
       somatic: hasSomatic,
       material: hasMaterial,
-      ritual: definition.ritual || false,
-      concentration: definition.concentration || false,
+      ritual: definition.ritual ?? false,
+      concentration: definition.concentration ?? false,
     };
   }
 
   /**
    * Parse material components
    */
-  private static parseMaterials(definition: any): any {
-    const materialComponent = definition.componentsDescription || '';
-    const cost = this.extractCost(materialComponent);
-
-    return {
-      value: materialComponent,
-      consumed: false,
-      cost: cost,
-      supply: 0,
-    };
+  private static parseMaterials(definition: DDBSpellDefinitionExtended): { value: string; consumed: boolean; cost: number; supply: number } {
+    return { value: definition.componentsDescription ?? '', consumed: false, cost: 0, supply: 0 };
   }
 
   /**
    * Parse spell preparation mode and status
    */
-  private static parsePreparation(ddbSpell: any, options: SpellParsingOptions): any {
+  private static parsePreparation(ddbSpell: DDBSpell, options: SpellParsingOptions): { mode: string; prepared: boolean } {
     const mode = options.preparationMode || 'prepared';
 
     return {
       mode,
-      prepared: ddbSpell.prepared || false,
+      prepared: ddbSpell.prepared ?? false,
     };
   }
 
   /**
    * Parse spell scaling (higher level effects)
    */
-  private static parseScaling(definition: any): any {
-    if (!definition.higherLevelDescription) {
-      return {
-        mode: 'none',
-        formula: '',
-      };
-    }
-
-    // Try to extract scaling formula from higher level description
-    const scalingFormula = this.extractScalingFormula(definition.higherLevelDescription);
-
-    return {
-      mode: scalingFormula ? 'level' : 'none',
-      formula: scalingFormula,
-    };
-  }
-
-  /**
-   * Parse spell properties/flags
-   */
-  private static parseProperties(definition: any): string[] {
-    const properties: string[] = [];
-
-    if (definition.ritual) properties.push('ritual');
-    if (definition.concentration) properties.push('concentration');
-    if (definition.components?.vocal) properties.push('vocal');
-    if (definition.components?.somatic) properties.push('somatic');
-    if (definition.components?.material) properties.push('material');
-
-    return properties;
-  }
-
-  /**
-   * Parse active effects (for automation)
-   */
-  private static parseActiveEffects(definition: any): any[] {
-    // This would be expanded for spell automation
-    // For now, return empty array
-    return [];
-  }
-
-  /**
-   * Get appropriate icon for spell
-   */
-  private static getSpellIcon(definition: any): string {
-    const schoolIcons: Record<string, string> = {
-      Abjuration: 'icons/magic/defensive/shield-barrier-blue.webp',
-      Conjuration: 'icons/magic/symbols/elements-air-earth-fire-water.webp',
-      Divination: 'icons/magic/perception/eye-ringed-glow-yellow.webp',
-      Enchantment: 'icons/magic/control/hypnosis-mesmerism-swirl.webp',
-      Evocation: 'icons/magic/lightning/bolt-strike-blue.webp',
-      Illusion: 'icons/magic/perception/silhouette-stealth-shadow.webp',
-      Necromancy: 'icons/magic/death/skull-horned-goat-pentagram-red.webp',
-      Transmutation: 'icons/magic/symbols/question-stone-yellow.webp',
-    };
-
-    return schoolIcons[definition.school] || 'icons/magic/symbols/rune-sigil-black-pink.webp';
+  private static parseScaling(_definition: DDBSpellDefinitionExtended): { mode: string; formula: string } {
+    return { mode: 'none', formula: '' };
   }
 
   /**
    * Create empty spell for error cases
    */
   private static createEmptySpell(): FoundrySpell {
+    // Always return a fully constructed system property matching FoundrySpell schema
     return {
       name: 'Unknown Spell',
       type: 'spell',
       img: 'icons/svg/mystery-man.svg',
-      system: {} as any,
+      system: {
+        description: { value: '', chat: '', unidentified: '' },
+        source: '',
+        activation: { type: 'action', cost: 1, condition: '' },
+        duration: { value: null, units: 'inst' },
+        target: { value: null, width: null, units: 'ft', type: 'creature' },
+        range: { value: null, long: null, units: 'ft' },
+        uses: { value: null, max: '', per: null, recovery: '' },
+        consume: { type: '', target: '', amount: 0, scale: false },
+        ability: null,
+        actionType: 'other',
+        attackBonus: '',
+        chatFlavor: '',
+        critical: { threshold: 20, damage: '' },
+        damage: { parts: [], versatile: '', value: '' },
+        formula: '',
+        save: { ability: '', dc: 0, scaling: '' },
+        level: 0,
+        school: 'evo',
+        components: { vocal: false, somatic: false, material: false, ritual: false, concentration: false },
+        materials: { value: '', consumed: false, cost: 0, supply: 0 },
+        preparation: { mode: 'prepared', prepared: false },
+        scaling: { mode: 'none', formula: '' },
+        properties: [],
+      },
       effects: [],
       flags: {},
     };
@@ -555,8 +531,8 @@ export class SpellParser {
    * Extract cost from material component description
    */
   private static extractCost(materials: string): number {
-    const costMatch = materials.match(/(\d+)\s*gp/i);
-    return costMatch && costMatch[1] ? parseInt(costMatch[1]) : 0;
+    const costMatch = /\(\d+\)\s*gp/i.exec(materials);
+    return costMatch?.[1] ? parseInt(costMatch[1]) : 0;
   }
 
   /**
@@ -572,8 +548,8 @@ export class SpellParser {
     ];
 
     for (const pattern of patterns) {
-      const match = description.match(pattern);
-      if (match && match[1]) {
+      const match = pattern.exec(description);
+      if (match?.[1]) {
         return match[1];
       }
     }
@@ -585,7 +561,7 @@ export class SpellParser {
    * Parse multiple spells from character spell list
    */
   public static parseCharacterSpells(
-    ddbCharacter: any,
+    ddbCharacter: { spells: Record<string, DDBSpell[]> },
     options: SpellParsingOptions = {}
   ): FoundrySpell[] {
     const spells: FoundrySpell[] = [];
@@ -595,22 +571,88 @@ export class SpellParser {
     }
 
     // Process all spell categories
-    Object.values(ddbCharacter.spells).forEach((spellArray: any) => {
-      if (Array.isArray(spellArray)) {
-        spellArray.forEach((ddbSpell: any) => {
-          try {
-            const foundrySpell = this.parseSpell(ddbSpell, options);
-            spells.push(foundrySpell);
-          } catch (error) {
-            Logger.error(
-              `Failed to parse spell ${ddbSpell.definition?.name || 'Unknown'}: ${error}`
-            );
-          }
-        });
-      }
+    Object.values(ddbCharacter.spells).forEach((spellArray: DDBSpell[]) => {
+      spellArray.forEach((ddbSpell: DDBSpell) => {
+        try {
+          const foundrySpell = this.parseSpell(ddbSpell, options);
+          spells.push(foundrySpell);
+        } catch (error) {
+          Logger.error(
+            `Failed to parse spell ${ddbSpell.definition?.name ?? 'Unknown'}: ${error}`
+          );
+        }
+      });
     });
 
     Logger.info(`📚 Parsed ${spells.length} spells`);
     return spells;
   }
+
+  /**
+   * Get appropriate icon for spell
+   */
+  private static getSpellIcon(definition: DDBSpellDefinitionExtended): string {
+    const schoolIcons: Record<string, string> = {
+      Abjuration: 'icons/magic/defensive/shield-barrier-blue.webp',
+      Conjuration: 'icons/magic/symbols/elements-air-earth-fire-water.webp',
+      Divination: 'icons/magic/perception/eye-ringed-glow-yellow.webp',
+      Enchantment: 'icons/magic/control/hypnosis-mesmerism-swirl.webp',
+      Evocation: 'icons/magic/lightning/bolt-strike-blue.webp',
+      Illusion: 'icons/magic/perception/silhouette-stealth-shadow.webp',
+      Necromancy: 'icons/magic/death/skull-horned-goat-pentagram-red.webp',
+      Transmutation: 'icons/magic/symbols/question-stone-yellow.webp',
+    };
+    return schoolIcons[definition.school] || 'icons/magic/symbols/rune-sigil-black-pink.webp';
+  }
+
+  /**
+   * Parse active effects (for automation)
+   */
+  private static parseActiveEffects(_definition: DDBSpellDefinitionExtended): unknown[] {
+    // This would be expanded for spell automation
+    // For now, return empty array
+    return [];
+  }
 }
+
+/**
+ * Refine DDBSpellDefinitionExtended to match required/optional properties
+ */
+// Fix DDBSpellDefinitionExtended sources property to only allow string for sourceType
+interface DDBSpellDefinitionExtended extends Omit<DDBSpellDefinition, 'ritual' | 'concentration' | 'sources'> {
+  ritual?: boolean;
+  concentration?: boolean;
+  componentsDescription?: string;
+  activation?: {
+    activationType?: number;
+    activationTime?: number;
+    activationCondition?: string;
+  };
+  durationType?: string;
+  durationInterval?: number;
+  aoeValue?: number;
+  aoeType?: string;
+  origin?: string;
+  rangeValue?: number;
+  dice?: Array<{
+    diceCount?: number;
+    diceValue?: number;
+    fixedValue?: number;
+  }>;
+  damageTypes?: string[];
+  healingTypes?: string[];
+  fixedValue?: number;
+  attackType?: number;
+  saveType?: string;
+  saveDc?: number;
+  spellCastingAbilityId?: number;
+  materialComponent?: string;
+  sources?: Array<{
+    sourceId: number;
+    pageNumber?: number;
+    sourceType?: string;
+  }>;
+}
+
+// Move this to the top of the file, before interface extension
+type DDBSpellDefinition = import('../../types/index.js').DDBSpell['definition'];

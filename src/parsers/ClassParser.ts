@@ -25,8 +25,8 @@ export class ClassParser {
     if (trimmed.startsWith('{')) {
       try {
         const parsed = JSON.parse(trimmed);
-        if (parsed && parsed.contentContainer) return parsed.contentContainer;
-      } catch (e) {
+        if (parsed?.contentContainer) return parsed.contentContainer;
+      } catch {
         // Not valid JSON, fall through
       }
     }
@@ -67,40 +67,34 @@ export class ClassParser {
       if (tds.length < 2) return;
       // Extract level from first <td>
       const levelText = $(tds[0]).text().trim();
-      const levelMatch = levelText.match(/(\d+)/);
+      const levelReg = /(\d+)/;
+      const levelMatch = levelReg.exec(levelText);
       const requiredLevel = levelMatch ? parseInt(levelMatch[1], 10) : 1;
       // Debug: print the HTML of the last <td>
       const lastTd = tds[tds.length - 1];
       console.log('Row', rowIndex, 'lastTd HTML:', $(lastTd).html());
       const featureLinks = $(lastTd).find('a');
       console.log('Row', rowIndex, 'featureLinks count:', featureLinks.length);
-      
       featureLinks.each((i, a) => {
         console.log('  Feature', i, ':', $(a).text(), $(a).attr('href'));
         const $a = $(a);
         const name = $a.text().trim().replace(/\s+/g, ' ');
         const href = $a.attr('href') || '';
-        
         if (!name || !href.startsWith('#')) {
           return;
         }
-        
         // Check if we've already processed this feature at this level
         if (!processedFeatures.has(name)) {
           processedFeatures.set(name, new Set());
         }
-        
-        const levelsForFeature = processedFeatures.get(name)!;
-        if (levelsForFeature.has(requiredLevel)) {
+        const levelsForFeature = processedFeatures.get(name);
+        if (levelsForFeature && levelsForFeature.has(requiredLevel)) {
           console.log(`Skipping duplicate: ${name} at level ${requiredLevel}`);
           return;
         }
-        
-        levelsForFeature.add(requiredLevel);
-        
+        levelsForFeature?.add(requiredLevel);
         // Get description
         const description = this.extractFeatureDescription($, href.slice(1), name);
-        
         features.push({ 
           name, 
           description, 
@@ -115,12 +109,17 @@ export class ClassParser {
   
   /**
    * Extract feature description, handling h2/h3/h4 elements
+   *
+   * @param $ - Cheerio static instance (dynamic, requires 'any' due to cheerio API)
+   * @param anchorId - The anchor ID to search for
+   * @param featureName - The feature name
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cheerio API is dynamic and requires 'any'
   private static extractFeatureDescription($: any, anchorId: string, featureName: string): string {
     console.log(`Looking for element with id="${anchorId}"`);
     
     // Try to find any element with this ID
-    let $target = $(`#${anchorId}`);
+    const $target = $(`#${anchorId}`);
     
     if ($target.length === 0) {
       console.warn(`No element found with id="${anchorId}"`);
@@ -192,7 +191,6 @@ export class ClassParser {
   public static extractCoreTraits(html: string): Record<string, string> {
     const $ = load(html);
     const traits: Record<string, string> = {};
-    
     // Find Hit Points section
     const $hitPoints = $('#HitPoints-536');
     if ($hitPoints.length) {
@@ -200,8 +198,9 @@ export class ClassParser {
       if ($p.length) {
         const text = $p.html() || '';
         // Extract individual traits
-        const matches = text.matchAll(/<strong>.*?<span[^>]*>([^<]+)<\/span><\/strong>\s*([^<]+)/g);
-        for (const match of matches) {
+        const traitReg = /<strong>.*?<span[^>]*>([^<]+)<\/span><\/strong>\s*([^<]+)/g;
+        let match;
+        while ((match = traitReg.exec(text)) !== null) {
           const key = match[1].replace(':', '').trim();
           const value = match[2].trim();
           if (key && value) {
@@ -210,7 +209,6 @@ export class ClassParser {
         }
       }
     }
-    
     // Find Proficiencies section
     const $proficiencies = $('#Proficiencies-464');
     if ($proficiencies.length) {
@@ -220,26 +218,26 @@ export class ClassParser {
         const lines = text.split('<br>');
         for (const line of lines) {
           const cleanLine = load(line).text();
-          const match = cleanLine.match(/^([^:]+):\s*(.+)$/);
+          const profReg = /^([^:]+):\s*(.+)$/;
+          const match = profReg.exec(cleanLine);
           if (match) {
             traits[match[1].trim()] = match[2].trim();
           }
         }
       }
     }
-    
     // Extract from Quick Build if present
     const $quickBuild = $('blockquote:contains("QUICK BUILD")');
     if ($quickBuild.length) {
       const text = $quickBuild.text();
-      const abilityMatch = text.match(/make (\w+) your highest ability score(?:, followed by (\w+))?/i);
+      const abilityReg = /make (\w+) your highest ability score(?:, followed by (\w+))?/i;
+      const abilityMatch = abilityReg.exec(text);
       if (abilityMatch) {
         const abilities = [abilityMatch[1]];
         if (abilityMatch[2]) abilities.push(abilityMatch[2]);
         traits['Primary Ability'] = abilities.join(' and ');
       }
     }
-    
     return traits;
   }
 
@@ -291,11 +289,16 @@ export class ClassParser {
   
   /**
    * Extract progression from the class table
+   *
+   * @param $ - Cheerio static instance (dynamic, requires 'any' due to cheerio API)
+   * @param html - The HTML string
    */
-  private static extractProgression($: any, html: string): Array<{ level: number; features: string[]; columns: string[] }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cheerio API is dynamic and requires 'any'
+  private static extractProgression($: any, _html: string): Array<{ level: number; features: string[]; columns: string[] }> {
     const progression: Array<{ level: number; features: string[]; columns: string[] }> = [];
     
     $('table').first().find('tbody tr').each((i: number, row: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cheerio API is dynamic and requires 'any'
       const cells = $(row).find('td').map((j: number, cell: any) => $(cell).text().trim()).get();
       
       if (cells.length >= 2) {
@@ -305,6 +308,7 @@ export class ClassParser {
           
           // Extract feature names from links in the last cell
           const $lastCell = $(row).find('td').last();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cheerio API is dynamic and requires 'any'
           const features = $lastCell.find('a').map((k: number, a: any) => $(a).text().trim()).get();
           
           // Extract middle columns (excluding level and features)
@@ -320,8 +324,12 @@ export class ClassParser {
   
   /**
    * Extract subclasses from the HTML
+   *
+   * @param $ - Cheerio static instance (dynamic, requires 'any' due to cheerio API)
+   * @param html - The HTML string
    */
-  private static extractSubclasses($: any, html: string): Array<{ name: string; description: string }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cheerio API is dynamic and requires 'any'
+  private static extractSubclasses($: any, _html: string): Array<{ name: string; description: string }> {
     const subclasses: Array<{ name: string; description: string }> = [];
     
     // Find the Monastic Traditions section
@@ -331,17 +339,19 @@ export class ClassParser {
       const $container = $section.nextAll('.subitems-list-details').first();
       if ($container.length) {
         $container.find('.subitems-list-details-item').each((i: number, item: any) => {
+          // 'item' is Cheerio element, requires 'any' due to Cheerio API
           const $item = $(item);
           const $title = $item.find('h2').first();
+          // 'el' is Cheerio element, requires 'any' due to Cheerio API
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Cheerio callback parameter is dynamic
           const name = $title.contents().filter((j: number, el: any) => el.type === 'text').text().trim();
-          
           if (name && !name.includes('Monastic Traditions')) {
             // Collect description paragraphs
             const descParts: string[] = [];
             $item.find('p').slice(0, 2).each((j: number, p: any) => {
+              // 'p' is Cheerio element, requires 'any' due to Cheerio API
               descParts.push($.html(p));
             });
-            
             subclasses.push({
               name,
               description: descParts.join('\n')
@@ -386,22 +396,24 @@ export class ClassParser {
     const description = proxy.features?.find(f => 
       f.name.toLowerCase().includes('class features')
     )?.description || proxy.features?.[0]?.description || '';
-    
+
     // Process core traits
     const coreTraits = proxy.coreTraits || {};
-    const hitDieMatch = coreTraits['Hit Dice']?.match(/(\d+)d(\d+)/);
+    const hitDieReg = /(\d+)d(\d+)/;
+    const hitDieMatch = hitDieReg.exec(coreTraits['Hit Dice'] ?? '');
     const hitDie = hitDieMatch ? `d${hitDieMatch[2]}` : 'd8';
-    
+
     // Build advancements
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Advancement structure is dynamic and depends on FoundryVTT
     const advancement: any[] = [];
-    
+
     // Saving throws
     if (coreTraits['Saving Throws']) {
       const saves = coreTraits['Saving Throws']
         .split(/,\s*/)
         .map(s => s.trim())
         .map(s => `saves:${s.toLowerCase().substring(0, 3)}`);
-      
+
       advancement.push({
         type: 'Trait',
         level: 1,
@@ -409,20 +421,27 @@ export class ClassParser {
         value: { chosen: saves }
       });
     }
-    
+
     // Skills
     if (coreTraits['Skills']) {
       const skillsText = coreTraits['Skills'];
-      const countMatch = skillsText.match(/Choose (\w+)/i);
-      const count = countMatch ? (countMatch[1].toLowerCase() === 'two' ? 2 : parseInt(countMatch[1])) : 2;
-      
-      const skillsList = skillsText.match(/from (.+)$/i)?.[1] || '';
+      const countReg = /Choose (\w+)/i;
+      const countMatch = countReg.exec(skillsText);
+      let count = 2;
+      if (countMatch) {
+        if (countMatch[1].toLowerCase() !== 'two') {
+          count = parseInt(countMatch[1], 10);
+        }
+      }
+      const skillsListReg = /from (.+)$/i;
+      const skillsListMatch = skillsListReg.exec(skillsText);
+      const skillsList = skillsListMatch ? skillsListMatch[1] : '';
       const skills = skillsList
         .split(/,\s*and\s*|,\s*/)
         .map(s => s.trim())
         .filter(s => s)
         .map(s => `skills:${s.toLowerCase().substring(0, 3)}`);
-      
+
       if (skills.length > 0) {
         advancement.push({
           type: 'Trait',

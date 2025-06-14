@@ -11,7 +11,7 @@ export class FeatParser {
    */
   public static parseFeat(_ddbFeat: DDBFeat): unknown {
     void _ddbFeat;
-    // TODO: Implement feat parsing logic
+    // FIXME: parseFeat method not implemented. Implement full parsing logic and error handling.
     throw new Error('FeatParser.parseFeat not implemented');
   }
 

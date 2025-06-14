@@ -45,12 +45,12 @@ export class EnhancedSpellParserDemo {
   /**
    * Generate activities based on D&D Beyond spell data
    */
-  private static generateActivities(ddbSpell: unknown): Record<string, ActivityData> {
-    const spell = ddbSpell as any;
-    const definition = spell?.definition || {};
-    const activities: Record<string, ActivityData> = {};
+  private static generateActivities(ddbSpell: unknown): Record<string, FoundryActivity> {
+    const activities: Record<string, FoundryActivity> = {};
     
-    const spellName = definition.name || 'Unknown Spell';
+    const spell = ddbSpell as any;
+    const definition = spell?.definition ?? {};
+    const spellName = definition.name ?? 'Unknown Spell';
     let sortIndex = 0;
 
     // Attack Activity
@@ -61,7 +61,7 @@ export class EnhancedSpellParserDemo {
         type: 'attack',
         name: `${spellName} Attack`,
         sort: sortIndex++ * 100000,
-        description: 'Spell attack roll'
+        description: { chatFlavor: 'Spell attack roll' }
       };
     }
 
@@ -73,7 +73,7 @@ export class EnhancedSpellParserDemo {
         type: 'save',
         name: `${spellName} Save`,
         sort: sortIndex++ * 100000,
-        description: 'Saving throw required'
+        description: { chatFlavor: 'Saving throw required' }
       };
     }
 
@@ -85,7 +85,7 @@ export class EnhancedSpellParserDemo {
         type: 'heal',
         name: `${spellName} Healing`,
         sort: sortIndex++ * 100000,
-        description: 'Healing effect'
+        description: { chatFlavor: 'Healing effect' }
       };
     }
 
@@ -97,7 +97,7 @@ export class EnhancedSpellParserDemo {
         type: 'utility',
         name: spellName,
         sort: sortIndex++ * 100000,
-        description: 'Spell effect'
+        description: { chatFlavor: 'Spell effect' }
       };
     }
 
@@ -118,7 +118,7 @@ export class EnhancedSpellParserDemo {
     complexity: 'simple' | 'moderate' | 'complex';
   } {
     const spell = ddbSpell as any;
-    const definition = spell?.definition || {};
+    const definition = spell?.definition ?? {};
     
     const activityTypes: string[] = [];
     let hasAttack = false;
@@ -158,9 +158,9 @@ export class EnhancedSpellParserDemo {
     }
 
     return {
-      name: definition.name || 'Unknown',
-      level: definition.level || 0,
-      school: definition.school || 'Unknown',
+      name: definition.name ?? 'Unknown',
+      level: definition.level ?? 0,
+      school: definition.school ?? 'Unknown',
       activityTypes,
       hasAttack,
       hasSave,
@@ -202,7 +202,7 @@ async function demonstrateEnhancement(): Promise<void> {
     console.log('🔄 Processing spells...\n');
 
     for (const [index, spell] of testSpells.entries()) {
-      console.log(`${index + 1}/${testSpells.length}: ${spell.definition?.name || 'Unknown'}`);
+      console.log(`${index + 1}/${testSpells.length}: ${spell.definition?.name ?? 'Unknown'}`);
 
       try {
         // Enhanced parsing

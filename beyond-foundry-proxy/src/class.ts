@@ -173,24 +173,24 @@ async function getClassData(
       },
     });
     const html = await htmlResponse.text();
-    const $ = cheerio.load(html);
+    const $root: cheerio.CheerioAPI = cheerio.load(html);
     // NEW: Extract the entire content-container div as raw HTML
-    const rawHtmlContentContainer = $('.content-container').first().html() || '';
-    const htmlCoreTraits = extractCoreTraits($);
-    const htmlFeatures = extractFeatures($);
+    const rawHtmlContentContainer = $root('.content-container').first().html() || '';
+    const htmlCoreTraits = extractCoreTraits($root);
+    const htmlFeatures = extractFeatures($root);
     htmlResult = {
-      name: extractName($),
-      description: extractDescription($),
-      source: extractMetadata($).source,
-      tags: extractMetadata($).tags,
-      prerequisites: extractMetadata($).prerequisites,
+      name: extractName($root),
+      description: extractDescription($root),
+      source: extractMetadata($root).source,
+      tags: extractMetadata($root).tags,
+      prerequisites: extractMetadata($root).prerequisites,
       coreTraits: htmlCoreTraits,
-      progression: extractProgressionTable($),
+      progression: extractProgressionTable($root),
       features: htmlFeatures,
-      subclasses: extractSubclasses($),
-      spellcasting: extractSpellcasting($, htmlFeatures, htmlCoreTraits),
-      sidebars: extractSidebars($),
-      additionalTables: extractAdditionalTables($),
+      subclasses: extractSubclasses($root),
+      spellcasting: extractSpellcasting($root, htmlFeatures, htmlCoreTraits),
+      sidebars: extractSidebars($root),
+      additionalTables: extractAdditionalTables($root),
       optionalFeatures: [],
       schemaVersion: '2025-06-11',
       advancement: extractAdvancement(htmlCoreTraits),
@@ -514,14 +514,14 @@ function sanitize(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-function extractName($: cheerio.Root): string {
+function extractName($: cheerio.CheerioAPI): string {
   return $('h1#RogueClassDetails').text().trim().replace('Class Details', '').trim();
 }
 
 /**
  * Extract description paragraphs between Core Traits table and "Becoming a" section
  */
-function extractDescription($: cheerio.Root): string {
+function extractDescription($: cheerio.CheerioAPI): string {
   const paragraphs: string[] = [];
 
   // Find the Core Traits table
@@ -554,7 +554,7 @@ function extractDescription($: cheerio.Root): string {
   return paragraphs.join('\n\n');
 }
 
-function extractMetadata($: cheerio.Root): {
+function extractMetadata($: cheerio.CheerioAPI): {
   source: string;
   tags: string[];
   prerequisites: string[];
@@ -569,7 +569,7 @@ function extractMetadata($: cheerio.Root): {
 /**
  * Extract and normalize core traits with better key mapping
  */
-function extractCoreTraits($: cheerio.Root): Record<string, string> {
+function extractCoreTraits($: cheerio.CheerioAPI): Record<string, string> {
   const traits: Record<string, string> = {};
 
   // Find the Core Traits table
@@ -600,7 +600,7 @@ function extractCoreTraits($: cheerio.Root): Record<string, string> {
 /**
  * Extract progression table with better structure
  */
-function extractProgressionTable($: cheerio.Root): ProgressionRow[] {
+function extractProgressionTable($: cheerio.CheerioAPI): ProgressionRow[] {
   const progression: ProgressionRow[] = [];
 
   // Find the Rogue Features table (or any class features table)
@@ -638,7 +638,7 @@ function extractProgressionTable($: cheerio.Root): ProgressionRow[] {
 /**
  * Extract main class features, excluding subclass features
  */
-function extractFeatures($: cheerio.Root): Feature[] {
+function extractFeatures($: cheerio.CheerioAPI): Feature[] {
   const features: Feature[] = [];
 
   // Find the main content container
@@ -706,7 +706,7 @@ function extractFeatures($: cheerio.Root): Feature[] {
 /**
  * Extract subclasses with proper scoping
  */
-function extractSubclasses($: cheerio.Root): Subclass[] {
+function extractSubclasses($: cheerio.CheerioAPI): Subclass[] {
   const subclasses: Subclass[] = [];
 
   // Each subclass is in a .subitems-list-details-item
@@ -848,7 +848,7 @@ function extractSubclasses($: cheerio.Root): Subclass[] {
  * Extract spellcasting information with better detection
  */
 function extractSpellcasting(
-  $: cheerio.Root,
+  $: cheerio.CheerioAPI,
   features?: Feature[],
   coreTraits?: Record<string, string>
 ): { progression: string; ability: string; lists: Array<{ label: string; url: string }> } {
@@ -933,7 +933,7 @@ function extractSpellcasting(
 /**
  * Extract sidebars with better formatting
  */
-function extractSidebars($: cheerio.Root): string[] {
+function extractSidebars($: cheerio.CheerioAPI): string[] {
   const sidebars: string[] = [];
 
   // Extract "Becoming a Rogue" section
@@ -975,7 +975,7 @@ function extractSidebars($: cheerio.Root): string[] {
  * Extract additional tables, excluding those already captured
  */
 function extractAdditionalTables(
-  $: cheerio.Root
+  $: cheerio.CheerioAPI
 ): Array<{ title: string; headers: string[]; rows: string[][] }> {
   const tables: Array<{ title: string; headers: string[]; rows: string[][] }> = [];
   const processedCaptions = new Set(['Core Rogue Traits', 'Rogue Features']);
@@ -1267,7 +1267,7 @@ function extractAdvancementV1(coreTraits: Record<string, string>, subclasses: Su
     const colonMatch = /choose\s+\d+:\s*(.+)/i.exec(skillProfs);
     if (colonMatch) {
       skillList = colonMatch[1]
-        .split(/,\s*or\s*|,\s*/)
+        .split(/,| or /)
         .map(s => s.trim())
         .filter(Boolean);
     }

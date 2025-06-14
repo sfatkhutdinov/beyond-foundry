@@ -11,7 +11,7 @@ export class MonsterParser {
    */
   public static parseMonster(_ddbMonster: DDBMonster): unknown {
     void _ddbMonster;
-    // TODO: Implement monster parsing logic
+    // FIXME: parseMonster method not implemented. Implement full parsing logic and error handling.
     throw new Error('MonsterParser.parseMonster not implemented');
   }
 

@@ -7,7 +7,7 @@ import type { APIResponse } from '../../types/index.js';
  * Provides HTTP-like routing for D&D Beyond conversion endpoints
  */
 export class APIDispatcher {
-  private routeHandler: RouteHandler;
+  private readonly routeHandler: RouteHandler;
 
   constructor() {
     this.routeHandler = new RouteHandler();
@@ -19,7 +19,7 @@ export class APIDispatcher {
    * @param path API path
    * @param data Request data/parameters
    */
-  async dispatch(method: string, path: string, data: any = {}): Promise<APIResponse> {
+  async dispatch(method: string, path: string, data: unknown = {}): Promise<APIResponse> {
     try {
       Logger.debug(`API Request: ${method} ${path}`, data);
 
@@ -52,7 +52,7 @@ export class APIDispatcher {
   /**
    * Handle GET requests
    */
-  private async handleGet(endpoint: string, characterId: string, subResource: string, data: any): Promise<APIResponse> {
+  private async handleGet(endpoint: string, characterId: string, subResource: string, data: unknown): Promise<APIResponse> {
     switch (endpoint) {
       case 'import':
         return await this.handleImportGet(characterId, subResource, data);
@@ -72,7 +72,7 @@ export class APIDispatcher {
   /**
    * Handle POST requests
    */
-  private async handlePost(endpoint: string, characterId: string, subResource: string, data: any): Promise<APIResponse> {
+  private async handlePost(endpoint: string, characterId: string, subResource: string, data: unknown): Promise<APIResponse> {
     switch (endpoint) {
       case 'import':
         return await this.handleImportPost(characterId, subResource, data);
@@ -88,7 +88,7 @@ export class APIDispatcher {
   /**
    * Handle import GET requests
    */
-  private async handleImportGet(characterId: string, subResource: string, data: any): Promise<APIResponse> {
+  private async handleImportGet(characterId: string, subResource: string, data: unknown): Promise<APIResponse> {
     if (!characterId) {
       return {
         success: false,
@@ -100,7 +100,7 @@ export class APIDispatcher {
     switch (subResource) {
       case '':
       case 'character':
-        return await this.routeHandler.getCharacter(characterId, data.options || {});
+        return await this.routeHandler.getCharacter(characterId, this.getOptions(data));
       case 'items':
         return await this.routeHandler.getCharacterItems(characterId);
       case 'spells':
@@ -116,7 +116,7 @@ export class APIDispatcher {
       case 'story':
         return await this.routeHandler.getCharacterStory(characterId);
       case 'full':
-        return await this.routeHandler.importCharacterFull(characterId, data.options || {});
+        return await this.routeHandler.importCharacterFull(characterId, this.getOptions(data));
       default:
         return {
           success: false,
@@ -129,7 +129,7 @@ export class APIDispatcher {
   /**
    * Handle import POST requests
    */
-  private async handleImportPost(characterId: string, subResource: string, data: any): Promise<APIResponse> {
+  private async handleImportPost(characterId: string, subResource: string, data: unknown): Promise<APIResponse> {
     if (!characterId) {
       return {
         success: false,
@@ -140,7 +140,7 @@ export class APIDispatcher {
 
     switch (subResource) {
       case 'full':
-        return await this.routeHandler.importCharacterFull(characterId, data.options || {});
+        return await this.routeHandler.importCharacterFull(characterId, this.getOptions(data));
       default:
         return {
           success: false,
@@ -153,7 +153,7 @@ export class APIDispatcher {
   /**
    * Handle export GET requests
    */
-  private async handleExportGet(characterId: string, subResource: string, data: any): Promise<APIResponse> {
+  private async handleExportGet(characterId: string, subResource: string, _data: unknown): Promise<APIResponse> {
     if (!characterId) {
       return {
         success: false,
@@ -178,7 +178,7 @@ export class APIDispatcher {
   /**
    * Handle debug GET requests
    */
-  private async handleDebugGet(subResource: string, data: any): Promise<APIResponse> {
+  private async handleDebugGet(subResource: string, _data: unknown): Promise<APIResponse> {
     switch (subResource) {
       case 'status':
         return await this.routeHandler.getDebugStatus();
@@ -216,7 +216,7 @@ export class APIDispatcher {
   /**
    * Get available endpoints documentation
    */
-  getEndpoints(): Record<string, any> {
+  getEndpoints(): Record<string, string> {
     return {
       'GET /import/character/:id': 'Get character data and convert to Foundry format',
       'GET /import/character/:id/items': 'Get character items',
@@ -261,5 +261,12 @@ export class APIDispatcher {
 
   async getDebugStatus() {
     return this.dispatch('GET', '/debug/status');
+  }
+
+  private getOptions(data: unknown): unknown {
+    if (data && typeof data === 'object' && 'options' in data) {
+      return (data as { options?: unknown }).options ?? {};
+    }
+    return {};
   }
 }

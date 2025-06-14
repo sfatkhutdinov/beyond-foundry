@@ -148,10 +148,10 @@ export class BeyondFoundryAPI {
         }
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        Logger.warn(`Authentication failed: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        Logger.warn(`Authentication failed: ${response.status} - ${errorData.error ?? 'Unknown error'}`);
         return {
           success: false,
-          message: errorData.error || `Authentication failed with status ${response.status}`,
+          message: errorData.error ?? `Authentication failed with status ${response.status}`,
         };
       }
     } catch (error) {
@@ -272,7 +272,7 @@ export class BeyondFoundryAPI {
     const { ItemParser } = await import('../../parsers/items/ItemParser.js');
     // Use eslint-disable for Foundry dynamic API compatibility - this is a known limitation
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const packs = (game as any).packs as any;
+    const packs = (game as any).packs;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pack = packs.get(compendiumName) as any;
     const compendiumIndex: { [ddbId: number]: string } = {};
@@ -280,8 +280,10 @@ export class BeyondFoundryAPI {
       await pack.getIndex();
       for (const entry of pack.index) {
         if (!entry._id) continue;
-        const doc = await pack.getDocument(entry._id);
-        const ddbId = (doc as any)?.getFlag?.('beyond-foundry', 'ddbId');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- FoundryVTT dynamic API
+        const doc = await pack.getDocument(entry._id) as any;
+         
+        const ddbId = doc?.getFlag?.('beyond-foundry', 'ddbId');
         if (typeof ddbId === 'number') compendiumIndex[ddbId] = entry._id;
       }
     }
@@ -294,7 +296,7 @@ export class BeyondFoundryAPI {
           const doc = await pack.getDocument(compendiumId);
           compendiumEntry = doc as { name?: string; id?: string; type?: string };
         }
-        if (compendiumEntry && compendiumEntry.name && compendiumEntry.id) {
+        if (compendiumEntry?.name && compendiumEntry?.id) {
           await actor.createEmbeddedDocuments('Item', [{
             name: compendiumEntry.name,
             type: compendiumEntry.type || 'loot',
@@ -552,7 +554,7 @@ export class BeyondFoundryAPI {
       const data = await response.json();
 
       if (!data.success || !data.data) {
-        throw new Error(data.message || 'Invalid always prepared spell data');
+        throw new Error(data.message ?? 'Invalid always prepared spell data');
       }
 
       // Apply same filtering as regular spells
@@ -597,7 +599,7 @@ export class BeyondFoundryAPI {
       const data = await response.json();
 
       if (!data.success || !data.data) {
-        throw new Error(data.message || 'Invalid always known spell data');
+        throw new Error(data.message ?? 'Invalid always known spell data');
       }
 
       // Filter cantrips if not wanted
@@ -788,7 +790,7 @@ export class BeyondFoundryAPI {
 
       const { SpellParser } = await import('../../parsers/spells/SpellParser.js');
       // Use 'as any' for Foundry dynamic API compatibility
-      const packs = (game as any).packs as any;
+      const packs = (game as any).packs;
       let pack = packs.get(compendiumName) as any;
       if (!pack) {
         Logger.info(`Compendium ${compendiumName} not found, creating...`);
@@ -862,7 +864,7 @@ export class BeyondFoundryAPI {
 
       const { ItemParser } = await import('../../parsers/items/ItemParser.js');
       // Use 'as any' for Foundry dynamic API compatibility
-      const packs = (game as any).packs as any;
+      const packs = (game as any).packs;
       let pack = packs.get(compendiumName) as any;
       if (!pack) {
         Logger.info(`Compendium ${compendiumName} not found, creating...`);
@@ -925,7 +927,7 @@ export class BeyondFoundryAPI {
       let importedCount = 0;
       const compendiumName = options.spellCompendiumName || 'beyondfoundry.spells';
       // Use 'as any' for Foundry dynamic API compatibility
-      const packs = (game as any).packs as any;
+      const packs = (game as any).packs;
       const pack = packs.get(compendiumName) as any;
       const compendiumIndex: { [ddbId: number]: string } = {};
       if (pack) {
@@ -1026,7 +1028,7 @@ export class BeyondFoundryAPI {
       });
       const data = await response.json();
       if (!response.ok || !data.success || !data.ddb?.class) {
-        Logger.warn(`Failed to retrieve class: ${data.message || 'Unknown error'}`);
+        Logger.warn(`Failed to retrieve class: ${data.message ?? 'Unknown error'}`);
         return null;
       }
       const ddbClass = data.ddb.class as import('../../types/index.js').DDBClass;

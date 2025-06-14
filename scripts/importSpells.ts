@@ -71,7 +71,7 @@ async function main() {
             process.exit(1);
         }
 
-        const authData = await authResponse.json();
+        const authData: any = await authResponse.json();
         if (!authData.token) {
             ScriptLogger.error('Authentication failed: No token returned');
             process.exit(1);
@@ -85,8 +85,8 @@ async function main() {
             ScriptLogger.error(`Failed to get proxy config: ${configResponse.status}`);
             process.exit(1);
         }
-        const config = await configResponse.json();
-        const classMap = config.classMap || [];
+        const config: any = await configResponse.json();
+        const classMap = config.classMap ?? [];
         ScriptLogger.success(`Found ${classMap.length} classes: ${classMap.map((c: any) => c.name).join(', ')}`);
 
         // Fetch spells from all classes
@@ -113,7 +113,7 @@ async function main() {
                     continue;
                 }
 
-                const classSpells = await classSpellResponse.json();
+                const classSpells: any = await classSpellResponse.json();
                 if (classSpells.success && classSpells.data) {
                     let uniqueSpellsAdded = 0;
                     for (const spell of classSpells.data) {

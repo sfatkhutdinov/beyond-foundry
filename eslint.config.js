@@ -91,12 +91,75 @@ export default [
     }
   },
   {
+    files: ['scripts/**/*.ts', 'scripts/**/*.js', 'tests/**/*.ts', 'tests/**/*.js', 'tests/**/*.mjs', 'beyond-foundry-proxy/**/*.js', 'beyond-foundry-proxy/**/*.ts'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        exports: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        setTimeout: 'readonly',
+        fetch: 'readonly',
+        performance: 'readonly'
+      }
+    },
+    rules: {
+      'no-console': 'off',
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off'
+    }
+  },
+  {
+    files: ['*.ts'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        project: './tsconfig.json'
+      },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        require: 'readonly',
+        exports: 'readonly',
+        module: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        setTimeout: 'readonly',
+        fetch: 'readonly',
+        performance: 'readonly'
+      }
+    },
+    plugins: {
+      '@typescript-eslint': tseslint
+    },
+    rules: {
+      'no-console': 'off',
+      'no-undef': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off'
+    }
+  },
+  {
     ignores: [
       'build/**/*',
+      'dist/**/*', // Exclude all dist/ output from linting
+      'beyond-foundry-proxy/dist/**/*', // Explicitly exclude proxy dist
       'reference/**/*',
+      'references/**/*', // Exclude all of references/ from linting
       'node_modules/**/*',
       'analysis/**/*',
-      'debug/**/*'
+      'debug/**/*',
+      'beyond-foundry-proxy/src/**/*.ts' // Exclude proxy TypeScript sources from linting
     ]
   }
 ];

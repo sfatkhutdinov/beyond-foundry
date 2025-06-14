@@ -12,16 +12,16 @@ import type {
   ExportResponse,
   DDBCharacter,
   DDBSpell,
-  DDBItem,
-  DDBCurrency,
   FoundryItemData,
   FoundrySpell,
   ItemCategory,
   EncumbranceData,
   CharacterAction,
+  WeaponDamage,
+  WeaponRange,
+  DDBCurrency,
   CharacterStory,
   JournalEntry,
-  FileData
 } from '../../types/index.js';
 import { BeyondFoundryAPI } from './BeyondFoundryAPI.js';
 import { CharacterParser } from '../../parsers/character/CharacterParser.js';
@@ -29,13 +29,14 @@ import { ItemParser } from '../../parsers/items/ItemParser.js';
 import { FeatureParser } from '../../parsers/features/FeatureParser.js';
 import { SpellParser } from '../../parsers/spells/SpellParser.js';
 import { Logger, getErrorMessage } from '../utils/logger.js';
+import { DDBItem } from '../../types';
 
 /**
  * Route Handler for Beyond Foundry API Endpoints
  * Provides structured endpoints for D&D Beyond content conversion
  */
 export class RouteHandler {
-  private api: BeyondFoundryAPI;
+  private readonly api: BeyondFoundryAPI;
 
   constructor() {
     this.api = BeyondFoundryAPI.getInstance();
@@ -72,7 +73,7 @@ export class RouteHandler {
           metadata: {
             sourceId: `ddb:character:${characterId}`,
             importedAt: new Date().toISOString(),
-            version: game.modules.get('beyond-foundry')?.version || '1.0.0'
+            version: game.modules.get('beyond-foundry')?.version ?? '1.0.0'
           }
         },
         totalItems: this.getItemCount(ddbCharacter),
@@ -333,8 +334,8 @@ export class RouteHandler {
           },
           encumbrance: this.calculateEncumbrance(items),
           summary: {
-            totalWeight: items.reduce((sum, item) => sum + (item.system?.weight || 0) * (item.system?.quantity || 1), 0),
-            totalValue: items.reduce((sum, item) => sum + (item.system?.price?.value || 0) * (item.system?.quantity || 1), 0)
+            totalWeight: items.reduce((sum, item) => sum + (item.system?.weight ?? 0) * (item.system?.quantity ?? 1), 0),
+            totalValue: items.reduce((sum, item) => sum + (item.system?.price?.value ?? 0) * (item.system?.quantity ?? 1), 0)
           }
         }
       };
@@ -515,8 +516,8 @@ export class RouteHandler {
         data: {
           module: {
             id: 'beyond-foundry',
-            version: game.modules.get('beyond-foundry')?.version || '1.0.0',
-            active: game.modules.get('beyond-foundry')?.active || false
+            version: game.modules.get('beyond-foundry')?.version ?? '1.0.0',
+            active: game.modules.get('beyond-foundry')?.active ?? false
           },
           proxy: {
             url: settings,
@@ -603,11 +604,11 @@ export class RouteHandler {
 
       const exportData = {
         actor: actor.toObject(),
-        items: actor.items.map((item: any) => item.toObject()),
+        items: actor.items, // actor.items is already an array of FoundryItemData
         metadata: {
           exportedAt: new Date().toISOString(),
           exportedBy: game.user?.name || 'Unknown',
-          version: game.modules.get('beyond-foundry')?.version || '1.0.0',
+          version: game.modules.get('beyond-foundry')?.version ?? '1.0.0',
           foundryVersion: game.version || 'unknown',
           systemVersion: game.system.version || 'unknown'
         }
@@ -618,7 +619,7 @@ export class RouteHandler {
         endpoint: '/export/character',
         characterId,
         data: exportData,
-        downloadUrl: await this.createDownloadFile(exportData, actor.name || 'character')
+        downloadUrl: await this.createDownloadFile(exportData, actor.name ?? 'character')
       };
 
     } catch (error) {
@@ -646,9 +647,14 @@ export class RouteHandler {
   }
 
   private getFeatureCount(character: DDBCharacter): number {
-    const classFeatures = Array.isArray((character as any).classFeatures) ? (character as any).classFeatures.length : 0;
-    const raceFeatures = Array.isArray((character as any).raceFeatures) ? (character as any).raceFeatures.length : 0;
-    const feats = Array.isArray((character as any).feats) ? (character as any).feats.length : 0;
+    // Defensive: check for classFeatures and raceFeatures as unknown, only count if array
+    const classFeatures = Array.isArray((character as unknown as { classFeatures?: unknown[] }).classFeatures)
+      ? ((character as unknown as { classFeatures: unknown[] }).classFeatures.length)
+      : 0;
+    const raceFeatures = Array.isArray((character as unknown as { raceFeatures?: unknown[] }).raceFeatures)
+      ? ((character as unknown as { raceFeatures: unknown[] }).raceFeatures.length)
+      : 0;
+    const feats = Array.isArray(character.feats) ? character.feats.length : 0;
     return classFeatures + raceFeatures + feats;
   }
 
@@ -664,20 +670,25 @@ export class RouteHandler {
     };
   }
 
-  private calculateEncumbrance(items: any[]): any {
-    const totalWeight = items.reduce((sum, item) => 
-      sum + (item.system?.weight || 0) * (item.system?.quantity || 1), 0
+  private calculateEncumbrance(items: FoundryItemData[]): EncumbranceData {
+    const totalWeight = items.reduce((sum, item) =>
+      sum + (item.system?.weight ?? 0) * (item.system?.quantity ?? 1), 0
     );
-    
     // TODO: Calculate based on character strength
     return {
       current: totalWeight,
       max: 150, // Placeholder - should be calculated from character stats
-      encumbered: totalWeight > 150
+      percentage: totalWeight / 150,
+      encumbered: totalWeight > 150,
+      heavily: totalWeight > 200,
+      total: {
+        value: totalWeight,
+        weight: totalWeight
+      }
     };
   }
 
-  private async parseCharacterActions(character: DDBCharacter): Promise<any[]> {
+  private async parseCharacterActions(character: DDBCharacter): Promise<CharacterAction[]> {
     const actions = [];
     
     // Parse weapon attacks from inventory
@@ -701,35 +712,34 @@ export class RouteHandler {
     return actions;
   }
 
-  private parseWeaponDamage(weapon: any): any {
+  private parseWeaponDamage(_weapon: DDBItem): WeaponDamage {
     // TODO: Implement weapon damage parsing
     return {
       parts: [],
-      versatile: ''
+      versatile: '',
+      value: ''
     };
   }
 
-  private parseWeaponRange(weapon: any): any {
+  private parseWeaponRange(weapon: DDBItem): WeaponRange {
     // TODO: Implement weapon range parsing
     return {
-      value: weapon.definition?.range || 5,
-      long: weapon.definition?.longRange || null,
+      value: weapon.definition?.range ?? 5,
+      long: weapon.definition?.longRange ?? null,
       units: 'ft'
     };
   }
 
-  private parseCurrency(currencies: any[]): Record<string, number> {
+  private parseCurrency(currencies: DDBCurrency[]): Record<string, number> {
     const foundryFormat: Record<string, number> = {
       pp: 0, gp: 0, ep: 0, sp: 0, cp: 0
     };
-
     for (const currency of currencies) {
-      const type = this.mapCurrencyType(currency.type);
+      const type = this.mapCurrencyType(currency.name);
       if (type) {
-        foundryFormat[type] = currency.quantity || 0;
+        foundryFormat[type] = currency.value ?? 0;
       }
     }
-
     return foundryFormat;
   }
 
@@ -773,7 +783,13 @@ export class RouteHandler {
            ((currencies.sp || 0) * 0.1) + ((currencies.cp || 0) * 0.01);
   }
 
-  private parseCharacterStory(character: DDBCharacter): any {
+  private parseCharacterStory(character: DDBCharacter): CharacterStory {
+    // Defensive: ensure traits/ideals/bonds/flaws are always string[]
+    const toStringArray = (val: unknown): string[] => {
+      if (Array.isArray(val)) return val.map(String);
+      if (typeof val === 'string') return [val];
+      return [];
+    };
     return {
       background: {
         name: character.background?.definition?.name || '',
@@ -782,43 +798,38 @@ export class RouteHandler {
         featureDescription: character.background?.definition?.featureDescription || ''
       },
       personality: {
-        traits: character.traits || [],
-        ideals: character.ideals || [],
-        bonds: character.bonds || [],
-        flaws: character.flaws || []
+        traits: toStringArray(character.traits),
+        ideals: toStringArray(character.ideals),
+        bonds: toStringArray(character.bonds),
+        flaws: toStringArray(character.flaws)
       },
       biography: {
-        appearance: character.hair || '',
-        backstory: character.backstory || '',
-        allies: character.allies || ''
+        appearance: character.notes?.appearance || '',
+        backstory: character.notes?.backstory || '',
+        allies: ''
       },
-      notes: character.notes || ''
+      notes: ''
     };
   }
 
-  private async createStoryJournalEntry(story: any, characterId: string): Promise<any> {
+  private async createStoryJournalEntry(story: CharacterStory, characterId: string): Promise<JournalEntry> {
     const content = `
       <h1>${story.background.name}</h1>
       <h2>Background Feature: ${story.background.feature}</h2>
       <p>${story.background.featureDescription}</p>
-      
       <h2>Personality Traits</h2>
       <p>${story.personality.traits.join(', ')}</p>
-      
       <h2>Ideals</h2>
       <p>${story.personality.ideals.join(', ')}</p>
-      
       <h2>Bonds</h2>
       <p>${story.personality.bonds.join(', ')}</p>
-      
       <h2>Flaws</h2>
       <p>${story.personality.flaws.join(', ')}</p>
-      
       <h2>Backstory</h2>
       <p>${story.biography.backstory}</p>
     `;
-
     return {
+      id: `story-${characterId}`,
       name: `Character Story - ${characterId}`,
       content,
       flags: {
@@ -831,7 +842,7 @@ export class RouteHandler {
     };
   }
 
-  private async createDownloadFile(data: any, filename: string): Promise<string> {
+  private async createDownloadFile(data: object, filename: string): Promise<string> {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     

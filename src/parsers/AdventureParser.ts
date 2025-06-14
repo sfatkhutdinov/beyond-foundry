@@ -11,7 +11,7 @@ export class AdventureParser {
    */
   public static parseAdventure(_ddbAdventure: DDBAdventure): unknown {
     void _ddbAdventure;
-    // TODO: Implement adventure parsing logic
+    // FIXME: parseAdventure method not implemented. Implement full parsing logic and error handling.
     throw new Error('AdventureParser.parseAdventure not implemented');
   }
 

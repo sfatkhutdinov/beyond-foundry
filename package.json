@@ -4,6 +4,15 @@
     "he": "^1.2.0"
   },
   "devDependencies": {
-    "@types/node": "^24.0.1"
+    "@types/node": "^24.0.1",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "eslint": "^9.29.0",
+    "node-fetch": "^3.3.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.3"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
   }
 }

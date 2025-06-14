@@ -11,7 +11,7 @@ export class RaceParser {
    */
   public static parseRace(_ddbRace: DDBRace): unknown {
     void _ddbRace;
-    // TODO: Implement race parsing logic
+    // FIXME: parseRace method not implemented. Implement full parsing logic and error handling.
     throw new Error('RaceParser.parseRace not implemented');
   }
 

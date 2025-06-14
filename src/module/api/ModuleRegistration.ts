@@ -1,6 +1,8 @@
 // Add this at the top for FoundryVTT global
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
+// FoundryVTT global (dynamic, requires 'any' for compatibility)
 declare const game: any;
+declare const foundry: any;
 
 import { MODULE_ID, MODULE_NAME } from '../constants.js';
 import { BeyondFoundryAPI } from './BeyondFoundryAPI.js';
@@ -15,9 +17,9 @@ import type { ImportOptions, APIResponse } from '../../types/index.js';
  * and D&D 5e system integration as described in the requirements
  */
 export class ModuleRegistration {
-  private api: BeyondFoundryAPI;
-  private routeHandler: RouteHandler;
-  private dispatcher: APIDispatcher;
+  private readonly api: BeyondFoundryAPI;
+  private readonly routeHandler: RouteHandler;
+  private readonly dispatcher: APIDispatcher;
 
   constructor() {
     this.api = BeyondFoundryAPI.getInstance();
@@ -39,7 +41,7 @@ export class ModuleRegistration {
 
       // Character Import Endpoints (as specified in the prompt)
       importCharacter: async (id: string, options?: Partial<ImportOptions>): Promise<APIResponse> => {
-        return await this.safeApiCall(() => this.routeHandler.getCharacter(id, options || {}));
+        return await this.safeApiCall(() => this.routeHandler.getCharacter(id, options ?? {}));
       },
 
       // Character sub-resource endpoints
@@ -69,7 +71,7 @@ export class ModuleRegistration {
 
       // Full import and export endpoints
       importCharacterFull: async (id: string, options?: Partial<ImportOptions>): Promise<APIResponse> => {
-        return await this.safeApiCall(() => this.routeHandler.importCharacterFull(id, options || {}));
+        return await this.safeApiCall(() => this.routeHandler.importCharacterFull(id, options ?? {}));
       },
 
       exportCharacter: async (id: string): Promise<APIResponse> => {
@@ -82,7 +84,7 @@ export class ModuleRegistration {
       },
 
       // Generic endpoint dispatcher (RESTful interface)
-      request: async (method: string, path: string, data?: any): Promise<APIResponse> => {
+      request: async (method: string, path: string, data?: unknown): Promise<APIResponse> => {
         return await this.dispatcher.dispatch(method, path, data);
       },
 
@@ -92,8 +94,8 @@ export class ModuleRegistration {
         fetchWithTimeout: async (url: string, options: RequestInit = {}, timeout: number = 30000) => {
           return await this.safeApiCall(async () => {
             // Use Foundry's built-in utility if available
-            if (foundry && typeof foundry === 'object' && 'utils' in foundry && typeof (foundry as any).utils?.fetchJsonWithTimeout === 'function') {
-              return await (foundry as any).utils.fetchJsonWithTimeout(url, { ...options, timeout });
+            if (foundry && typeof foundry === 'object' && 'utils' in foundry && typeof (foundry as { utils?: { fetchJsonWithTimeout?: Function } }).utils?.fetchJsonWithTimeout === 'function') {
+              return await (foundry as { utils: { fetchJsonWithTimeout: Function } }).utils.fetchJsonWithTimeout(url, { ...options, timeout });
             } else {
               // Fallback to standard fetch with timeout
               const controller = new AbortController();
@@ -114,7 +116,7 @@ export class ModuleRegistration {
         // Safe URL encoding using Foundry's utility
         encodeURL: (_path: string): string => {
           // Use Foundry's built-in utility if available
-          const foundryUtils = (foundry as unknown as { utils?: { encodeURL?: (path: string) => string } }).utils;
+          const foundryUtils = (foundry as { utils?: { encodeURL?: (path: string) => string } }).utils;
           if (foundryUtils?.encodeURL) {
             return foundryUtils.encodeURL(_path);
           } else {
@@ -170,7 +172,7 @@ export class ModuleRegistration {
           findInCompendium: async (name: string, type: string): Promise<unknown | null> => {
             try {
               // Use global 'game' object, cast packs to expected type
-              const pack = (game.packs as unknown as { find: (_predicate: (_p: unknown) => boolean) => unknown }).find((_p: unknown) => {
+              const pack = (game.packs as { find: (_p: unknown) => boolean }).find((_p: unknown) => {
                 const packObj = _p as { metadata?: { type?: string; system?: string } };
                 return packObj.metadata?.type === type && packObj.metadata?.system === 'dnd5e';
               });
@@ -181,7 +183,7 @@ export class ModuleRegistration {
               return (index as unknown[]).find((entry: unknown) => {
                 const entryObj = entry as { name?: string };
                 return entryObj.name?.toLowerCase() === name.toLowerCase();
-              }) || null;
+              }) ?? null;
             } catch (error) {
               Logger.warn(`Compendium search failed: ${getErrorMessage(error)}`);
               return null;
@@ -266,10 +268,10 @@ export class ModuleRegistration {
     (window as unknown as { beyondFoundry?: unknown; bfTest?: unknown }).beyondFoundry = gameApi;
     
     // Add quick testing functions
-    (window as unknown as { bfTest?: { connection?: () => Promise<boolean>; auth?: (token?: string) => Promise<unknown>; character?: (id: string) => Promise<unknown>; diagnostic?: () => Promise<void> } }).bfTest = {
+    (window as unknown as { bfTest?: { connection?: () => Promise<boolean>; auth?: (_token?: string) => Promise<unknown>; character?: (_id: string) => Promise<unknown>; diagnostic?: () => Promise<void> } }).bfTest = {
       connection: async () => await this.api.testProxyConnection(),
-      auth: async (token?: string) => await this.api.authenticate(token),
-      character: async (id: string) => await this.routeHandler.getCharacter(id),
+      auth: async (_token?: string) => await this.api.authenticate(_token),
+      character: async (_id: string) => await this.routeHandler.getCharacter(_id),
       diagnostic: async () => await this.api.runDiagnostic()
     };
 

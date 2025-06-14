@@ -71,3 +71,6 @@ references/
 
 detailed_rogue_pretty.json
 .cursor/memory.json
+
+# Code Index MCP cache directory
+.code_indexer/

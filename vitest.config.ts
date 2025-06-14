@@ -27,20 +27,6 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*'
       ]
-    },
-    globals: {
-      // FoundryVTT globals for testing
-      game: 'readonly',
-      ui: 'readonly',
-      canvas: 'readonly',
-      foundry: 'readonly',
-      Hooks: 'readonly',
-      Actor: 'readonly',
-      Item: 'readonly',
-      Scene: 'readonly',
-      Application: 'readonly',
-      Dialog: 'readonly',
-      FormApplication: 'readonly'
     }
   },
   define: {
