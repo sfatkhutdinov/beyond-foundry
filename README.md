@@ -307,3 +307,18 @@ For local development and terminal-based testing, you can bake your D&D Beyond C
    If the cookie is set, you should get a success response.
 
 **Security Note:** Never commit your `.env` file or Cobalt token to version control. `.env` is already in `.gitignore`.
+
+## 🧙‍♂️ Spell Import: Current Process & Limitations (June 2025)
+
+- The most complete spell list is now obtained via **class-based enumeration** using the `importSpells.ts` script (see `scripts/importSpells.ts`).
+- This method fetches all spells available to any class in your D&D Beyond account, including homebrew and purchased content, using your Cobalt token.
+- The output is saved as `zzzOutputzzz/imported_spells.json` (JSON array, one object per spell, with all metadata and descriptions).
+- **Direct scraping of the D&D Beyond spells page is blocked** by PerimeterX bot protection, even with Puppeteer/stealth plugins and a valid Cobalt token. The script `scripts/fetchAllSpellsPuppeteer.ts` is included for reference, but will only retrieve data if D&D Beyond's protections change.
+- **Monster-only, legacy, or unassigned spells** (not available to any class) are not included due to these protections. If you need these, consider manual addition or future enhancements.
+- All spell schools, levels, and homebrew spells are included if they are available to any class.
+
+### Known Limitations & Future Directions
+- Monster-only and legacy spells not assigned to any class cannot be imported programmatically due to anti-bot protections.
+- If D&D Beyond's protections change, the Puppeteer script can be re-enabled for full scraping.
+- Manual addition or merging with public spell lists is recommended for absolute completeness.
+- The spell import process is robust, deduplicated, and suitable for DM use in FoundryVTT and other tools.

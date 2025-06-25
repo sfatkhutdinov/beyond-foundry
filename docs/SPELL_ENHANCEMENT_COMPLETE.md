@@ -219,3 +219,10 @@ Beyond Foundry now has **complete spell import capabilities** that rival dedicat
 **Status: PRODUCTION READY** ✅
 
 The spell enhancement implementation is complete, tested, and ready for real-world usage with D&D Beyond characters in FoundryVTT.
+
+## Spell Import: Current Process & Limitations (June 2025)
+- The canonical method for spell import is now class-based enumeration using your Cobalt token and the `importSpells.ts` script.
+- Direct scraping of the D&D Beyond spells page is blocked by PerimeterX bot protection; the included Puppeteer script (`scripts/fetchAllSpellsPuppeteer.ts`) is for reference and will only work if protections change.
+- Monster-only, legacy, or unassigned spells (not available to any class) are not included in automated imports.
+- The output is saved as `zzzOutputzzz/imported_spells.json` (JSON array, one object per spell, with all metadata and descriptions).
+- This is the most complete programmatic import possible as of June 2025.

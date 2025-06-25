@@ -140,3 +140,9 @@ Proceeding to implement proxy enhancements for structured extraction of:
 - Spell list links and sidebar/summary blocks
 
 Will update the proxy extraction logic in `beyond-foundry-proxy/src/class.ts` to support these fields.
+
+## Spell Import: Current Process & Limitations (June 2025)
+- The SpellParser and spell import workflow now rely on class-based enumeration for the most complete spell list, using your Cobalt token and the `importSpells.ts` script.
+- Direct scraping of the D&D Beyond spells page is blocked by PerimeterX bot protection; the included Puppeteer script (`scripts/fetchAllSpellsPuppeteer.ts`) is for reference and will only work if protections change.
+- Monster-only, legacy, or unassigned spells (not available to any class) are not included in automated imports.
+- The output is saved as `zzzOutputzzz/imported_spells.json` (JSON array, one object per spell, with all metadata and descriptions).

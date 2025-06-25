@@ -220,4 +220,14 @@ router.post('/spells', async (req: Request, res: Response) => {
     }
 });
 
+// POST /proxy/spells/all - Canonical endpoint to fetch all spells from D&D Beyond sitemap
+router.post('/proxy/spells/all', async (req: Request, res: Response) => {
+    // Delegate to the existing /spells logic
+    // This allows clients to use /proxy/spells/all as the canonical endpoint
+    req.url = '/spells'; // Set the URL so the existing handler matches
+    // Call the existing handler
+    // @ts-ignore
+    return router.handle(req, res);
+});
+
 export default router;

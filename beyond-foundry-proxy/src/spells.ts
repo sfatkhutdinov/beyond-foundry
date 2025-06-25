@@ -2,6 +2,9 @@ import fetch from "node-fetch";
 import CONFIG from "./config";
 import * as authentication from "./auth";
 import express, { Router, Request, Response } from "express";
+// import rpgspellRouter from './rpgspell'; // No longer needed
+import fs from "fs";
+import path from "path";
 
 const router: Router = express.Router();
 router.use(express.json());
@@ -496,5 +499,194 @@ router.post('/class/spells', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
+interface SpellUrlData {
+    id: string;
+    name: string;
+    url: string;
+}
+
+const parseSitemapForSpells = (): SpellUrlData[] => {
+    try {
+        const sitemapPath = path.join(__dirname, "sitemap-rpgspell-1.xml");
+        console.log(`[parseSitemapForSpells] Reading sitemap from: ${sitemapPath}`);
+        const sitemapContent = fs.readFileSync(sitemapPath, 'utf8');
+        // DEBUG: Print first 10 lines of sitemap content
+        console.log('[parseSitemapForSpells] First 10 lines:', sitemapContent.split('\n').slice(0, 10).join('\n'));
+        const spellUrls: SpellUrlData[] = [];
+        const urlPattern = /<loc>https:\/\/www\.dndbeyond\.com\/spells\/(\d+)-([^<]+)<\/loc>/g;
+        let match;
+        let matchCount = 0;
+        while ((match = urlPattern.exec(sitemapContent)) !== null) {
+            matchCount++;
+            const id = match[1];
+            const name = match[2];
+            const url = match[0].replace('<loc>', '').replace('</loc>', '');
+            spellUrls.push({
+                id,
+                name: name.replace(/-/g, ' '),
+                url
+            });
+        }
+        console.log(`[parseSitemapForSpells] Found ${spellUrls.length} spell URLs in sitemap (matches: ${matchCount})`);
+        return spellUrls;
+    } catch (error) {
+        console.error(`[parseSitemapForSpells] Error reading sitemap:`, error);
+        return [];
+    }
+};
+
+const fetchSpellById = async (spellId: string, cobaltToken: string): Promise<any> => {
+    try {
+        const url = `https://www.dndbeyond.com/api/spells/${spellId}`;
+        console.log(`[fetchSpellById] Fetching spell ID ${spellId} from: ${url}`);
+        const headers: any = {
+            'Content-Type': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.dndbeyond.com/',
+            'Origin': 'https://www.dndbeyond.com',
+            'Connection': 'keep-alive',
+        };
+        if (cobaltToken) {
+            headers["Authorization"] = `Bearer ${cobaltToken}`;
+            headers["Cookie"] = `DDB_COOKIE=${cobaltToken}`;
+        }
+        console.log('[fetchSpellById] Request headers:', headers);
+        const response = await fetch(url, { headers });
+        if (!response.ok) {
+            console.warn(`[fetchSpellById] Failed to fetch spell ${spellId}: ${response.status} ${response.statusText}`);
+            return null;
+        }
+        const spellData = await response.json();
+        console.log(`[fetchSpellById] Successfully fetched spell ${spellId}: ${spellData.name || 'Unknown'}`);
+        return spellData;
+    } catch (error) {
+        console.error(`[fetchSpellById] Error fetching spell ${spellId}:`, error);
+        return null;
+    }
+};
+
+const fetchSpellFromPage = async (spellUrl: string, cobaltToken?: string): Promise<any> => {
+    try {
+        console.log(`[fetchSpellFromPage] Fetching spell from page: ${spellUrl}`);
+        const headers: any = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.dndbeyond.com/',
+            'Origin': 'https://www.dndbeyond.com',
+            'Connection': 'keep-alive',
+        };
+        if (cobaltToken) {
+            headers["Cookie"] = `DDB_COOKIE=${cobaltToken}`;
+        }
+        console.log('[fetchSpellFromPage] Request headers:', headers);
+        const response = await fetch(spellUrl, { headers });
+        if (!response.ok) {
+            console.warn(`[fetchSpellFromPage] Failed to fetch spell page: ${response.status} ${response.statusText}`);
+            return null;
+        }
+        const pageContent = await response.text();
+        const jsonMatch = pageContent.match(/window\.initialState\s*=\s*({.*?});/s);
+        if (jsonMatch) {
+            try {
+                const initialState = JSON.parse(jsonMatch[1]);
+                const spellData = initialState?.Spell?.spell || initialState?.spell;
+                if (spellData) {
+                    console.log(`[fetchSpellFromPage] Successfully extracted spell data from page`);
+                    return spellData;
+                }
+            } catch (parseError) {
+                console.warn(`[fetchSpellFromPage] Failed to parse embedded JSON:`, parseError);
+            }
+        }
+        console.warn(`[fetchSpellFromPage] No spell data found in page content`);
+        return null;
+    } catch (error) {
+        console.error(`[fetchSpellFromPage] Error fetching spell page:`, error);
+        return null;
+    }
+};
+
+// POST /all - Canonical endpoint to fetch all spells from D&D Beyond sitemap and merge with user-owned/homebrew
+router.post('/all', async (req: Request, res: Response) => {
+    console.log('[DEBUG] /proxy/spells/all POST handler reached');
+    try {
+        const { cobaltToken, limit = 10, offset = 0 } = req.body;
+        let resolvedCobaltToken = cobaltToken;
+        if (cobaltToken) {
+            const cacheResult = authentication.CACHE_AUTH.exists(cobaltToken);
+            if (cacheResult && cacheResult.data) {
+                resolvedCobaltToken = cacheResult.data;
+                console.log(`[spells/all] Using cached token for authorization`);
+            }
+        }
+        // 1. Get all spells from sitemap (ddb-public)
+        const spellUrls = parseSitemapForSpells();
+        if (spellUrls.length === 0) {
+            return res.status(500).json({ 
+                success: false, 
+                message: "Failed to parse sitemap or no spells found" 
+            });
+        }
+        const paginatedSpells = spellUrls.slice(offset, offset + limit);
+        console.log(`[spells/all] Processing ${paginatedSpells.length} spells (offset: ${offset}, limit: ${limit})`);
+        const spellData = [];
+        let successCount = 0;
+        let errorCount = 0;
+        for (const spellUrl of paginatedSpells) {
+            try {
+                let spell = await fetchSpellById(spellUrl.id, resolvedCobaltToken);
+                let provenance = 'ddb-public';
+                if (!spell) {
+                    spell = await fetchSpellFromPage(spellUrl.url, resolvedCobaltToken);
+                }
+                if (spell) {
+                    const formattedSpell = {
+                        definition: spell.definition || spell,
+                        ...spell,
+                        provenance
+                    };
+                    spellData.push(formattedSpell);
+                    successCount++;
+                    console.log(`[spells/all] Successfully processed spell: ${spell.name || spellUrl.name}`);
+                } else {
+                    errorCount++;
+                    console.warn(`[spells/all] Failed to fetch spell: ${spellUrl.name} (${spellUrl.id})`);
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+                errorCount++;
+                console.error(`[spells/all] Error processing spell ${spellUrl.name}:`, error);
+            }
+        }
+        // 2. (Stub) If cobaltToken provided, fetch user-owned/homebrew spells and merge (to be implemented)
+        // TODO: Implement merge logic for ddb-owned and ddb-homebrew
+        // For now, just return the public list
+        console.log(`[spells/all] Completed: ${successCount} successful, ${errorCount} failed`);
+        return res.json({ 
+            success: true, 
+            data: spellData,
+            meta: {
+                total: spellUrls.length,
+                fetched: spellData.length,
+                offset,
+                limit,
+                successCount,
+                errorCount
+            }
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[spells/all] Fatal error:`, message);
+        return res.status(500).json({ 
+            success: false, 
+            message 
+        });
+    }
+});
+
 export default router;
 /* global console */
