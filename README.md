@@ -60,6 +60,7 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - Comprehensive character sheet mapping to FoundryVTT D&D 5e system
 - Support for all character levels, classes, races, and backgrounds
 - **Enhanced class import:** All FoundryVTT class schema fields mapped, proxy enrichment, homebrew flag support
+- **Legacy class detection:** Imported classes now include an `isLegacy` flag if they are marked as legacy on D&D Beyond (via badge, label, or section). Filtering/warning logic is planned for future releases.
 
 ### 🧙‍♂️ Spell Integration (Production Ready!)
 - **Complete spell import** from character spell lists

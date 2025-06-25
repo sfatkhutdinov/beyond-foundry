@@ -45,6 +45,10 @@ interface Sidebar {
   content: string;
 }
 
+/**
+ * ProxyClassData: Canonical representation of a D&D Beyond class for Foundry import
+ * @field isLegacy - true if this class is marked as legacy on D&D Beyond (badge, label, or section)
+ */
 type ProxyClassData = {
   id: number;
   slug: string;
@@ -70,6 +74,7 @@ type ProxyClassData = {
   equipmentChoices: string[][];
   // Add raw HTML for post-processing
   rawHtmlContentContainer?: string;
+  isLegacy: boolean;
 };
 
 /* *********************************** */
@@ -141,6 +146,7 @@ async function getClassData(
         equipmentChoices: extractEquipmentChoices(apiCoreTraits),
         // Add the raw HTML for post-processing
         rawHtmlContentContainer: apiData.rawHtmlContentContainer || '',
+        isLegacy: false,
       };
     }
   } catch (apiError) {
@@ -178,6 +184,17 @@ async function getClassData(
     const rawHtmlContentContainer = $root('.content-container').first().html() || '';
     const htmlCoreTraits = extractCoreTraits($root);
     const htmlFeatures = extractFeatures($root);
+    // LEGACY DETECTION
+    let isLegacy = false;
+    // Look for common legacy badge/label selectors or text
+    if (
+      $root('.badge-legacy').length > 0 ||
+      $root('.legacy-content').length > 0 ||
+      $root('.badge').filter((_, el) => /legacy/i.test($root(el).text())).length > 0 ||
+      /legacy/i.test($root('.content-container').text())
+    ) {
+      isLegacy = true;
+    }
     htmlResult = {
       name: extractName($root),
       description: extractDescription($root),
@@ -197,6 +214,7 @@ async function getClassData(
       equipmentChoices: extractEquipmentChoices(htmlCoreTraits),
       // Add the raw HTML for post-processing
       rawHtmlContentContainer,
+      isLegacy,
     };
   }
 
@@ -260,6 +278,8 @@ async function getClassData(
       : htmlResult.equipmentChoices || [],
     // Add the raw HTML for post-processing if present
     ...(htmlResult.rawHtmlContentContainer ? { rawHtmlContentContainer: htmlResult.rawHtmlContentContainer } : {}),
+    // LEGACY FIELD: prefer API if present, else HTML
+    isLegacy: typeof apiResult?.isLegacy === 'boolean' ? apiResult.isLegacy : htmlResult.isLegacy === true,
   };
 
   if (!validateClassData(merged)) {

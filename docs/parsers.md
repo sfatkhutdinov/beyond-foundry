@@ -17,7 +17,7 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 | AdventureParser  | ⏳ Planned     | -                               | All fields                    |                                    |
 | BackgroundParser | 🟡 In Progress | -                               | All fields                    |                                    |
 | RaceParser       | ✅ Complete    | -                               | All fields                    |                                    |
-| ClassParser      | ✅ Enhanced    | Full FoundryVTT schema, proxy enrichment, homebrew flags, spellLists, tags, prerequisites, source info, **robust HTML parsing, complete feature/subclass/progression extraction, no rawHtml in output** | - | Enriches all fields, supports proxyData, homebrew detection |
+| ClassParser      | ✅ Enhanced    | Full FoundryVTT schema, proxy enrichment, homebrew flags, spellLists, tags, prerequisites, source info, **robust HTML parsing, complete feature/subclass/progression extraction, no rawHtml in output**, **legacy class detection (isLegacy)** | - | Enriches all fields, supports proxyData, homebrew detection, **flags legacy classes** |
 | RuleParser       | ⏳ Planned     | -                               | All fields                    |                                    |
 | FeatParser       | 🟡 In Progress | -                               | All fields                    |                                    |
 
@@ -25,6 +25,7 @@ Beyond Foundry uses modular, type-safe TypeScript parsers for each D&D Beyond co
 
 ## Implementation Notes
 - ClassParser now supports full FoundryVTT schema enrichment, including description, proficiencies, spellcasting, advancement, prerequisites, tags, starting equipment, spellLists, source info, and homebrew flags. It uses both DDBClass and proxyData (HTML-scraped output) for maximum coverage.
+- **Legacy class detection:** Classes marked as legacy on D&D Beyond (via badge, label, or section) are now flagged with `isLegacy: true` in the output. Filtering/warning logic is planned for future releases.
 - Parsers are located in `src/parsers/`
 - Each parser is modular and type-safe (TypeScript)
 - All major parsers (ItemParser, FeatureParser, etc.) now follow a consistent static interface: `parse<Type>`, `parse<Type>Array`, and have TODO stubs for advanced features (homebrew flags, enhanced properties, system fields, etc.)

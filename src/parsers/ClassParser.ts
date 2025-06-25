@@ -14,6 +14,7 @@ interface ProxyClassData {
   sidebars?: string[];
   name?: string;
   additionalTables?: unknown;
+  isLegacy?: boolean;
 }
 
 export class ClassParser {
@@ -283,7 +284,8 @@ export class ClassParser {
       subclasses,
       tags: [],
       prerequisites: [],
-      source: 'D&D Beyond'
+      source: 'D&D Beyond',
+      isLegacy: false
     };
   }
   
@@ -501,7 +503,8 @@ export class ClassParser {
           originalDDB: ddbClass,
           proxyData: proxy
         }
-      }
+      },
+      isLegacy: proxy.isLegacy === true
     };
   }
 }

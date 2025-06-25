@@ -1220,11 +1220,14 @@ export class BeyondFoundryAPI {
       }
       const ddbClass = data.ddb.class as import('../../types/index.js').DDBClass;
       const { ClassParser } = await import('../../parsers/ClassParser.js');
-      const foundryClass = ClassParser.parseClass(ddbClass);
+      const foundryClass = ClassParser.parseClass(ddbClass, proxyData);
       // Optionally, create in compendium or as embedded item
       // For now, just return the parsed structure
       Logger.info(`Successfully parsed class: ${foundryClass.name}`);
-      return foundryClass;
+      return {
+        ...foundryClass,
+        isLegacy: foundryClass.isLegacy === true, // propagate legacy flag
+      };
     } catch (error) {
       Logger.error(`Class import error: ${getErrorMessage(error)}`);
       return null;
