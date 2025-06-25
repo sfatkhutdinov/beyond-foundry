@@ -74,3 +74,11 @@ detailed_rogue_pretty.json
 
 # Code Index MCP cache directory
 .code_indexer/
+
+# Archive, obsolete, and legacy folders
+scripts/dev/
+docs/archive/
+data/obsolete/
+class_jsons/archive/
+references/archive/
+tests/legacy/

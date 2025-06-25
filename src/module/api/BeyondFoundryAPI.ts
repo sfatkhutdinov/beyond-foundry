@@ -7,11 +7,14 @@ import type {
   DDBSpell,
   FoundrySpell,
   DDBItem,
+  ModuleSettings,
+  ImportPolicy, // Added ImportPolicy here
 } from '../../types/index.js';
-import { getModuleSettings } from '../utils/settings.js';
+// Removed getModuleSettings import, will use passed-in config or env vars for tests
 import { Logger, getErrorMessage } from '../utils/logger.js';
 import { CharacterImportService } from '../../services/CharacterImportService.js';
 import { ContentImportService } from '../../services/ContentImportService.js';
+import { DEFAULT_PROXY_URL } from '../constants.js'; // Added for default proxy
 
 /**
  * Main API class for Beyond Foundry module
@@ -20,9 +23,10 @@ import { ContentImportService } from '../../services/ContentImportService.js';
 export class BeyondFoundryAPI {
   private static instance: BeyondFoundryAPI;
   public proxyEndpoint: string = '';
-  private apiEndpoint: string = '';
+  private apiEndpoint: string = ''; // Retained for potential future use
   private initialized: boolean = false;
   private bearerToken: string | null = null;
+  private settings: Partial<ModuleSettings> = {}; // Store settings internally
 
   // New service instances for separated import workflows
   private characterImportService: CharacterImportService | null = null;
@@ -42,20 +46,65 @@ export class BeyondFoundryAPI {
 
   /**
    * Initialize the API with current settings and setup separated import services
+   * Accepts optional settings for testing environments where `game` object is not available.
    */
-  public init(): void {
+  public init(testSettings?: Partial<ModuleSettings>): void {
     if (this.initialized) return;
 
-    const settings = getModuleSettings();
-    this.proxyEndpoint = settings.proxyUrl;
-    this.apiEndpoint = settings.apiEndpoint;
-    this.initialized = true;
+    // Prioritize testSettings if provided (for test environments)
+    if (testSettings) {
+      this.settings = {
+        proxyUrl: testSettings.proxyUrl || process.env.PROXY_URL || DEFAULT_PROXY_URL,
+        cobaltToken: testSettings.cobaltToken || process.env.COBALT_TOKEN || '',
+        apiEndpoint: testSettings.apiEndpoint || process.env.API_ENDPOINT || '',
+        debugMode: testSettings.debugMode !== undefined ? testSettings.debugMode : (process.env.DEBUG_MODE === 'true'),
+        autoImportItems: testSettings.autoImportItems !== undefined ? testSettings.autoImportItems : (process.env.AUTO_IMPORT_ITEMS === 'true'),
+        importPolicy: testSettings.importPolicy || (process.env.IMPORT_POLICY as ImportPolicy) || 'ask',
+      };
+      Logger.info('🔧 BeyondFoundryAPI initialized with provided test settings and environment variable fallbacks.');
+    } 
+    // Else, check for Foundry environment - ensure game.settings.get is a function
+    else if (typeof game !== 'undefined' && game.settings && typeof game.settings.get === 'function') {
+      // In Foundry environment, use game.settings
+      const { getModuleSettings } = require('../utils/settings.js'); // Dynamically import for Foundry env
+      this.settings = getModuleSettings();
+      Logger.info('🔧 BeyondFoundryAPI initialized with Foundry game settings.');
+    } 
+    // Else, fallback for pure Node.js environments if no testSettings and no Foundry (should be rare for tests now)
+    else {
+      this.settings = {
+        proxyUrl: process.env.PROXY_URL || DEFAULT_PROXY_URL,
+        cobaltToken: process.env.COBALT_TOKEN || '',
+        apiEndpoint: process.env.API_ENDPOINT || '',
+        debugMode: process.env.DEBUG_MODE === 'true',
+        autoImportItems: process.env.AUTO_IMPORT_ITEMS === 'true',
+        importPolicy: (process.env.IMPORT_POLICY as ImportPolicy) || 'ask',
+      };
+      Logger.info('🔧 BeyondFoundryAPI initialized with environment variables/defaults for non-Foundry, non-test-specific environment.');
+    }
+    
+    this.proxyEndpoint = this.settings.proxyUrl || DEFAULT_PROXY_URL;
+    this.apiEndpoint = this.settings.apiEndpoint || ''; // Ensure apiEndpoint is also set
 
     // Initialize separated import services
     this.characterImportService = new CharacterImportService(this.proxyEndpoint);
     this.contentImportService = new ContentImportService(this.proxyEndpoint);
+    
+    // If a cobalt token is available in settings, set it on services
+    if (this.settings.cobaltToken) {
+        this.bearerToken = this.settings.cobaltToken; // Store it locally for API methods
+        if (this.characterImportService) {
+            this.characterImportService.setBearerToken(this.settings.cobaltToken);
+        }
+        if (this.contentImportService) {
+            this.contentImportService.setBearerToken(this.settings.cobaltToken);
+        }
+        Logger.debug('Bearer token set on import services from initial settings.');
+    }
 
-    Logger.info('🔧 BeyondFoundryAPI initialized with separated import services');
+    this.initialized = true;
+    Logger.info('🔧 BeyondFoundryAPI initialized.');
+    Logger.debug(`  • Proxy Endpoint: ${this.proxyEndpoint}`);
     Logger.debug('  • Character Import: API-first using rich character endpoint');
     Logger.debug('  • Content Import: Scraping-based for maximum quality');
 
@@ -70,9 +119,11 @@ export class BeyondFoundryAPI {
    */
   public async testProxyConnection(): Promise<boolean> {
     try {
-      Logger.debug(`Testing proxy connection to: ${this.proxyEndpoint}`);
+      // Ensure proxyEndpoint is set, defaulting if necessary
+      const endpointToTest = this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL;
+      Logger.debug(`Testing proxy connection to: ${endpointToTest}`);
 
-      const response = await fetch(`${this.proxyEndpoint}/ping`, {
+      const response = await fetch(`${endpointToTest}/ping`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -98,10 +149,10 @@ export class BeyondFoundryAPI {
    */
   public async authenticate(cobaltToken?: string): Promise<AuthResponse> {
     try {
-      // Use provided token or get from settings
-      const token = cobaltToken || getModuleSettings().cobaltToken;
+      // Use provided token, then settings token, then env token
+      const tokenToUse = cobaltToken || this.settings.cobaltToken || process.env.COBALT_TOKEN;
 
-      if (!token) {
+      if (!tokenToUse) {
         return {
           success: false,
           message: 'No cobalt token provided. Please authenticate first.',
@@ -111,14 +162,16 @@ export class BeyondFoundryAPI {
       Logger.debug('Attempting authentication with D&D Beyond');
 
       // Exchange COBALT_COOKIE for Bearer token
-      const response = await fetch(`${this.proxyEndpoint}/proxy/auth/token`, {
+      const authEndpoint = `${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/auth/token`;
+      Logger.debug(`Authenticating via: ${authEndpoint}`);
+      const response = await fetch(authEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           id: 'foundry_user', // Identifier for caching
-          cobalt: token,
+          cobalt: tokenToUse,
         }),
       });
 
@@ -127,10 +180,17 @@ export class BeyondFoundryAPI {
         if (data.token) {
           // Store the Bearer token for future API calls
           this.bearerToken = data.token;
+          // Also update internal settings if this was a manual auth call
+          if (this.settings) { 
+            this.settings.cobaltToken = data.token; 
+          }
           
           // Set the bearer token on the import services
           if (this.characterImportService) {
             this.characterImportService.setBearerToken(data.token);
+          }
+          if (this.contentImportService) {
+            this.contentImportService.setBearerToken(data.token);
           }
           
           Logger.info('Authentication successful - Bearer token obtained');
@@ -190,6 +250,8 @@ export class BeyondFoundryAPI {
     try {
       Logger.debug(`🎭 Delegating character fetch to CharacterImportService: ${characterId}`);
 
+      if (!this.initialized) this.init(); // Ensure initialized
+
       // Ensure character import service is available
       if (!this.characterImportService) {
         Logger.error('CharacterImportService not initialized');
@@ -199,7 +261,8 @@ export class BeyondFoundryAPI {
       // Ensure we have authentication
       if (!this.bearerToken) {
         Logger.warn('No Bearer token available. Attempting authentication...');
-        const authResult = await this.authenticate();
+        // Pass token from settings/env if available, authenticate will handle it
+        const authResult = await this.authenticate(this.settings.cobaltToken || process.env.COBALT_TOKEN);
         if (!authResult.success) {
           Logger.error('Failed to authenticate. Please check your COBALT token.');
           return null;
@@ -225,6 +288,7 @@ export class BeyondFoundryAPI {
   ): Promise<ImportResult> {
     try {
       Logger.info(`🎭 Delegating character import to CharacterImportService: ${characterId}`);
+      if (!this.initialized) this.init(); // Ensure initialized
 
       // Ensure character import service is available
       if (!this.characterImportService) {
@@ -238,7 +302,9 @@ export class BeyondFoundryAPI {
       // Ensure we have authentication
       if (!this.bearerToken) {
         Logger.warn('No Bearer token available. Attempting authentication...');
-        const authResult = await this.authenticate();
+         // Pass token from options, then settings/env if available
+        const tokenForAuth = options.cobaltToken || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+        const authResult = await this.authenticate(tokenForAuth);
         if (!authResult.success) {
           return {
             success: false,
@@ -261,13 +327,84 @@ export class BeyondFoundryAPI {
   }
 
   /**
-   * Add inventory items to actor, linking to compendium if available
+   * Import character data by ID and transform it for FoundryVTT
+   * @param characterId The D&D Beyond character ID
+   * @param options Import options, including cobaltToken and proxyUrl
+   * @returns Promise<ImportResult>
    */
+  public async importCharacterById(characterId: string, options: ImportOptions): Promise<ImportResult> {
+    try {
+      Logger.info(`🎭 Delegating character import (by ID) to CharacterImportService: ${characterId}`);
+      
+      // Ensure API is initialized. Pass options that might contain test settings.
+      if (!this.initialized) {
+         this.init({ 
+            proxyUrl: options.proxyUrl, 
+            cobaltToken: options.cobaltToken, 
+            debugMode: options.debug 
+        });
+      }
+
+      // Ensure character import service is available
+      if (!this.characterImportService) {
+        Logger.error('CharacterImportService not initialized');
+        return {
+          success: false,
+          errors: ['CharacterImportService not initialized'],
+          endpoint: 'importCharacterById',
+        };
+      }
+
+      // Ensure we have authentication
+      // Use token from options if provided, then current bearerToken, then settings/env.
+      let tokenToUseForAuth = options.cobaltToken || this.bearerToken || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      
+      if (!this.bearerToken || (options.cobaltToken && options.cobaltToken !== this.bearerToken)) {
+        Logger.warn('Bearer token mismatch or not set. Attempting authentication with provided/best available token...');
+        const authResult = await this.authenticate(tokenToUseForAuth);
+        if (!authResult.success) {
+          return {
+            success: false,
+            errors: ['Failed to authenticate. Please check your COBALT token.'],
+            endpoint: 'importCharacterById',
+          };
+        }
+        // Update tokenToUseForAuth if authenticate returned a new one and stored it in this.bearerToken
+        tokenToUseForAuth = this.bearerToken; 
+      }
+      
+      // If the characterImportService's bearer token is not set or differs, set it now.
+      if (this.bearerToken && (!this.characterImportService.hasBearerToken() || !this.characterImportService.isTokenSame(this.bearerToken))) {
+        this.characterImportService.setBearerToken(this.bearerToken);
+      }
+
+
+      // Delegate to the character import service (API-first approach)
+      // The CharacterImportService.importCharacter method is the correct one to call.
+      return await this.characterImportService.importCharacter(characterId, options);
+
+    } catch (error) {
+      Logger.error(`Character import (by ID) error: ${getErrorMessage(error)}`);
+      return {
+        success: false,
+        errors: [`Character import (by ID) error: ${getErrorMessage(error)}`],
+        endpoint: 'importCharacterById',
+      };
+    }
+  }
+
   private async addItemsToActor(
     actor: Actor,
     ddbItems: DDBItem[],
     options: Partial<ImportOptions>
   ): Promise<number> {
+    // This method relies on `game` object, so it won't work in test scripts as-is.
+    // For test scripts, we are focused on the API's ability to fetch and parse,
+    // not Foundry integration. So, this can be skipped or mocked if tests call it.
+    if (typeof game === 'undefined') {
+        Logger.warn('Skipping addItemsToActor in test environment (game object not available).');
+        return 0;
+    }
     const compendiumName = options.itemCompendiumName || 'beyondfoundry.items';
     const { ItemParser } = await import('../../parsers/items/ItemParser.js');
     // Use eslint-disable for Foundry dynamic API compatibility - this is a known limitation
@@ -328,6 +465,12 @@ export class BeyondFoundryAPI {
     ddbCharacter: DDBCharacter,
     options: Partial<ImportOptions> = {}
   ): Promise<{ success: boolean; warnings?: string[]; errors?: string[] }> {
+    // This method relies on `game` object for settings, so it won't work in test scripts as-is.
+    // It also takes an Actor object.
+    if (typeof game === 'undefined') {
+        Logger.warn('Skipping importCharacterSpells in test environment (game object not available).');
+        return { success: true, warnings: ['Skipped in test environment'] };
+    }
     try {
       const warnings: string[] = [];
       const errors: string[] = [];
@@ -338,8 +481,8 @@ export class BeyondFoundryAPI {
       }
 
       // Get cobalt token from settings
-      const settings = getModuleSettings();
-      if (!settings.cobaltToken) {
+      const tokenForSpellFetch = this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (!tokenForSpellFetch) {
         warnings.push('No cobalt token configured - cannot fetch spells from D&D Beyond');
         return { success: true, warnings };
       }
@@ -387,7 +530,7 @@ export class BeyondFoundryAPI {
           // Fetch spells for this class
           const classSpells = await this.fetchCharacterSpells(
             ddbCharacter.id,
-            settings.cobaltToken,
+            this.settings.cobaltToken,
             fetchClassInfo
           );
 
@@ -433,7 +576,7 @@ export class BeyondFoundryAPI {
    */
   public async fetchCharacterSpells(
     characterId: number,
-    cobaltToken: string,
+    cobaltTokenInput?: string, // Made optional, will use internal if not provided
     classInfo?: {
       id: number;
       name: string;
@@ -451,8 +594,15 @@ export class BeyondFoundryAPI {
 
       Logger.debug(`Fetching spells for ${classInfo.name} (ID: ${classInfo.id}) at level ${classInfo.spellLevelAccess}`);
 
-      // Authenticate first
-      const authSuccess = await this.authenticate(cobaltToken);
+      // Authenticate first, use provided token or internal token
+      const tokenToUse = cobaltTokenInput || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (!tokenToUse) {
+        throw new Error('Cobalt token not available for spell fetch.');
+      }
+      // Ensure API is initialized if not already
+      if(!this.initialized) this.init({ cobaltToken: tokenToUse });
+
+      const authSuccess = await this.authenticate(tokenToUse);
       if (!authSuccess.success) {
         throw new Error('Authentication failed');
       }
@@ -476,6 +626,8 @@ export class BeyondFoundryAPI {
     classInfo: { id: number; name: string; spellLevelAccess: number; campaignId?: number }
   ): Promise<DDBSpell[]> {
     try {
+      // Ensure API is initialized if not already
+      if(!this.initialized) this.init();
       // Ensure we have a valid Bearer token
       if (!this.bearerToken) {
         Logger.warn('No Bearer token available. Attempting authentication...');
@@ -485,7 +637,7 @@ export class BeyondFoundryAPI {
         }
       }
 
-      const response = await fetch(`${this.proxyEndpoint}/proxy/spells/class/spells`, {
+      const response = await fetch(`${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/spells/class/spells`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -537,8 +689,10 @@ export class BeyondFoundryAPI {
     classInfo: { id: number; name: string; spellLevelAccess: number; campaignId?: number },
     spellListIds: number[] = []
   ): Promise<DDBSpell[]> {
+     // Ensure API is initialized if not already
+    if(!this.initialized) this.init();
     try {
-      const url = `${this.proxyEndpoint}/proxy/spells/always-prepared/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}&spellLists=${spellListIds.join(',')}`;
+      const url = `${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/spells/always-prepared/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}&spellLists=${spellListIds.join(',')}`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -577,18 +731,24 @@ export class BeyondFoundryAPI {
    */
   public async extractAlwaysKnownSpells(
     classInfo: { id: number; name: string; spellLevelAccess: number; campaignId?: number; backgroundId?: number },
-    cobaltId: string,
+    cobaltIdInput?: string, // Made optional
     includeCantrips: boolean = true,
     spellListIds: number[] = []
   ): Promise<DDBSpell[]> {
+    // Ensure API is initialized if not already
+    if(!this.initialized) this.init();
     try {
-      const url = `${this.proxyEndpoint}/proxy/spells/always-known/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}&background=${classInfo.backgroundId || ''}&spellLists=${spellListIds.join(',')}&cantrips=${includeCantrips}`;
+      const tokenToUse = cobaltIdInput || this.bearerToken || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (!tokenToUse) {
+        throw new Error('Cobalt token (bearer) not available for always known spell fetch.');
+      }
+      const url = `${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/spells/always-known/${classInfo.id}?level=${classInfo.spellLevelAccess}&campaign=${classInfo.campaignId || ''}&background=${classInfo.backgroundId || ''}&spellLists=${spellListIds.join(',')}&cantrips=${includeCantrips}`;
       
       const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${cobaltId}`,
+          'Authorization': `Bearer ${cobaltIdInput}`,
         },
       });
 
@@ -629,6 +789,7 @@ export class BeyondFoundryAPI {
    */
   public async runConnectionTest(): Promise<void> {
     Logger.info('Running Beyond Foundry connection test...');
+    if (!this.initialized) this.init(); // Ensure initialized
 
     // Test 1: Proxy connection
     const proxyTest = await this.testProxyConnection();
@@ -636,9 +797,9 @@ export class BeyondFoundryAPI {
 
     // Test 2: Authentication (if token available)
     try {
-      const cobaltToken = getModuleSettings().cobaltToken;
-      if (cobaltToken) {
-        const authResult = await this.authenticate(cobaltToken);
+      const tokenForAuth = this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (tokenForAuth) {
+        const authResult = await this.authenticate(tokenForAuth);
         ui.notifications.info(`Authentication: ${authResult.success ? 'SUCCESS' : 'FAILED'}`);
         if (!authResult.success) {
           Logger.warn(`Authentication failed: ${authResult.message}`);
@@ -672,16 +833,17 @@ export class BeyondFoundryAPI {
   public async runDiagnostic(): Promise<void> {
     Logger.info('🔍 Beyond Foundry Diagnostic');
     Logger.info('='.repeat(40));
+    if (!this.initialized) this.init(); // Ensure initialized
 
     // Environment info
     Logger.info(`System: ${game.system.id}`);
 
     // Settings
-    const settings = getModuleSettings();
-    Logger.info(`\nSettings:`);
-    Logger.info(`  Proxy URL: ${settings.proxyUrl}`);
-    Logger.info(`  Has Token: ${settings.cobaltToken ? 'Yes' : 'No'}`);
-    Logger.info(`  Debug Mode: ${settings.debugMode}`);
+    Logger.info('\\nSettings (from API instance):');
+    Logger.info(`  Proxy URL: ${this.settings.proxyUrl}`);
+    Logger.info(`  Has Token (in settings): ${this.settings.cobaltToken ? 'Yes' : 'No'}`);
+    Logger.info(`  Has Bearer Token (in API): ${this.bearerToken ? 'Yes' : 'No'}`);
+    Logger.info(`  Debug Mode: ${this.settings.debugMode}`);
 
     // Network test
     Logger.info('\nNetwork Test:');
@@ -774,13 +936,22 @@ export class BeyondFoundryAPI {
    * @param cobaltToken - D&D Beyond session token
    * @param compendiumName - The compendium to populate (default: 'beyondfoundry.spells')
    */
-  public async bulkImportSpellsToCompendium(cobaltToken: string, compendiumName = 'beyondfoundry.spells'): Promise<number> {
+  public async bulkImportSpellsToCompendium(cobaltTokenInput?: string, compendiumName = 'beyondfoundry.spells'): Promise<number> {
+    // This method relies on `game` object, so it won't work in test scripts as-is.
+    if (typeof game === 'undefined') {
+        Logger.warn('Skipping bulkImportSpellsToCompendium in test environment (game object not available).');
+        return 0;
+    }
     try {
+      const tokenToUse = cobaltTokenInput || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (!tokenToUse) {
+        throw new Error('Cobalt token not available for bulk spell import.');
+      }
       Logger.info(`Starting bulk spell import to compendium: ${compendiumName}`);
-      const response = await fetch(`${this.proxyEndpoint}/proxy/class/spells`, {
+      const response = await fetch(`${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/class/spells`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ className: 'Wizard', cobalt: cobaltToken })
+        body: JSON.stringify({ className: 'Wizard', cobalt: tokenToUse })
       });
       if (!response.ok) throw new Error(`Failed to fetch spells: ${response.status}`);
       const data = await response.json();
@@ -848,13 +1019,22 @@ export class BeyondFoundryAPI {
    * @param cobaltToken - D&D Beyond session token
    * @param compendiumName - The compendium to populate (default: 'beyondfoundry.items')
    */
-  public async bulkImportItemsToCompendium(cobaltToken: string, compendiumName = 'beyondfoundry.items'): Promise<number> {
+  public async bulkImportItemsToCompendium(cobaltTokenInput?: string, compendiumName = 'beyondfoundry.items'): Promise<number> {
+    // This method relies on `game` object, so it won't work in test scripts as-is.
+    if (typeof game === 'undefined') {
+        Logger.warn('Skipping bulkImportItemsToCompendium in test environment (game object not available).');
+        return 0;
+    }
     try {
+      const tokenToUse = cobaltTokenInput || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (!tokenToUse) {
+        throw new Error('Cobalt token not available for bulk item import.');
+      }
       Logger.info(`Starting bulk item import to compendium: ${compendiumName}`);
-      const response = await fetch(`${this.proxyEndpoint}/proxy/items`, {
+      const response = await fetch(`${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cobalt: cobaltToken })
+        body: JSON.stringify({ cobalt: tokenToUse })
       });
       if (!response.ok) throw new Error(`Failed to fetch items: ${response.status}`);
       const data = await response.json();
@@ -922,6 +1102,11 @@ export class BeyondFoundryAPI {
     spells: DDBSpell[],
     options: Partial<ImportOptions>
   ): Promise<number> {
+    // This method relies on `game` object, so it won't work in test scripts as-is.
+    if (typeof game === 'undefined') {
+        Logger.warn('Skipping addSpellsToActor in test environment (game object not available).');
+        return 0;
+    }
     try {
       const { SpellParser } = await import('../../parsers/spells/SpellParser.js');
       let importedCount = 0;
@@ -1007,23 +1192,25 @@ export class BeyondFoundryAPI {
    */
   public async importClass(
     classId: string,
-    _options: Partial<ImportOptions> = {}
+    options: Partial<ImportOptions> = {} // options used for cobalt token
   ): Promise<Record<string, unknown> | null> {
     try {
       Logger.info(`Starting class import for ID: ${classId}`);
-      const cobaltToken = getModuleSettings().cobaltToken;
-      if (!cobaltToken) {
+      if (!this.initialized) this.init({ cobaltToken: options.cobaltToken, proxyUrl: options.proxyUrl });
+
+      const tokenToUse = options.cobaltToken || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+      if (!tokenToUse) {
         Logger.error('No authentication token available. Please authenticate first.');
         return null;
       }
       // Fetch class data from ddb-proxy
-      const response = await fetch(`${this.proxyEndpoint}/proxy/classes/${classId}`, {
+      const response = await fetch(`${this.proxyEndpoint || process.env.PROXY_URL || DEFAULT_PROXY_URL}/proxy/classes/${classId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cobalt: cobaltToken,
+          cobalt: tokenToUse,
         }),
       });
       const data = await response.json();
@@ -1042,5 +1229,64 @@ export class BeyondFoundryAPI {
       Logger.error(`Class import error: ${getErrorMessage(error)}`);
       return null;
     }
+  }
+
+  /**
+   * Placeholder for importing class features.
+   * @param className - The name of the class.
+   * @param options - Import options.
+   */
+  public async importClassFeatures(
+    className: string,
+    options: Partial<ImportOptions> = {}
+  ): Promise<any[]> { // Return type is any[] for now
+    Logger.info(`Placeholder: importClassFeatures called for ${className}`);
+    if (!this.initialized) this.init({ cobaltToken: options.cobaltToken, proxyUrl: options.proxyUrl });
+    // This should delegate to ContentImportService or a new ClassImportService
+    Logger.warn('importClassFeatures actual implementation in ContentImportService is pending.');
+    return []; // Placeholder return
+  }
+
+  /**
+   * Public method to import spells by class name using the ContentImportService.
+   * @param className - The name of the class for which to import spells.
+   * @param options - Optional import options.
+   */
+  public async importSpellsByClass(
+    className: string,
+    options: Partial<ImportOptions> = {}
+  ): Promise<{ success: boolean; spells: FoundrySpell[]; errors: string[] }> {
+    if (!this.initialized) {
+      this.init({ cobaltToken: options.cobaltToken, proxyUrl: options.proxyUrl });
+      Logger.warn('BeyondFoundryAPI not initialized. Call init() first.');
+      // return { success: false, spells: [], errors: ['API not initialized'] }; // Init now called
+    }
+    if (!this.contentImportService) {
+      Logger.error('ContentImportService is not available.');
+      return { success: false, spells: [], errors: ['ContentImportService not available'] };
+    }
+    // Ensure bearer token is set if required by the service
+    // Use token from options, then settings/env
+    const tokenToUse = options.cobaltToken || this.settings.cobaltToken || process.env.COBALT_TOKEN;
+    if (tokenToUse && this.contentImportService && (!this.contentImportService.hasBearerToken() || !this.contentImportService.isTokenSame(tokenToUse))) {
+        this.contentImportService.setBearerToken(tokenToUse);
+    }
+    return this.contentImportService.importSpells(className, options);
+  }
+
+  /**
+   * Placeholder for importing all spells.
+   * @param options - Import options.
+   */
+  public async importAllSpells(
+    options: Partial<ImportOptions> = {}
+  ): Promise<FoundrySpell[]> { // Return type is FoundrySpell[] for now
+    Logger.info(`Placeholder: importAllSpells called`);
+    if (!this.initialized) this.init({ cobaltToken: options.cobaltToken, proxyUrl: options.proxyUrl });
+    // This should delegate to ContentImportService
+    // Example: const result = await this.contentImportService.importAllSpells(options);
+    // return result.spells; // Assuming importAllSpells returns an object with a spells array
+    Logger.warn('importAllSpells actual implementation in ContentImportService is pending.');
+    return []; // Placeholder return
   }
 }

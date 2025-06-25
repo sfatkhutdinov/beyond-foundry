@@ -1,4 +1,4 @@
-import { Logger } from '../../module/utils/logger.js';
+import { Logger } from '../../module/utils/logger.ts';
 import type { DDBSpell, FoundrySpell, SpellParsingOptions } from '../../types/index.js';
 
 /**
@@ -131,7 +131,7 @@ export class SpellParser {
   private static parseSource(definition: DDBSpellDefinitionExtended): string {
     if (definition.sources && definition.sources.length > 0) {
       const source = definition.sources[0];
-      return `${source.sourceType === 1 ? 'PHB' : 'Supplement'} ${source.pageNumber ?? ''}`.trim();
+      return `${source.sourceType === '1' ? 'PHB' : 'Supplement'} ${source.pageNumber ?? ''}`.trim();
     }
     return '';
   }

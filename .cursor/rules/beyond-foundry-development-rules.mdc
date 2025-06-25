@@ -1,11 +1,15 @@
 ---
 description: 
 globs: 
-alwaysApply: false
+alwaysApply: true
 ---
 # Beyond Foundry - Cursor IDE Agent Rules
 
 ## 🎯 AGENT DIRECTIVES
+
+
+# ALWAYS USE MEMORY MCP
+
 
 ### 1. File Operations
 - ACTION: DO NOT create new files without explicit user permission

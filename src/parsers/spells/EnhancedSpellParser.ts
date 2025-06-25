@@ -5,7 +5,7 @@
  * modern Activity System for full spell automation.
  */
 
-import { Logger } from '../../module/utils/logger.js';
+import { Logger } from '../../module/utils/logger.ts';
 import type { 
   DDBSpell, 
   FoundrySpell, 
@@ -14,7 +14,7 @@ import type {
 } from '../../types/index.js';
 
 // Import the existing SpellParser for base functionality
-import { SpellParser } from './SpellParser.js';
+import { SpellParser } from './SpellParser.ts';
 
 /**
  * Enhanced Spell Parser with Activity System support

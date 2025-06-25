@@ -29,7 +29,7 @@ import { ItemParser } from '../../parsers/items/ItemParser.js';
 import { FeatureParser } from '../../parsers/features/FeatureParser.js';
 import { SpellParser } from '../../parsers/spells/SpellParser.js';
 import { Logger, getErrorMessage } from '../utils/logger.js';
-import { DDBItem } from '../../types';
+import { DDBItem } from '../../types/index.js';
 
 /**
  * Route Handler for Beyond Foundry API Endpoints
@@ -61,7 +61,7 @@ export class RouteHandler {
       }
 
       // Parse to Foundry format
-      const foundryData = CharacterParser.parseCharacter(ddbCharacter);
+      const foundryData = await CharacterParser.parseCharacter(ddbCharacter);
 
       return {
         success: true,
@@ -723,9 +723,10 @@ export class RouteHandler {
 
   private parseWeaponRange(weapon: DDBItem): WeaponRange {
     // TODO: Implement weapon range parsing
+    const definition: any = weapon.definition;
     return {
-      value: weapon.definition?.range ?? 5,
-      long: weapon.definition?.longRange ?? null,
+      value: definition?.range ?? 5,
+      long: definition?.longRange ?? null,
       units: 'ft'
     };
   }

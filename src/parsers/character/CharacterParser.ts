@@ -9,7 +9,7 @@ import type {
   FoundryItemData,
   FoundryResource,
 } from '../../types/index.ts';
-import { Logger } from '../../module/utils/logger';
+import { Logger } from '../../module/utils/logger.js';
 
 /**
  * Comprehensive Character Parser for D&D Beyond to FoundryVTT D&D 5e system
@@ -33,8 +33,8 @@ export class CharacterParser {
   public static async parseCharacter(ddbCharacter: DDBCharacter): Promise<FoundryActor> {
     // Select Logger implementation at runtime
     const Logger = (typeof process !== 'undefined' && process.env.BEYOND_FOUNDRY_CLI)
-      ? (await import('./logger-cli-fallback.ts')).Logger
-      : (await import('../../module/utils/logger.ts')).Logger;
+      ? (await import('./logger-cli-fallback.js')).Logger
+      : (await import('../../module/utils/logger.js')).Logger;
     Logger.info(`🔮 Comprehensive parsing: ${ddbCharacter.name}`);
 
     const actorData: FoundryActor = {

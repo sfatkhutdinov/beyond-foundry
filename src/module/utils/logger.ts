@@ -1,4 +1,4 @@
-import { MODULE_ID } from '../constants';
+import { MODULE_ID } from '../constants.ts';
 
 /**
  * Logger utility for Beyond Foundry module

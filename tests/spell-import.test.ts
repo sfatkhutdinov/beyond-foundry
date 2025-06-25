@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { SpellParser } from '../src/parsers/spells/SpellParser';
+import { SpellParser } from '../src/parsers/spells/SpellParser.js';
 
 // Feature: Spell Import
 // Status: ✅ CORE FUNCTIONALITY VALIDATED AND WORKING

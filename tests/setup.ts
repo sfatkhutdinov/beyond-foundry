@@ -57,5 +57,31 @@ Object.assign(globalThis, mockFoundryVTT);
 
 // Mock fetch for Node.js environment
 if (typeof fetch === 'undefined') {
-  globalThis.fetch = vi.fn(async () => ({ json: async () => ({}) }));
+  globalThis.fetch = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
+    let urlString: string;
+    if (typeof input === 'string') {
+      urlString = input;
+    } else if (input instanceof URL) {
+      urlString = input.toString();
+    } else {
+      urlString = input.url;
+    }
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      headers: new Headers(),
+      redirected: false,
+      type: 'basic',
+      url: urlString,
+      clone: () => null as unknown as Response, // Basic mock
+      json: async () => ({}),
+      text: async () => '',
+      blob: async () => new Blob(),
+      arrayBuffer: async () => new ArrayBuffer(0),
+      formData: async () => new FormData(),
+      body: null,
+      bodyUsed: false,
+    } as Response);
+  });
 }

@@ -11,10 +11,11 @@
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { Logger } from '../src/module/utils/logger';
-import { EnhancedSpellParser } from '../src/parsers/spells/EnhancedSpellParser';
-import { SpellParser } from '../src/parsers/spells/SpellParser';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { Logger } from '../src/module/utils/logger.ts';
+import { EnhancedSpellParser } from '../src/parsers/spells/EnhancedSpellParser.ts';
+import { SpellParser } from '../src/parsers/spells/SpellParser.ts';
 
 interface TestResults {
   timestamp: string;
@@ -57,6 +58,7 @@ async function main(): Promise<void> {
 
   try {
     // Load imported spell data
+    const __dirname = dirname(fileURLToPath(import.meta.url));
     const spellDataPath = join(__dirname, '../zzzOutputzzz/imported_spells.json');
     console.log(`📂 Loading spell data from: ${spellDataPath}`);
     
@@ -235,7 +237,8 @@ const sampleSpells = [
   }
 ];
 
-if (require.main === module) {
+// Run main if this script is executed directly
+if (import.meta.url === process.argv[1] || import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
 

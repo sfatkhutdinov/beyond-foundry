@@ -1,5 +1,5 @@
 // Script to transform a raw DDB character JSON to FoundryVTT format using CharacterParser
-import { CharacterParser } from '../src/parsers/character/CharacterParser';
+import { CharacterParser } from '../src/parsers/character/CharacterParser.js';
 import * as fs from 'fs';
 
 async function main() {

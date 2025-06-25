@@ -1,18 +1,27 @@
 {
+  "type": "module",
   "dependencies": {
     "cheerio": "^1.1.0",
+    "dotenv": "^16.5.0",
     "he": "^1.2.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/jquery": "^3.5.32",
     "@types/node": "^24.0.1",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
     "@typescript-eslint/parser": "^8.34.0",
     "eslint": "^9.29.0",
+    "fs-extra": "^11.3.0",
     "node-fetch": "^3.3.2",
     "typescript": "^5.8.3",
     "vitest": "^3.2.3"
   },
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test:character": "NODE_ENV=test ts-node scripts/importCharacterTest.ts",
+    "test:class": "NODE_ENV=test ts-node scripts/importClassTest.ts",
+    "test:spells": "NODE_ENV=test ts-node scripts/importAllSpellsTest.ts",
+    "test": "npm run test:character && npm run test:class && npm run test:spells"
   }
 }

@@ -172,14 +172,11 @@ export class ModuleRegistration {
           findInCompendium: async (name: string, type: string): Promise<unknown | null> => {
             try {
               // Use global 'game' object, cast packs to expected type
-              const pack = (game.packs as { find: (_p: unknown) => boolean }).find((_p: unknown) => {
-                const packObj = _p as { metadata?: { type?: string; system?: string } };
-                return packObj.metadata?.type === type && packObj.metadata?.system === 'dnd5e';
-              });
+              const pack = game.packs.find((p: any) => p.metadata?.type === type && p.metadata?.system === 'dnd5e');
               if (!pack) return null;
 
               // Assume pack has getIndex method
-              const index = await (pack as { getIndex: () => Promise<unknown[]> }).getIndex();
+              const index = await pack.getIndex();
               return (index as unknown[]).find((entry: unknown) => {
                 const entryObj = entry as { name?: string };
                 return entryObj.name?.toLowerCase() === name.toLowerCase();

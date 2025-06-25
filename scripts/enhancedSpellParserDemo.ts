@@ -9,8 +9,8 @@
 
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { SpellParser } from '../src/parsers/spells/SpellParser';
-import type { FoundrySpell, FoundryActivity } from '../src/types/index';
+import { SpellParser } from '../src/parsers/spells/SpellParser.js';
+import type { FoundrySpell, FoundryActivity } from '../src/types/index.js';
 
 interface EnhancedFoundrySpell extends FoundrySpell {
   system: FoundrySpell['system'] & {

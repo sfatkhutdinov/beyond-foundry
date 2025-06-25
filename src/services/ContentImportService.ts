@@ -35,6 +35,22 @@ export class ContentImportService {
   }
 
   /**
+   * Check if the service has a bearer token.
+   */
+  public hasBearerToken(): boolean {
+    return !!this.bearerToken;
+  }
+
+  /**
+   * Check if the provided token is the same as the currently stored one.
+   * @param token The token to compare.
+   * @returns True if the tokens are the same, false otherwise.
+   */
+  public isTokenSame(token: string): boolean {
+    return this.bearerToken === token;
+  }
+
+  /**
    * Set the bearer token for authenticated requests
    */
   public setBearerToken(token: string): void {
@@ -108,7 +124,7 @@ export class ContentImportService {
    */
   public async importItems(
     itemIds: number[],
-    options: Partial<ImportOptions> = {}
+    _options: Partial<ImportOptions> = {}
   ): Promise<{ success: boolean; items: FoundryItemData[]; errors: string[] }> {
     try {
       Logger.info(`⚔️ High-Quality Item Import: ${itemIds.length} items`);
@@ -121,9 +137,9 @@ export class ContentImportService {
         try {
           const ddbItem = await this.fetchItemData(itemId);
           if (ddbItem) {
-            const foundryItem = await ItemParser.parseItem(ddbItem);
-            if (foundryItem) {
-              items.push(foundryItem);
+            const foundryItemInstance = ItemParser.parseItem(ddbItem);
+            if (foundryItemInstance) {
+              items.push(foundryItemInstance); // Removed .toObject() here
             } else {
               errors.push(`Failed to parse item ID: ${itemId}`);
             }
@@ -159,7 +175,7 @@ export class ContentImportService {
    */
   public async importMonsters(
     monsterIds: number[],
-    options: Partial<ImportOptions> = {}
+    _options: Partial<ImportOptions> = {}
   ): Promise<{ success: boolean; monsters: any[]; errors: string[] }> {
     try {
       Logger.info(`🐉 High-Quality Monster Import: ${monsterIds.length} monsters`);
@@ -355,7 +371,7 @@ export class ContentImportService {
   /**
    * Fetch class spells using existing proxy endpoints
    */
-  private async fetchClassSpells(className: string, options: Partial<ImportOptions>): Promise<DDBSpell[]> {
+  private async fetchClassSpells(className: string, _options: Partial<ImportOptions>): Promise<DDBSpell[]> {
     try {
       Logger.debug(`Fetching class spells for: ${className}`);
       

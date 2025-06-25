@@ -64,111 +64,33 @@ reference/             # External reference code
 └── foundryvtt-dnd5e/ # FoundryVTT D&D 5e reference
 ```
 
+### Archive & Obsolete Folders
+
+- `docs/archive/` — Outdated, superseded, or archival documentation
+- `data/obsolete/` — Large, obsolete, or sample data files
+- `class_jsons/archive/` — Intermediate or legacy class parsing files
+- `references/archive/` — Old or unused reference files
+- `scripts/dev/` — Experimental or empty scripts
+- `tests/legacy/` — Legacy or empty test files
+
+**Maintenance Tip:** Periodically review these folders and delete files you are sure you will never need.
+
 ## File Naming Conventions
 
 ### Tests
-- `test-*.js` - Feature tests
-- `test-*.cjs` - CommonJS tests
-- `validate-*.sh` - Validation scripts
+- `
 
-### Scripts
-- `analyze-*.js` - Analysis utilities
-- `regenerate-*.js` - Data regeneration
-- `debug-*.js` - Debug utilities
+## Feature Status Summary (June 2025)
 
-### Analysis Results
-- `*-results/` - Analysis output directories
-- `*-147239148.*` - Character-specific files (using character ID)
+- Character Import: Fully functional in test scripts (JSON output, no raw HTML, correct mapping)
+- Class Import: Main class data imports and parses; class features and spell import for classes are stubs/partial
+- Spell Import Utility: Bulk spell import via `importSpells.ts` works and generates comprehensive spell JSON
+- Enhanced Spell Parser: Successfully parses and analyzes spells, generating activities for all tested spells
+- Bulk Spell Import via API: `importAllSpells` is a placeholder; not implemented in the main API
+- Class Feature Import: `importClassFeatures` is a stub
+- Compendium Linking & UI Dialogs: Only available in FoundryVTT environment
+- Some scripts require CLI token, not just env var
+- Monster Import: Not yet implemented (parser stub exists)
+- Bulk Character Import: Not yet implemented
 
-## Build Process
-
-1. **Source** (`src/`) → **Build** (`build/`)
-2. **Configuration**: `tools/rollup.config.js`
-3. **Scripts**: 
-   - `npm run build` - Single build
-   - `npm run build:watch` - Watch mode
-   - `npm run clean` - Clean build directory
-
-## Working with the Structure
-
-### Adding New Features
-1. Source code goes in `src/module/` or `src/parsers/`
-2. Types go in `src/types/`
-3. Tests go in `tests/`
-4. Documentation goes in `docs/`
-
-### Running Tests
-```bash
-# Run specific test
-node tests/test-api.js
-
-# Run validation
-bash tests/validate-final.sh
-
-# Run analysis
-node scripts/analyze-character.js
-```
-
-### Debugging
-1. Debug scripts in `debug/`
-2. Analysis results automatically saved to `analysis/`
-3. Build outputs in `build/` (check `.map` files for source mapping)
-
-## Maintenance
-
-### Regular Cleanup
-- `npm run clean` - Remove build artifacts
-- `rm -rf debug/*.tmp` - Clean temporary debug files
-- `rm -rf analysis/old-*` - Remove old analysis results
-
-### Before Commits
-1. Run `npm run lint:fix`
-2. Run `npm run type-check`
-3. Run `npm run build` to ensure no build errors
-4. Check that only necessary files are staged
-
-## Integration with Development Tools
-
-### VS Code
-- `.vscode/` settings respect this structure
-- Build tasks use `tools/rollup.config.js`
-- Debug configurations point to `build/` directory
-
-### Docker
-- `docker-compose.yml` mounts proper directories
-- Build outputs in `build/` are accessible to containers
-
-### Git
-- `.gitignore` excludes generated files
-- Only source code and documentation tracked
-- Analysis results can be optionally tracked
-
-# Project Structure and Proxy Server Decision
-
-## Current Structure
-- The `beyond-foundry-proxy` (proxy server) is included within the main Beyond Foundry repository.
-- This approach is chosen for early development efficiency, unified versioning, and easier local testing.
-- The proxy handles authentication and API requests to D&D Beyond, acting as a secure intermediary for the main module.
-
-## Rationale for Single-Repo Approach
-- **Simplicity:** Easier to coordinate changes between the main module and proxy.
-- **Unified Development:** Streamlined development, testing, and deployment.
-- **Documentation and Versioning:** All related code and docs are versioned together.
-- **Refactoring Option:** If the proxy grows in complexity or needs to be reused, it can be split into a separate repository later with minimal disruption.
-
-## Best Practices Going Forward
-- Keep proxy and main module code clearly separated within the repo (e.g., `beyond-foundry-proxy/` directory).
-- Document any cross-module dependencies.
-- Revisit the decision if the proxy is needed as a standalone service or for other projects.
-
----
-
-*This decision and rationale were reviewed as of June 2025. See also: MCP integration and repository maintenance notes.*
-
-## Release Milestones
-
-- **v0.5.0 (June 2025):** MCP Synaptic integration, proxy structure finalized, major repository cleanup, and documentation overhaul. This tag marks a stable foundation for future development.
-
----
-
-*For a full list of tags and releases, see the repository tags or CHANGELOG.md.*
+**Note:** All test scripts now work with the current codebase and .env setup, but some features are stubs or require FoundryVTT.

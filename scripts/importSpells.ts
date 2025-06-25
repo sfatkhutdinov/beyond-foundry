@@ -35,9 +35,9 @@ class ScriptLogger {
 async function main() {
     ScriptLogger.info('Starting spell import process...');
     
-    const token = process.argv[2];
+    const token = process.argv[2] || process.env.COBALT_TOKEN;
     if (!token) {
-        ScriptLogger.error('Usage: ts-node importSpells.ts <cobalt-token>');
+        ScriptLogger.error('Usage: ts-node importSpells.ts <cobalt-token> or set COBALT_TOKEN in .env');
         process.exit(1);
     }
     

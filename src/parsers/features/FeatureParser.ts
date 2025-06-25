@@ -190,17 +190,6 @@ export class FeatureParser {
             componentId: ddbFeature.componentId || null,
             componentTypeId: ddbFeature.componentTypeId || null
           }
-        },
-        toObject() {
-          // Return a plain object representation for FoundryItemData
-          return {
-            id: this.id,
-            name: this.name,
-            type: this.type,
-            img: this.img || '',
-            system: this.system,
-            flags: this.flags || {}
-          };
         }
       };
     } catch (error) {

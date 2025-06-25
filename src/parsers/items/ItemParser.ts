@@ -1,4 +1,4 @@
-import type { DDBCharacter, DDBItem } from '../../types/index.js';
+import type { DDBCharacter, DDBItem, FoundryItemData } from '../../types/index.js'; // Added FoundryItemData
 import { Logger, getErrorMessage } from '../../module/utils/logger.js';
 
 /**
@@ -9,8 +9,8 @@ export class ItemParser {
   /**
    * Parse an array of D&D Beyond items to Foundry format
    */
-  static async parseItemArray(ddbItems: DDBItem[]): Promise<FoundryItem[]> {
-    const items: FoundryItem[] = [];
+  static async parseItemArray(ddbItems: DDBItem[]): Promise<FoundryItemData[]> {
+    const items: FoundryItemData[] = [];
     for (const ddbItem of ddbItems) {
       try {
         const foundryItem = this.parseItem(ddbItem);
@@ -28,7 +28,7 @@ export class ItemParser {
   /**
    * @deprecated Use parseItemArray instead. This method will be removed in a future release.
    */
-  static async parseCharacterItems(ddbCharacter: DDBCharacter): Promise<FoundryItem[]> {
+  static async parseCharacterItems(ddbCharacter: DDBCharacter): Promise<FoundryItemData[]> {
     if (!ddbCharacter.inventory) {
       Logger.warn('No inventory found for character');
       return [];
@@ -39,7 +39,7 @@ export class ItemParser {
   /**
    * Parse a single D&D Beyond item to Foundry format
    */
-  static parseItem(ddbItem: DDBItem): FoundryItem | null {
+  static parseItem(ddbItem: DDBItem): FoundryItemData | null {
     try {
       if (!ddbItem.definition) {
         Logger.warn('Item has no definition, skipping');
@@ -47,7 +47,7 @@ export class ItemParser {
       }
 
       const itemType = this.getFoundryItemType(ddbItem);
-      const foundryItem: FoundryItem = {
+      const foundryItem: FoundryItemData = { // Changed type to FoundryItemData
         name: ddbItem.definition.name,
         type: itemType,
         img: this.getItemImage(ddbItem),
@@ -296,11 +296,23 @@ export class ItemParser {
 }
 
 // Foundry Item interface
-interface FoundryItem {
-  name: string;
-  type: string;
-  img: string;
-  system: Record<string, unknown>;
-  effects: unknown[];
-  flags: Record<string, unknown>;
-}
+// interface FoundryItem { // Commented out or remove if not used elsewhere
+//   name: string;
+//   type: string;
+//   img: string;
+//   system: Record<string, unknown>;
+//   effects: unknown[];
+//   flags: Record<string, unknown>;
+// }
+
+// Ensure FoundryItemData is defined in src/types/index.ts if not already
+// For example:
+// export interface FoundryItemData {
+//   name: string;
+//   type: string;
+//   img?: string;
+//   system: Record<string, unknown>; // Or a more specific system type
+//   effects?: unknown[];
+//   flags?: Record<string, unknown>;
+//   [key: string]: unknown; // If additional properties are expected
+// }

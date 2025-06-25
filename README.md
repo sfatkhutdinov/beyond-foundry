@@ -34,14 +34,14 @@ Beyond Foundry is a FoundryVTT module that imports your purchased D&D Beyond con
 
 ## 🚦 Development Status (June 2025)
 
-- ✅ **Character Import:** Fully functional, tested with real D&D Beyond data
-- ✅ **Spell Import:** Production-ready, supports all spellcasting classes and multiclassing ([details](docs/SPELL_ENHANCEMENT_COMPLETE.md))
-- ✅ **Proxy Integration:** ddb-proxy integration complete, Docker-ready
-- ✅ **UI Dialogs:** Import and authentication dialogs implemented ([see UI](docs/ui.md))
-- ✅ **TypeScript Build System:** Modern, strict, and reliable ([modernization](docs/MODERNIZATION_COMPLETE.md))
-- ✅ **Bulk Import & Compendium:** Spell and item bulk import with canonical compendium linking (requires cobalt token)
-- ✅ **Equipment & Items:** Basic import with compendium linking (advanced features planned)
-- 🟡 **Advanced Features:** Auto-sync, batch import, selective import in planning
+- ✅ **Character Import:** Fully functional in test scripts (JSON output, no raw HTML, correct mapping)
+- ✅ **Spell Import Utility:** Bulk spell import via `importSpells.ts` works and generates comprehensive spell JSON
+- ✅ **Enhanced Spell Parser:** Successfully parses and analyzes spells, generating activities for all tested spells
+- ✅ **Class Import:** Main class data imports and parses; class features and spell import for classes are stubs/partial
+- ⚠️ **Bulk Spell Import via API:** `importAllSpells` is a placeholder; not implemented in the main API
+- ⚠️ **Class Feature Import:** `importClassFeatures` is a stub
+- ⚠️ **Compendium Linking & UI Dialogs:** Only available in FoundryVTT environment
+- ⚠️ **Some scripts require CLI token, not just env var**
 - ❌ **Monster Import:** Not yet implemented (parser stub exists)
 - ❌ **Bulk Character Import:** Not yet implemented
 
@@ -133,6 +133,17 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - **[Docker Setup](docs/DOCKER_SETUP.md)** - Running with Docker and ddb-proxy
 - See [docs/CHARACTER_IMPORT_GUIDE.md](docs/CHARACTER_IMPORT_GUIDE.md) for schema mapping and enrichment notes
 
+## 🧹 Repository Cleanup & Organization (June 2025)
+
+- Outdated, superseded, or archival docs are now in `docs/archive/`.
+- Large, obsolete, or sample data files are in `data/obsolete/`.
+- Intermediate or legacy class parsing files are in `class_jsons/archive/`.
+- Old or unused references are in `references/archive/`.
+- Experimental or empty scripts are in `scripts/dev/`.
+- Legacy or empty test files are in `tests/legacy/`.
+
+**Tip:** Periodically review these folders and delete files you are sure you will never need.
+
 ## Documentation Index
 
 - [Project Organization](docs/project-organization.md): Directory structure, proxy rationale, and release milestones
@@ -149,6 +160,7 @@ See [docs/development-status.md](docs/development-status.md) and [docs/roadmap.m
 - [SPELL_ENHANCEMENT_COMPLETE](docs/SPELL_ENHANCEMENT_COMPLETE.md)
 - [Testing](docs/testing.md)
 - [UI](docs/ui.md)
+- **[Archive & Obsolete Files](#🧹-repository-cleanup--organization-june-2025)**
 
 ## ✨ Canonical Spell Compendium Linking & Bulk Import
 

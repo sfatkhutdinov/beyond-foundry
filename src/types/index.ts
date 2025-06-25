@@ -591,6 +591,10 @@ export interface FoundryActor {
       originalData?: unknown;
       parsingVersion?: string;
       features?: string[];
+      importMethod?: 'api-first' | 'scraping-based'; // Refined
+      apiVersion?: string;
+      importedAt?: number;
+      richAPIData?: boolean;
     };
   };
 }
@@ -604,12 +608,18 @@ export interface ImportOptions {
   spellPreparationMode?: 'prepared' | 'pact' | 'always' | 'atwill' | 'innate';
   spellCompendiumName?: string; // Added for compendium spell linking
   itemCompendiumName?: string; // Added for compendium item linking
+  forceUpdate?: boolean;
+  debug?: boolean;
+  // Added for test script compatibility
+  cobaltToken?: string;
+  proxyUrl?: string;
 }
 
 // API response types
 export interface ImportResult {
   success: boolean;
-  actor?: FoundryActor;
+  actor?: FoundryActor; // Remains optional for cases where actor creation is skipped (tests)
+  parsedData?: FoundryActor; // Added to return parsed data from services for tests
   errors?: string[];
   warnings?: string[];
   importedItems?: number;
@@ -743,6 +753,9 @@ export interface FoundrySpell {
       usesSpellSlot: boolean;
       castAtLevel: number | null;
       restriction: string | null;
+      importMethod?: 'scraping-based' | 'api-first'; // Added
+      contentQuality?: 'high' | 'standard'; // Added
+      importedAt?: number; // Added
     };
     [key: string]: unknown;
   };
@@ -1046,7 +1059,6 @@ export interface FoundryItem {
   img?: string;
   system: FoundryItemSystemData;
   flags?: Record<string, unknown>;
-  toObject(): FoundryItemData;
 }
 
 export interface FoundryItemData {
@@ -1085,8 +1097,8 @@ export interface CharacterAction {
   id: string;
   name: string;
   type: string;
-  actionType: string;
   description: string;
+  system: FoundryItemSystemData; // Added to hold system data like actionType
   activation?: {
     type: string;
     cost: number;
@@ -1112,7 +1124,7 @@ export interface CharacterAction {
     dc: number | null;
     scaling: string;
   };
-  [key: string]: any;
+  [key: string]: unknown; // Changed from any to unknown
 }
 
 export interface WeaponDamage {
@@ -1162,7 +1174,7 @@ export interface JournalEntry {
   folder?: string;
   sort?: number;
   ownership?: Record<string, number>;
-  flags?: Record<string, any>;
+  flags?: Record<string, unknown>; // Changed from any to unknown
 }
 
 export interface FileData {
