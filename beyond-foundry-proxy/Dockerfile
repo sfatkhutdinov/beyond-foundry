@@ -1,5 +1,5 @@
 # Dockerfile for beyond-foundry-proxy
-FROM --platform=linux/amd64 node:lts
+FROM node:lts
 
 # Install Puppeteer/Chromium dependencies
 RUN apt-get update && apt-get install -y \
@@ -36,9 +36,6 @@ COPY . .
 
 # Build TypeScript
 RUN npm run build
-
-# Ensure sitemap is available in dist/
-COPY sitemap-rpgspell-1.xml dist/
 
 # Expose port 4000
 EXPOSE 4000

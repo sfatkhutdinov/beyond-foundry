@@ -23,6 +23,9 @@ services:
       - default
     environment:
       - PORT=4000
+      - COBALT_TOKEN=${COBALT_TOKEN}
+      - COBALT_COOKIE=${COBALT_TOKEN}
+      - NODE_ENV=production
     volumes:
       - ./zzzOutputzzz:/usr/src/zzzOutputzzz
 

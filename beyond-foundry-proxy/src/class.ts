@@ -1129,6 +1129,19 @@ router.post('/content-container/:className', async (req: Request, res: Response)
   }
 });
 
+router.post('/proxy/class', async (req: Request, res: Response) => {
+  try {
+    const { classId, className, cobalt } = req.body;
+    if (!classId || !className || !cobalt) {
+      return res.status(400).json({ success: false, error: 'Missing classId, className, or cobalt in request body.' });
+    }
+    const classData = await getClassData(Number(classId), String(className), String(cobalt));
+    return res.json({ success: true, data: classData });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: (err as Error).message });
+  }
+});
+
 export default router;
 
 /**

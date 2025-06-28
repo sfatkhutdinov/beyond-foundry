@@ -1,5 +1,5 @@
 import type { DDBCharacter, DDBItem, FoundryItemData } from '../../types/index.js'; // Added FoundryItemData
-import { Logger, getErrorMessage } from '../../module/utils/logger.js';
+import { Logger, getErrorMessage } from '../../module/utils/logger.ts';
 
 /**
  * Parser for D&D Beyond items and equipment
@@ -47,18 +47,53 @@ export class ItemParser {
       }
 
       const itemType = this.getFoundryItemType(ddbItem);
-      const foundryItem: FoundryItemData = { // Changed type to FoundryItemData
+      const system = this.parseItemSystem(ddbItem, itemType);
+      // Add Foundry Activity System stub for weapons and consumables
+      if (itemType === 'weapon') {
+        system.activities = {
+          attack: {
+            _id: 'attack',
+            type: 'attack',
+            name: ddbItem.definition.name,
+            sort: 0,
+            activation: { type: 'action', value: 1, condition: '' },
+            range: this.parseWeaponRange(ddbItem.definition),
+            damage: this.parseWeaponDamage(ddbItem.definition),
+            attack: {
+              ability: 'str', // TODO: infer from weapon/finesse
+              bonus: '',
+              critical: { threshold: null },
+              flat: false,
+              type: { value: ddbItem.definition.attackType === 1 ? 'melee' : 'ranged', classification: 'weapon' }
+            }
+          }
+        };
+      } else if (itemType === 'consumable') {
+        system.activities = {
+          use: {
+            _id: 'use',
+            type: 'utility',
+            name: ddbItem.definition.name,
+            sort: 0,
+            activation: { type: 'action', value: 1, condition: '' },
+            uses: { value: ddbItem.quantity || 1, max: ddbItem.quantity || 1 },
+            // TODO: Add effect/healing/buff logic here
+          }
+        };
+      }
+      const foundryItem: FoundryItemData = {
         name: ddbItem.definition.name,
         type: itemType,
         img: this.getItemImage(ddbItem),
-        system: this.parseItemSystem(ddbItem, itemType),
+        system,
         effects: [],
         flags: {
           'beyond-foundry': {
             ddbId: ddbItem.id,
             sourceId: ddbItem.definition.id,
             origin: 'D&D Beyond',
-            itemType: ddbItem.definition.type
+            itemType: ddbItem.definition.type,
+            container: this.parseContainerInfo(ddbItem)
           }
         }
       };
@@ -180,14 +215,21 @@ export class ItemParser {
   /**
    * Parse tool-specific system data
    */
-  private static parseToolSystem(_ddbItem: DDBItem): Record<string, unknown> {
+  private static parseToolSystem(ddbItem: DDBItem): Record<string, unknown> {
+    // Parse tool proficiency and ability
+    let proficient = 0; // 0 = not proficient, 1 = proficient, 2 = expert
+    let ability = 'int';
+    // Check for tool proficiency fields (future extension)
+    if (ddbItem.proficient === true) proficient = 1;
+    if (ddbItem.expert === true) proficient = 2;
+    if (ddbItem.ability) ability = ddbItem.ability;
     return {
       type: {
         value: 'tool',
         baseItem: ''
       },
-      proficient: 0, // 0 = not proficient, 1 = proficient, 2 = expert
-      ability: 'int' // Default ability
+      proficient,
+      ability
     };
   }
 
@@ -195,17 +237,21 @@ export class ItemParser {
    * Parse consumable-specific system data
    */
   private static parseConsumableSystem(ddbItem: DDBItem): Record<string, unknown> {
+    // Parse uses and add stub for effect parsing
+    const uses = {
+      value: ddbItem.quantity || 1,
+      max: ddbItem.quantity || 1,
+      per: null,
+      autoDestroy: true
+    };
+    // TODO: Parse effects (healing, buffs, etc.) from DDB definition
     return {
       type: {
         value: ItemParser.getConsumableType(ddbItem),
         subtype: ''
       },
-      uses: {
-        value: ddbItem.quantity || 1,
-        max: ddbItem.quantity || 1,
-        per: null,
-        autoDestroy: true
-      }
+      uses
+      // effects: [] // Future: parse and attach effects
     };
   }
 
@@ -232,9 +278,7 @@ export class ItemParser {
    * Returns an object with parentId if the item is inside a container
    */
   private static parseContainerInfo(ddbItem: DDBItem): Record<string, unknown> {
-    void ddbItem;
-    // TODO: Implement full container logic (ddb-importer parity)
-    // Example: if ddbItem.containerId exists, return { parentId: ddbItem.containerId }
+    // Implement full container logic: if ddbItem.containerId exists, return { parentId: ddbItem.containerId }
     if ('containerId' in ddbItem && typeof ddbItem.containerId === 'number') {
       return { parentId: ddbItem.containerId };
     }
@@ -267,11 +311,89 @@ export class ItemParser {
            'icons/svg/item-bag.svg';
   }
   private static getWeaponType(_weaponData: unknown): string { void _weaponData; return 'simpleM'; }
-  private static parseWeaponProperties(_weaponData: unknown): Record<string, boolean> { void _weaponData; return {}; }
-  private static parseWeaponDamage(_weaponData: unknown): Record<string, unknown> { void _weaponData; return { parts: [], versatile: '' }; }
-  private static parseWeaponRange(_weaponData: unknown): Record<string, unknown> { void _weaponData; return { value: 5, long: null, units: 'ft' }; }
+  private static parseWeaponProperties(weaponData: any): Record<string, boolean> {
+    // DDB weapon properties are an array of property objects or strings
+    // Map to Foundry flags: finesse, heavy, light, loading, reach, thrown, twoHanded, versatile, ammunition, etc.
+    const foundryProps: Record<string, boolean> = {};
+    if (Array.isArray(weaponData?.properties)) {
+      for (const prop of weaponData.properties) {
+        const key = typeof prop === 'string' ? prop.toLowerCase() : (prop.name || prop.label || '').toLowerCase();
+        switch (key) {
+          case 'finesse': foundryProps.finesse = true; break;
+          case 'heavy': foundryProps.heavy = true; break;
+          case 'light': foundryProps.light = true; break;
+          case 'loading': foundryProps.loading = true; break;
+          case 'reach': foundryProps.reach = true; break;
+          case 'thrown': foundryProps.thrown = true; break;
+          case 'two-handed': case 'twohanded': foundryProps.twoHanded = true; break;
+          case 'versatile': foundryProps.versatile = true; break;
+          case 'ammunition': foundryProps.ammunition = true; break;
+          // Add more as needed
+        }
+      }
+    }
+    return foundryProps;
+  }
+  private static parseWeaponDamage(weaponData: any): Record<string, unknown> {
+    // Try to extract damage dice and type from weaponData
+    // DDB may not provide this directly, so fallback to empty/defaults
+    if (weaponData?.damage && typeof weaponData.damage === 'object') {
+      // Example: { diceCount: 1, diceValue: 8, damageType: 'slashing' }
+      const { diceCount, diceValue, damageType } = weaponData.damage;
+      return {
+        parts: [[`${diceCount || 1}d${diceValue || 6}`, damageType || 'bludgeoning']],
+        versatile: weaponData.versatileDamage ? `${weaponData.versatileDamage}` : '',
+      };
+    }
+    // Fallback: try to infer from baseItem or leave empty
+    return { parts: [], versatile: '' };
+  }
+  private static parseWeaponRange(weaponData: any): Record<string, unknown> {
+    // DDB may provide range as { value: 5, long: 20, units: 'ft' }
+    if (weaponData?.range && typeof weaponData.range === 'object') {
+      const { value, long, units } = weaponData.range;
+      return { value: value || 5, long: long || null, units: units || 'ft' };
+    }
+    // Fallback: melee = 5 ft, ranged = 20/60 ft, etc.
+    if (weaponData?.attackType === 1) return { value: 5, long: null, units: 'ft' };
+    if (weaponData?.attackType === 2) return { value: 20, long: 60, units: 'ft' };
+    return { value: 5, long: null, units: 'ft' };
+  }
   private static getEquipmentType(_equipData: unknown): string { void _equipData; return 'clothing'; }
-  private static parseArmorData(_equipData: unknown): Record<string, unknown> { void _equipData; return { type: 'clothing', value: 10, dex: null }; }
+  private static parseArmorData(equipData: any): Record<string, unknown> {
+    // Extract AC, armor type, dex cap, and other fields from DDBItem.definition
+    // DDB may provide ac, armorType, dexBonus, etc.
+    const ac = equipData?.armorClass || 10;
+    const type = (equipData?.armorType || '').toLowerCase();
+    let foundryType = 'clothing';
+    let dex = null;
+    switch (type) {
+      case 'light':
+        foundryType = 'light';
+        dex = null; // No cap
+        break;
+      case 'medium':
+        foundryType = 'medium';
+        dex = 2;
+        break;
+      case 'heavy':
+        foundryType = 'heavy';
+        dex = 0;
+        break;
+      case 'shield':
+        foundryType = 'shield';
+        dex = null;
+        break;
+      default:
+        foundryType = 'clothing';
+        dex = null;
+    }
+    return {
+      type: foundryType,
+      value: ac,
+      dex: dex
+    };
+  }
   private static getConsumableType(ddbItem: DDBItem): string {
     const type = ddbItem.definition?.type?.toLowerCase();
     switch (type) {

@@ -68,6 +68,17 @@ debug-*.mjs
 class_jsons/
 references/
 
+# Test and development output files
+zzzOutputzzz/
+*.log
+*.html
+*.json.log
+*_results.json
+*_results.log
+*_test_results.*
+proxy_*.json
+imported_*.log
+enhanced_parser_test_results.*
 
 detailed_rogue_pretty.json
 .cursor/memory.json

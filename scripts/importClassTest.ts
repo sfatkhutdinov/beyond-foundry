@@ -58,6 +58,15 @@ async function testClassSpellImport() {
     });
     appendToDebugLog(`Import class features call completed. Features count: ${classFeatures?.length ?? 0}.`);
 
+    // Print and log the full class object (including isLegacy)
+    if (classFeatures && typeof classFeatures === 'object') {
+      appendToDebugLog(`Full class object: ${JSON.stringify(classFeatures, null, 2)}`);
+      if ('isLegacy' in classFeatures) {
+        console.log(`isLegacy: ${classFeatures.isLegacy}`);
+        appendToDebugLog(`isLegacy: ${classFeatures.isLegacy}`);
+      }
+    }
+
     // Step 2: Import Spells by Class
     appendToDebugLog(`Importing spells for ${CLASS_TO_TEST}...`);
     const spellImportResult = await api.importSpellsByClass(CLASS_TO_TEST, { // api.importSpellsByClass returns an object
@@ -74,6 +83,7 @@ async function testClassSpellImport() {
       spells: spellImportResult.spells, // Access the spells array from the result
       spellImportSuccess: spellImportResult.success,
       spellImportErrors: spellImportResult.errors,
+      isLegacy: classFeatures && typeof classFeatures === 'object' && 'isLegacy' in classFeatures ? classFeatures.isLegacy : undefined,
     };
 
     await fs.writeJson(resultFilePath, resultData, { spaces: 2 });
